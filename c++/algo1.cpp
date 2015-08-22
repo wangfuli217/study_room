@@ -24,7 +24,6 @@ bool has_c1(const string& s, char c)
 vector<string::iterator> find_all(string& s, char c)
 {
     vector<string::iterator> res;
-
     for(auto p=s.begin(); p!=s.end(); ++p)
     {
 	if(*p==c)
@@ -32,6 +31,19 @@ vector<string::iterator> find_all(string& s, char c)
 	    res.push_back(p);
 	}
     }
+    return res;
+}
+
+template<typename C, typename V>
+vector<typename C::iterator> find_all1(C& c, V v)
+{
+    vector<typename C::iterator> res;
+    for(auto p = c.begin(); p!=c.end(); ++p)
+    {
+	if(*p==v)
+	    res.push_back(p);
+    }
+
     return res;
 }
 
@@ -61,6 +73,15 @@ int main()
 
     all_iter = find_all(s,c);
     for(auto x : all_iter)
+    {
+	cout << *x << endl;
+    }
+
+    cout << "============================" << endl;
+    vector<string::iterator> all_iter1;
+
+    all_iter1 = find_all1(s,c);
+    for(auto x : all_iter1)
     {
 	cout << *x << endl;
     }
