@@ -1,10 +1,11 @@
 #include <iostream>
 #include <vector>
+#include <list>
 
 using namespace std;
 
 template<typename T>
-using Iterator<T> = typename T::iterator;
+using Iterator = typename T::iterator;
 
 template<typename C, typename V>
 vector<Iterator<C>> find_all(C& c, V v)
