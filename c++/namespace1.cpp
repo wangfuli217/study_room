@@ -9,13 +9,13 @@ namespace Estd
     template<class C>
     void sort(C& c)
     {
-	sort(c.begin(),c.end());
+        sort(c.begin(),c.end());
     }
 
     template<class C, class Pred>
     void sort(C& c, Pred p)
     {
-	sort(c.begin(),c.end(),p);
+        sort(c.begin(),c.end(),p);
     }
 }
 
@@ -31,7 +31,7 @@ int main()
 
     for(auto p : v)
     {
-	std::cout << p << std::endl;
+        std::cout << p << std::endl;
     }
 
     std::cout << "==============" << std::endl;
@@ -39,6 +39,6 @@ int main()
 
     for(auto p : v)
     {
-	std::cout << p << std::endl;
+        std::cout << p << std::endl;
     }
 }
