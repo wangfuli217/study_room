@@ -20,7 +20,7 @@ int main()
 
     vector<int> histogram(5);
     for(int i=0; i!=200; ++i)
-	++histogram[rnd()];
+        ++histogram[rnd()];
 
     for(int i=0; i!=histogram.size(); ++i)
     {
