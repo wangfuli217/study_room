@@ -24,5 +24,8 @@ int main()
     cout << endl;
 
     for(vector<int>::reverse_iterator riter=reverse_iter; riter!=v.rend(); ++riter)
-	cout << *riter << endl;
+	cout << *riter << " ";
+    cout << endl;
+
+    return 0;
 }
