@@ -3,10 +3,10 @@
 #include <algorithm>
 using namespace std;
 
-class Accumulation
+struct Accumulation
 {
     int total;
-public:
+
     explicit Accumulation(int init=0):total(init) {}
     void operator()(int& r)
     {
@@ -29,6 +29,7 @@ int main()
     cout << endl;
 
     for_each(v.begin(), v.end(), Accumulation(0));
+
     cout << "v : ";
     for(auto i : v) cout << i << " ";
     cout << endl;
