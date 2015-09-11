@@ -49,7 +49,7 @@ namespace Records
 	}
     }
 
-    void Databse::displayCurrent() const
+    void Database::displayCurrent() const
     {
 	for(auto iter=mEmployees.begin(); iter!=mEmployees.end(); ++iter)
 	{
