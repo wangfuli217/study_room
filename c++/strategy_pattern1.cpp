@@ -20,7 +20,7 @@ int zerg_dojob_get_energy(const GameCharacter& gc)
     return 1;
 }
 
-int tank_dojob_get_energy(const GameCharacter& gc)
+Int tank_dojob_get_energy(const GameCharacter& gc)
 {
     cout << "tank dojob..." << endl;
     return 2;
