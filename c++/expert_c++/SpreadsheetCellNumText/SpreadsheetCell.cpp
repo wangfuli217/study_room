@@ -34,7 +34,7 @@ void SpreadsheetCell::setString(string inString)
 }
 */
 
-void SpreadsheetCell::setString(const string& inString)
+inline void SpreadsheetCell::setString(const string& inString)
 {
     mString = inString;
     mValue = stringToDouble(mString);
@@ -63,13 +63,15 @@ void SpreadsheetCell::setValue(double inValue)
     mString = doubleToString(mValue);
 }
 
-double SpreadsheetCell::getValue() const
+inline double SpreadsheetCell::getValue() const
 {
+    mNumAccesses++;
     return mValue;
 }
 
 string SpreadsheetCell::getString() const
 {
+    mNumAccesses++;
     return mString;
 }
 
@@ -91,6 +93,16 @@ int main()
     myCellp = nullptr;
     delete anotherCellp;
     anotherCellp = nullptr;
+
+    cout << "============= const ==================" << endl;
+
+    SpreadsheetCell myCell2(5);
+    cout << myCell.getValue() << endl;
+    myCell2.setString("6");
+
+    const SpreadsheetCell& myAnotherCell2 = myCell2;
+    cout << myAnotherCell2.getValue() << endl;
+    //myAnotherCell2.setString("6");   //  error. const object calls non-const member function
 
     return 0;
 }
