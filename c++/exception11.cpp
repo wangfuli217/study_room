@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -13,14 +12,13 @@ void readIntegerFile(const string& fileName, vector<int>& dest)
     istr.open(fileName.c_str());
     if(istr.fail())
     {
-	throw invalid_argument("");
+	string error = "Unable to open file " + fileName;
+	throw invalid_argument(error);
     }
-
     while(istr >> temp)
     {
 	dest.push_back(temp);
     }
-
     if(istr.eof())
     {
 	istr.close();
@@ -28,13 +26,14 @@ void readIntegerFile(const string& fileName, vector<int>& dest)
     else
     {
 	istr.close();
-	throw runtime_error("");
+	string error = "Unable to read file " + fileName;
+	throw runtime_error(error);
     }
 }
 
 int main()
 {
-    string fileName = "ttt.txt";
+    const string fileName = "xxxxx.txt";
     vector<int> myInts;
 
     try
@@ -43,12 +42,14 @@ int main()
     }
     catch(const invalid_argument& e)
     {
-	cerr << "Unable to open file " << fileName << endl;
+	cerr << e.what() << endl;
 	return 1;
     }
     catch(const runtime_error& e)
     {
-	cerr << "Error reading file " << fileName << endl;
+	cerr << e.what() << endl;
 	return 1;
     }
+
+    return 0;
 }

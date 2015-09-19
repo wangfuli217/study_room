@@ -1,3 +1,5 @@
+// expert c++ 10.2.4
+
 #include <stdexcept>
 #include <iostream>
 #include <vector>
@@ -6,7 +8,6 @@
 using namespace std;
 
 void readIntegerFile(const string& fileName, vector<int>& dest)
-    throw(invalid_argument,runtime_error)
 {
     ifstream istr;
     int temp;
@@ -32,23 +33,27 @@ void readIntegerFile(const string& fileName, vector<int>& dest)
     }
 }
 
+void myTerminate()
+{
+    cout << "Uncaught exception" << endl;
+    exit(1);
+}
+
 int main()
 {
-    string fileName = "ttt.txt";
     vector<int> myInts;
+    const string fileName = "IntegerFile.txt";
 
-    try
+    // set terminate handler
+    set_terminate(myTerminate);
+
+    // throw exception
+    readIntegerFile(fileName, myInts);
+
+    for(size_t i=0; i<myInts.size(); i++)
     {
-	readIntegerFile(fileName, myInts);
+	cout << myInts[i] << " ";
     }
-    catch(const invalid_argument& e)
-    {
-	cerr << "Unable to open file " << fileName << endl;
-	return 1;
-    }
-    catch(const runtime_error& e)
-    {
-	cerr << "Error reading file " << fileName << endl;
-	return 1;
-    }
+    cout << endl;
+    return 0;
 }
