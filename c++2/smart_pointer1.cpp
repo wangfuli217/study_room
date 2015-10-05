@@ -136,11 +136,23 @@ int main()
     }
     else
     {
-        std::cout << "TEST PASSED" << std::endl;
+        std::cout << "TEST PASSED : " << Nothing::sNumAllocations << std::endl;
     }
 
     Nothing * myNothing2 = new Nothing();
     {
         SuperSmartPointer<Nothing> ptr2(myNothing2);
+        SuperSmartPointer<Nothing> ptr3(ptr2);
+        SuperSmartPointer<Nothing> ptr4 = ptr3;
+    }
+
+    if(Nothing::sNumAllocations != Nothing::sNumDeletions)
+    {
+        std::cout << "TEST FAILED : " << Nothing::sNumAllocations <<
+            " allocs and " << Nothing::sNumDeletions << " deletions." << std::endl;
+    }
+    else
+    {
+        std::cout << "TEST PASSED : " << Nothing::sNumAllocations << std::endl;
     }
 }
