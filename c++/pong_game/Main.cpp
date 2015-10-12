@@ -16,14 +16,14 @@ int main()
     int score2 = 0;
     sf::Text windowScore;
     sf::Font font;
-    if(!(font.loadFromFild("arial.ttf")))
+    if(!(font.loadFromFile("arial.ttf")))
         if(DEBUG)
             std::cout << "Error loading font" << std::endl;
 
     windowScore.setFont(font);
     windowScore.setString(std::to_string(score1) + " | " + std::to_string(score2));
     windowScore.setColor(sf::Color::White);
-    windowScore.setCharaterSize(20);
+    windowScore.setCharacterSize(20);
     windowScore.setPosition(WIDTH/2 - (windowScore.getString().getSize()*(windowScore.getCharacterSize()/5)), windowScore.getCharacterSize()-5);
     windowScore.setStyle(sf::Text::Bold);
 
@@ -64,18 +64,18 @@ int main()
     return 0;
 }
 
-void collision(Paddle* pad, Ball& puck)
+void collision(Paddle& pad, Ball& puck)
 {
     if(puck.ball.getPosition().x <= pad.body.getPosition().x + pad.body.getSize().x
     && puck.ball.getPosition().x >= pad.body.getPosition().x
     && puck.ball.getPosition().y <= pad.body.getPosition().y + pad.body.getSize().y
-    && puck.ball.getPosition().y >= pad.body.getPosition.y)
+    && puck.ball.getPosition().y >= pad.body.getPosition().y)
     {
 	puck.velocity.x *= -1;
 	if(puck.ball.getPosition().y < pad.body.getPosition().y + pad.body.getSize().y/3)
 	    puck.velocity.y = -10;
-	else if(puck.ball.getPosition().y > pad.body.getPosition().y + pad.body.getSize() - pad.body.getSize().y/3)
-	    puck.velocity = 10;
+	else if(puck.ball.getPosition().y > pad.body.getPosition().y + pad.body.getSize().y - pad.body.getSize().y/3)
+	    puck.velocity.y = 10;
 	else if(puck.velocity.y < 0)
 	    puck.velocity.y = -5;
 	else if(puck.velocity.y > 0)

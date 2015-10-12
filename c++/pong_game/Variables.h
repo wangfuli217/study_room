@@ -9,4 +9,4 @@ extern const int HEIGHT;
 extern int score1;
 extern int score2;
 
-#endif GUARD_VARIABLES_H
+#endif // GUARD_VARIABLES_H
