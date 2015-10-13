@@ -39,20 +39,20 @@ void Paddle::input()
 	{
 	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
 	    {
-		if(DEBUG)
-		    std::cout << body.getPosition().y << std::endl;
+            if(DEBUG)
+                std::cout << body.getPosition().y << std::endl;
 
-		//if(!body.getPosition().y <= 0)
-		if(! (body.getPosition().y <= 0) )
-		    body.move(sf::Vector2f(0,-VELOCITY));
+            //if(!body.getPosition().y <= 0)
+            if(! (body.getPosition().y <= 0) )
+                body.move(sf::Vector2f(0,-VELOCITY));
 	    }
 
 	    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
 	    {
-		if(DEBUG)
-		    std::cout << body.getPosition().y << std::endl;
-		if(!(body.getPosition().y + body.getSize().y >= HEIGHT))
-		    body.move(sf::Vector2f(0,VELOCITY));
+            if(DEBUG)
+                std::cout << body.getPosition().y << std::endl;
+            if(!(body.getPosition().y + body.getSize().y >= HEIGHT))
+                body.move(sf::Vector2f(0,VELOCITY));
 	    }
 	}
 }

@@ -36,29 +36,29 @@ int main()
 
     while(window.isOpen())
     {
-	start(puck);
-	sf::Event event;
+        start(puck);
+        sf::Event event;
 
-	while(window.pollEvent(event))
-	{
-	    if(event.type == sf::Event::Closed)
-		window.close();
-	}
+        while(window.pollEvent(event))
+        {
+            if(event.type == sf::Event::Closed)
+                window.close();
+        }
 
-	window.clear();
-	paddle.input();
-	paddle2.input();
-	puck.collides();
-	collision(paddle, puck);
-	collision(paddle2, puck);
-	puck.move();
-	if(score(puck))
-	    reset(puck, windowScore);
-	window.draw(paddle.body);
-	window.draw(paddle2.body);
-	window.draw(puck.ball);
-	window.draw(windowScore);
-	window.display();
+        window.clear();
+        paddle.input();
+        paddle2.input();
+        puck.collides();
+        collision(paddle, puck);
+        collision(paddle2, puck);
+        puck.move();
+        if(score(puck))
+            reset(puck, windowScore);
+        window.draw(paddle.body);
+        window.draw(paddle2.body);
+        window.draw(puck.ball);
+        window.draw(windowScore);
+        window.display();
     }
 
     return 0;
@@ -71,18 +71,18 @@ void collision(Paddle& pad, Ball& puck)
     && puck.ball.getPosition().y <= pad.body.getPosition().y + pad.body.getSize().y
     && puck.ball.getPosition().y >= pad.body.getPosition().y)
     {
-	puck.velocity.x *= -1;
-	if(puck.ball.getPosition().y < pad.body.getPosition().y + pad.body.getSize().y/3)
-	    puck.velocity.y = -10;
-	else if(puck.ball.getPosition().y > pad.body.getPosition().y + pad.body.getSize().y - pad.body.getSize().y/3)
-	    puck.velocity.y = 10;
-	else if(puck.velocity.y < 0)
-	    puck.velocity.y = -5;
-	else if(puck.velocity.y > 0)
-	    puck.velocity.y = 5;
+        puck.velocity.x *= -1;
+        if(puck.ball.getPosition().y < pad.body.getPosition().y + pad.body.getSize().y/3)
+            puck.velocity.y = -10;
+        else if(puck.ball.getPosition().y > pad.body.getPosition().y + pad.body.getSize().y - pad.body.getSize().y/3)
+            puck.velocity.y = 10;
+        else if(puck.velocity.y < 0)
+            puck.velocity.y = -5;
+        else if(puck.velocity.y > 0)
+            puck.velocity.y = 5;
 
-	if(DEBUG)
-	    std::cout << "HIT" << std::endl;
+        if(DEBUG)
+            std::cout << "HIT" << std::endl;
     }
 }
 
@@ -90,13 +90,13 @@ bool score(Ball& puck)
 {
     if(puck.ball.getPosition().x > WIDTH)
     {
-	score1 += 1;
-	return true;
+        score1 += 1;
+        return true;
     }
     if(puck.ball.getPosition().x < 0)
     {
-	score2 += 1;
-	return true;
+        score2 += 1;
+        return true;
     }
     return false;
 }
@@ -113,12 +113,12 @@ void start(Ball& puck)
 {
     if(puck.velocity.x == 0 && puck.velocity.y == 0)
     {
-	if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
-	{
-	    puck.velocity.x = 10;
-	    if(score2 > score1)
-		puck.velocity.x *= -1;
-	    puck.velocity.y = -5;
-	}
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+        {
+            puck.velocity.x = 10;
+            if(score2 > score1)
+            puck.velocity.x *= -1;
+            puck.velocity.y = -5;
+        }
     }
 }

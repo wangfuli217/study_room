@@ -20,5 +20,5 @@ void Ball::move()
 void Ball::collides()
 {
     if(ball.getPosition().y <= 0 || ball.getPosition().y >= HEIGHT)
-	velocity.y *= -1;
+        velocity.y *= -1;
 }
