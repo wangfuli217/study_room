@@ -11,17 +11,20 @@ namespace pong
 class Paddle : private NonCopyable
 {
 public:
-	Paddle(int n, int height, int width, int x, int y);
+    using Key = sf::Keyboard::Key;
+
+	Paddle(int width, int height, int x, int y, int UpKey, int DownKey);
 	int Height();
 	int Width();
 	int X();
 	int Y();
 	void checkKeyPressed();
     const sf::RectangleShape& getBody() const;
+    const static int VELOCITY = 10;
 
 private:
 	sf::RectangleShape body;
-	int player_no;
+    Key UpKey, DownKey;
 };
 
 } // namespace pong
