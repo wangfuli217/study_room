@@ -8,7 +8,7 @@ class AttackPaddle : public Paddle
 {
 public:
     AttackPaddle(const sf::Vector2f& size, const sf::Vector2f& pos);
-    void draw(sf::RenderWindow& w);
+    void draw(sf::RenderWindow& w);  /* TODO can be virtual */
 };
 
 #endif // __ATTACK_PADDLE_H__

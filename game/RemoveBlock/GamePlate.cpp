@@ -4,15 +4,13 @@ void GamePlate::newGame()
 {
     int numHorizontalPad = 7;
     int numVertivalPad = 4;
-    int padWidth = 0;
+    int padWidth = width / numHorizontalPad;
     int padHeight = 40;
     TargetPaddle * t = nullptr;
     sf::Vector2f size;
     sf::Vector2f pos;
 
     target.clear();
-
-    padWidth = width / numHorizontalPad;
 
     for(int i=0; i<numVertivalPad; ++i)
     {
@@ -25,7 +23,7 @@ void GamePlate::newGame()
             pos.y = padHeight * i;
 
             t = new TargetPaddle(size,pos);
-            target.push_back(t);
+            target[++getPaddleKey()] = t;
         }
     }
 }
@@ -34,6 +32,16 @@ void GamePlate::drawTargetPads(sf::RenderWindow& w)
 {
     for(auto i:target)
     {
-        w.draw(i->getBody());
+        w.draw(i.second->getBody());
     }
+}
+
+TargetPaddle& GamePlate::getKeyPaddle(const int key)
+{
+    return *target.at(key);
+}
+
+const TargetPaddle& GamePlate::getKeyPaddle(const int key) const
+{
+    return *target.at(key);
 }

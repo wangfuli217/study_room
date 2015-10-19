@@ -1,3 +1,5 @@
+rm *.o RemoveBlock
+
 g++ -g -Wall -O0 -std=c++11 -c Main.cpp -I.
 g++ -g -Wall -O0 -std=c++11 -c GamePlate.cpp -I.
 g++ -g -Wall -O0 -std=c++11 -c Paddle.cpp -I.
