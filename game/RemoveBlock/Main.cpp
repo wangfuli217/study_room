@@ -118,12 +118,21 @@ void collisionTarget(Ball& ball, std::map<int,TargetPaddle*>& paddles)
 void collisionScreen(Ball& ball)
 {
     int ballX = ball.getBody().getPosition().x;
+    int ballY = ball.getBody().getPosition().y - ball.getBody().getRadius();
     int radius = ball.getBody().getRadius();
 
+    // left,right screen
     if( (ballX-radius) <= 0 || (ballX+radius) >= plateWidth )
     {
         std::cout << "Screen collides..." << std::endl;
         ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+    }
+
+    // upper screen
+    if( ballY <= 0 )
+    {
+        std::cout << "Screen collides..." << std::endl;
+        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
     }
 }
 
@@ -138,7 +147,17 @@ void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
 
     if( (ballY >= padTopY) && (ballY < (padTopY + apadSize.y/2)) )
     {
-        if( ballX >= padLeftX && ballX <= padRightX )
+        // If the ball hits in the left/right 1/3 side of the pad,
+        // it gets faster in the x/y direction (bit more in the x direction).
+        if( ((ballX >= padLeftX) && (ballX < (padLeftX + apadSize.x/3)))
+        ||  ((ballX > (padRightX - apadSize.x/3)) && (ballX <= padRightX)) )
+        {
+            std::cout << "Attack paddle left-size collides..." << ballY << ", " << padTopY << std::endl;
+            ball.setVelocity(ball.getVelocity().x*(1.1), ball.getVelocity().y*(-1.05));
+        }
+
+        // If the ball hit in the middle, nothing happens.
+        if( (ballX >= (padLeftX + apadSize.x/3)) && (ballX <= (padRightX - apadSize.x/3)) )
         {
             std::cout << "Attack paddle collides..." << ballY << ", " << padTopY << std::endl;
             ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
