@@ -2,6 +2,8 @@ HP 에서는 shmat 에서 addr 를 사용자가 지정하여 shm 을 만들 수 
 NULL 로 주면 시스템이 주소를 알아서 부여하며,
 대신 같은 shmid 에 대해서 이후에 shmat 를 수행하면 같은 주소를 리턴해준다.
 만약 shmat 에서 사용자가 주소를 지정하고 싶으면 MPAS 형식을 사용해야 한다.
+이렇게 하려면 chatr 을 사용하거나 ld 를 할때 다른 옵션(?)을 사용해야 한다.
+자세한건 아래 링크 및 man page 참조.
 
 http://h21007.www2.hp.com/portal/download/files/unprot/Itanium/aas_white_paper.pdf
 man shmat 참조 
