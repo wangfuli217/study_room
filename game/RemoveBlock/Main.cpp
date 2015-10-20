@@ -10,7 +10,8 @@ void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
 
 float plateWidth = 1400.f;
 float plateHeight = 1000.f;
-sf::Vector2f apadSize = {180, 40};
+int ballRadius = 10;
+sf::Vector2f apadSize = {160, 20};
 
 int main()
 {
@@ -23,9 +24,9 @@ int main()
     // create attack paddle
     AttackPaddle apad(apadSize, {plateWidth/2, plateHeight});
 
-    // create ball (start from the top of the attack paddle)
+    // create ball (start above the attack paddle)
     sf::Vector2f ballPos(plateWidth/2, plateHeight-40);
-    Ball ball(10, ballPos);
+    Ball ball(ballRadius, ballPos);
 
     sf::RenderWindow w(sf::VideoMode(plate.getWidth(), plate.getHeight(), 32),
                        "Block Removal Game",
@@ -84,11 +85,14 @@ bool isTargetCollides(const sf::CircleShape& ball, const sf::RectangleShape& pad
     int padRightX = pad.getPosition().x + pad.getSize().x;
     int padBottom = pad.getPosition().y + pad.getSize().y;
 
-    if( ballX >= padLeftX && ballX <= padRightX )
+    if( (ballY <= padBottom) && (ballY > (padBottom - pad.getSize().y/2)) )
     {
-        if( ballY >= padBottom && ballY < (padBottom+3) )
+        if( ballX >= padLeftX && ballX <= padRightX )
         {
-            std::cout << "collision target paddle..." << std::endl;
+            std::cout << "collision target paddle..."
+                      << "(" << ballX << "," << ballY << ")"
+                      << "(" << padLeftX << "," << padRightX << "," << padBottom << ")"
+                      << std::endl;
             return true;
         }
     }
@@ -126,16 +130,15 @@ void collisionScreen(Ball& ball)
 void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
 {
     int ballX     = ball.getBody().getPosition().x;
-    int radius    = ball.getBody().getRadius();
-    int ballY     = ball.getBody().getPosition().y + radius;
+    int ballY     = ball.getBody().getPosition().y + ball.getBody().getRadius();
 
-    int padTopY   = pad.getBody().getPosition().y - apadSize.y;
+    int padTopY   = pad.getBody().getPosition().y - apadSize.y/2;
     int padLeftX  = pad.getBody().getPosition().x - (apadSize.x/2);
     int padRightX = pad.getBody().getPosition().x + (apadSize.x/2);
 
-    if( ballX >= padLeftX || ballX <= padRightX )
+    if( (ballY >= padTopY) && (ballY < (padTopY + apadSize.y/2)) )
     {
-        if( ballY >= padTopY )
+        if( ballX >= padLeftX && ballX <= padRightX )
         {
             std::cout << "Attack paddle collides..." << ballY << ", " << padTopY << std::endl;
             ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));

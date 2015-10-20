@@ -1,10 +1,9 @@
 #include <AttackPaddle.h>
 
 AttackPaddle::AttackPaddle(const sf::Vector2f& size, const sf::Vector2f& pos)
-    : Paddle(size,pos)
+    : Paddle(size,pos,size/2.f)
 {
     body.setFillColor(sf::Color(204,204,204));
-    body.setOrigin(size/2.f);
 }
 
 void AttackPaddle::draw(sf::RenderWindow& w)

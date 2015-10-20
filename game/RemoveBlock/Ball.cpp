@@ -13,8 +13,8 @@ Ball::Ball(int radius, sf::Vector2f& pos)
 
 void Ball::start()
 {
-    velocity.x = 4;
-    velocity.y = -8;
+    velocity.x = 5;
+    velocity.y = -10;
 }
 
 void Ball::draw(sf::RenderWindow& w)

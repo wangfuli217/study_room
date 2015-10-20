@@ -3,5 +3,6 @@
 
 extern float plateWidth;
 extern float plateHeight;
+extern int ballRadius;
 
 #endif // __VARIABLES_H__

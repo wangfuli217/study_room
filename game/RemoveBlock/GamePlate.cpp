@@ -2,8 +2,8 @@
 
 void GamePlate::newGame()
 {
-    int numHorizontalPad = 7;
-    int numVertivalPad = 4;
+    int numHorizontalPad = 10;
+    int numVerticalPad = 4;
     int padWidth = width / numHorizontalPad;
     int padHeight = 40;
     TargetPaddle * t = nullptr;
@@ -12,7 +12,7 @@ void GamePlate::newGame()
 
     target.clear();
 
-    for(int i=0; i<numVertivalPad; ++i)
+    for(int i=0; i<numVerticalPad; ++i)
     {
         for(int j=0; j<numHorizontalPad; ++j)
         {
