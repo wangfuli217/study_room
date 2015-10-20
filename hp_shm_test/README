@@ -1,0 +1,16 @@
+HP 에서는 shmat 에서 addr 를 사용자가 지정하여 shm 을 만들 수 없다.
+NULL 로 주면 시스템이 주소를 알아서 부여하며,
+대신 같은 shmid 에 대해서 이후에 shmat 를 수행하면 같은 주소를 리턴해준다.
+만약 shmat 에서 사용자가 주소를 지정하고 싶으면 MPAS 형식을 사용해야 한다.
+이렇게 하려면 chatr 을 사용하거나 ld 를 할때 다른 옵션(?)을 사용해야 한다.
+자세한건 아래 링크 및 man page 참조.
+
+http://h21007.www2.hp.com/portal/download/files/unprot/Itanium/aas_white_paper.pdf
+man shmat 참조 
+
+ 1. gcc -mlp64 -c xx.c ; gcc -mlp64 -o xx xx.o
+ 2. chatr +as mpas xx
+    -> 이 때의 xx binary 는 process map 이 변경된 상태이고 이렇게 하면 shmat 에서 주소를 지정가능하다.
+
+그러나, Linux 에서는 shmat 에서 사용자가 주소를 지정가능하며 attach 시 SHM_RND 를 사용해야 한다.
+그리고, Linux 에서는 shmat 에 NULL 을 사용하면 attach 하는 놈마다 주소가 다르게 할당되는 것 같다.
