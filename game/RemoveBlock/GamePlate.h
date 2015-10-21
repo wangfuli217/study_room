@@ -34,12 +34,14 @@ public:
 	}
 	TargetPaddle& getKeyPaddle(const int key);
 	const TargetPaddle& getKeyPaddle(const int key) const;
+	void pause(sf::RenderWindow& w, const std::string& msg);
 
 private:
 	int width;
 	int height;
 	int paddleKey;
 	std::map<int,TargetPaddle*> target;
+    sf::Text pauseMsg;
 };
 
 #endif // __GAME_PLATE_H__

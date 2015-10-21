@@ -11,6 +11,10 @@ public:
 	{
 		return body;
 	}
+	sf::CircleShape& getBody()
+	{
+		return body;
+	}
 	void draw(sf::RenderWindow& w);
 	void start();
 	const sf::Vector2f getVelocity() const

@@ -45,3 +45,9 @@ const TargetPaddle& GamePlate::getKeyPaddle(const int key) const
 {
     return *target.at(key);
 }
+
+void GamePlate::pause(sf::RenderWindow& w, const std::string& msg)
+{
+    pauseMsg.setString(msg);
+    w.draw(pauseMsg);
+}

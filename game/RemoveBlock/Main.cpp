@@ -63,6 +63,17 @@ int main()
         }
 
         apad.draw(w);
+
+        // If a game hasn't started yet,
+        // the ball moves with the attack paddle.
+        if(!isPlaying)
+        {
+            sf::Vector2f pos = { apad.getBody().getPosition().x,
+                                 apad.getBody().getPosition().y
+                                 -apad.getBody().getSize().y
+                                 -ball.getBody().getRadius() };
+            ball.getBody().setPosition(pos);
+        }
         ball.draw(w);
 
         w.display();
