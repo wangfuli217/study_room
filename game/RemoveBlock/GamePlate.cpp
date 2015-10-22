@@ -26,6 +26,8 @@ void GamePlate::newGame()
             target[++getPaddleKey()] = t;
         }
     }
+
+    font.loadFromFile("resources/sansation.ttf");
 }
 
 void GamePlate::drawTargetPads(sf::RenderWindow& w)
@@ -48,6 +50,11 @@ const TargetPaddle& GamePlate::getKeyPaddle(const int key) const
 
 void GamePlate::pause(sf::RenderWindow& w, const std::string& msg)
 {
+    pauseMsg.setFont(font);
+    pauseMsg.setCharacterSize(40);
+    pauseMsg.setPosition(170.f, plateHeight/2);
+    pauseMsg.setColor(sf::Color::White);
     pauseMsg.setString(msg);
+
     w.draw(pauseMsg);
 }

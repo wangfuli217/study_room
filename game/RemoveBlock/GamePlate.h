@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <TargetPaddle.h>
+#include <Variables.h>
 #include <map>
 #include <algorithm>
 
@@ -42,6 +43,7 @@ private:
 	int paddleKey;
 	std::map<int,TargetPaddle*> target;
     sf::Text pauseMsg;
+    sf::Font font;
 };
 
 #endif // __GAME_PLATE_H__
