@@ -17,6 +17,7 @@ public:
 	}
 	void draw(sf::RenderWindow& w);
 	void start();
+	void reset();
 	const sf::Vector2f getVelocity() const
 	{
 		return velocity;
@@ -30,6 +31,7 @@ public:
 private:
 	sf::CircleShape body;
     sf::Vector2f velocity;
+    sf::Vector2f firstPos;
 };
 
 #endif // __BALL_H__

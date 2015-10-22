@@ -4,6 +4,7 @@ AttackPaddle::AttackPaddle(const sf::Vector2f& size, const sf::Vector2f& pos)
     : Paddle(size,pos,size/2.f)
 {
     body.setFillColor(sf::Color(204,204,204));
+    firstPos = pos;
 }
 
 void AttackPaddle::draw(sf::RenderWindow& w)
@@ -25,4 +26,9 @@ void AttackPaddle::draw(sf::RenderWindow& w)
     }
 
     w.draw(body);
+}
+
+void AttackPaddle::reset()
+{
+    body.setPosition({firstPos.x,firstPos.y-getBody().getSize().y/2});
 }

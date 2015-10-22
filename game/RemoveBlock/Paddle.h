@@ -7,6 +7,7 @@
 class Paddle
 {
 public:
+	virtual ~Paddle() {}
     Paddle(const sf::Vector2f& size, const sf::Vector2f& pos);
     Paddle(const sf::Vector2f& size, const sf::Vector2f& pos, const sf::Vector2f& origin);
     const sf::RectangleShape& getBody() const { return body; }

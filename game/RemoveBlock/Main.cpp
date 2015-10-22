@@ -7,6 +7,7 @@ bool isTargetCollides(const sf::CircleShape& ball, const sf::RectangleShape& pad
 void collisionTarget(Ball& ball, std::map<int,TargetPaddle*>& paddles);
 void collisionScreen(Ball& ball);
 void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
+bool isDie(const Ball& ball);
 
 float plateWidth = 1400.f;
 float plateHeight = 1000.f;
@@ -16,6 +17,7 @@ sf::Vector2f apadSize = {160, 20};
 int main()
 {
     int isPlaying = 0;
+    int dieCount = 0;
 
     // create game paddle and colorful target paddles
     GamePlate plate(plateWidth, plateHeight);
@@ -25,7 +27,8 @@ int main()
     AttackPaddle apad(apadSize, {plateWidth/2, plateHeight});
 
     // create ball (start above the attack paddle)
-    sf::Vector2f ballPos(plateWidth/2, plateHeight-40);
+    sf::Vector2f ballPos( plateWidth/2,
+                          plateHeight-apad.getBody().getSize().y/2-ballRadius);
     Ball ball(ballRadius, ballPos);
 
     sf::RenderWindow w(sf::VideoMode(plate.getWidth(), plate.getHeight(), 32),
@@ -48,7 +51,15 @@ int main()
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
             {
                 isPlaying = 1;
-                ball.start();
+
+                if(dieCount >= 3)
+                {
+                    dieCount = 0;
+                }
+                else
+                {
+                    ball.start();
+                }
             }
         }
 
@@ -60,6 +71,20 @@ int main()
             collisionTarget(ball, plate.getTargetPaddles());
             collisionScreen(ball);
             collisionAttackPaddle(ball, apad);
+
+            if( isDie(ball) )
+            {
+                if(++dieCount >= 3)
+                {
+                    plate.pause(w, "You lost! Do you want continue..?");
+                }
+                std::cout << "Die count : " << dieCount << std::endl;
+
+                ball.reset();
+                apad.reset();
+
+                isPlaying = 0;
+            }
         }
 
         apad.draw(w);
@@ -68,11 +93,9 @@ int main()
         // the ball moves with the attack paddle.
         if(!isPlaying)
         {
-            sf::Vector2f pos = { apad.getBody().getPosition().x,
-                                 apad.getBody().getPosition().y
-                                 -apad.getBody().getSize().y
-                                 -ball.getBody().getRadius() };
-            ball.getBody().setPosition(pos);
+            sf::Vector2f ballpos = { apad.getBody().getPosition().x,
+                                     apad.getBody().getPosition().y-apad.getBody().getSize().y-ball.getBody().getRadius() };
+            ball.getBody().setPosition(ballpos);
         }
         ball.draw(w);
 
@@ -174,4 +197,17 @@ void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
             ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
         }
     }
+}
+
+bool isDie(const Ball& ball)
+{
+    int ballY = ball.getBody().getPosition().y + ball.getBody().getRadius();
+
+    if(ballY >= plateHeight)
+    {
+        std::cout << "Die... (" << ballY << "," << plateHeight << ")" << std::endl;
+        return true;
+    }
+
+    return false;
 }
