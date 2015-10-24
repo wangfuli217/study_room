@@ -1,8 +1,8 @@
-#include <TargetPaddle.h>
+#include <Block.h>
 #include <random>
 #include <iostream>
 
-TargetPaddle::TargetPaddle(const sf::Vector2f& size, const sf::Vector2f& pos)
+Block::Block(const sf::Vector2f& size, const sf::Vector2f& pos)
     : Paddle(size,pos)
 {
     std::random_device rd;
@@ -14,4 +14,6 @@ TargetPaddle::TargetPaddle(const sf::Vector2f& size, const sf::Vector2f& pos)
     // std::cout << "R : " << R << ", G : " << G << ", B : " << B << std::endl;
 
     body.setFillColor(sf::Color(R,G,B));
+    body.setOutlineThickness(3);
+    body.setOutlineColor(sf::Color::Black);
 }

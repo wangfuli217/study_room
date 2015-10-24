@@ -1,8 +1,9 @@
 #ifndef __VARIABLES_H__
 #define __VARIABLES_H__
 
-extern float plateWidth;
-extern float plateHeight;
-extern int ballRadius;
+extern const float plateWidth;
+extern const float plateHeight;
+extern const int ballRadius;
+extern const sf::Vector2f apadSize;
 
 #endif // __VARIABLES_H__

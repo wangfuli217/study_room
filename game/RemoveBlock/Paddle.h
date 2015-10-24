@@ -2,6 +2,7 @@
 #define __PADDLE_H__
 
 #include <SFML/Graphics.hpp>
+#include <Variables.h>
 #include <iostream>
 
 class Paddle
@@ -9,8 +10,21 @@ class Paddle
 public:
 	virtual ~Paddle() {}
     Paddle(const sf::Vector2f& size, const sf::Vector2f& pos);
-    Paddle(const sf::Vector2f& size, const sf::Vector2f& pos, const sf::Vector2f& origin);
     const sf::RectangleShape& getBody() const { return body; }
+    const sf::Vector2f getPos() const { return body.getPosition(); }
+
+    float LeftX() const;
+    float RightX() const;
+    float TopY() const;
+    float BottomY() const;
+
+    sf::Vector2f TopLeft() const;
+    sf::Vector2f TopMiddle() const;
+    sf::Vector2f TopRight() const;
+    sf::Vector2f Center() const;
+    sf::Vector2f BottomLeft() const;
+    sf::Vector2f BottomMiddle() const;
+    sf::Vector2f BottomRight() const;
 
 protected:
     sf::RectangleShape body;

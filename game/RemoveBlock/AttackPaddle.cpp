@@ -1,17 +1,19 @@
 #include <AttackPaddle.h>
 
-AttackPaddle::AttackPaddle(const sf::Vector2f& size, const sf::Vector2f& pos)
-    : Paddle(size,pos,size/2.f)
+// calculate first top-left position of paddle
+AttackPaddle::AttackPaddle(const sf::Vector2f& size)
+    : Paddle(size, {plateWidth/2-size.x/2, plateHeight-size.y})
 {
-    body.setFillColor(sf::Color(204,204,204));
-    firstPos = pos;
+    //body.setFillColor(sf::Color(204,204,204));
+    body.setFillColor(sf::Color(255,255,255));
+    firstPos = {plateWidth/2-size.x/2, plateHeight-size.y};
 }
 
-void AttackPaddle::draw(sf::RenderWindow& w)
+void AttackPaddle::move()
 {
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
-        if((body.getPosition().x - body.getSize().x/2) > 0 )
+        if(LeftX() > 0 )
         {
             body.move(-8.f,0.f);
         }
@@ -19,16 +21,19 @@ void AttackPaddle::draw(sf::RenderWindow& w)
 
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
-        if((body.getPosition().x + body.getSize().x/2) < plateWidth )
+        if(RightX() < plateWidth )
         {
             body.move(8.f,0.f);
         }
     }
+}
 
+void AttackPaddle::draw(sf::RenderWindow& w)
+{
     w.draw(body);
 }
 
 void AttackPaddle::reset()
 {
-    body.setPosition({firstPos.x,firstPos.y-getBody().getSize().y/2});
+    body.setPosition(firstPos);
 }

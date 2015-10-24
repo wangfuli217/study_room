@@ -2,7 +2,7 @@
 #define __GAME_PLATE_H__
 
 #include <SFML/Graphics.hpp>
-#include <TargetPaddle.h>
+#include <Block.h>
 #include <Variables.h>
 #include <map>
 #include <algorithm>
@@ -10,7 +10,7 @@
 class GamePlate
 {
 public:
-    GamePlate(int w, int h) : width(w), height(h), paddleKey(0) {}
+    GamePlate(int w, int h) : width(w), height(h), blockKey(0) {}
 	void newGame();
 	int getWidth() const
 	{
@@ -20,28 +20,28 @@ public:
 	{
 		return height;
 	}
-	int& getPaddleKey()
+	int& getKey()
 	{
-		return paddleKey;
+		return blockKey;
 	}
-	const int getPaddleKey() const
+	const int getKey() const
 	{
-		return paddleKey;
+		return blockKey;
 	}
-	void drawTargetPads(sf::RenderWindow& w);
-	std::map<int,TargetPaddle*>& getTargetPaddles()
+	void drawBlocks(sf::RenderWindow& w);
+	std::map<int,Block*>& getBlocks()
 	{
 		return target;
 	}
-	TargetPaddle& getKeyPaddle(const int key);
-	const TargetPaddle& getKeyPaddle(const int key) const;
-	void pause(sf::RenderWindow& w, const std::string& msg);
+	Block& getKeyBlock(const int key);
+	const Block& getKeyBlock(const int key) const;
+	void pause(const std::string& msg);
 
 private:
 	int width;
 	int height;
-	int paddleKey;
-	std::map<int,TargetPaddle*> target;
+	int blockKey;
+	std::map<int,Block*> target;
     sf::Text pauseMsg;
     sf::Font font;
 };
