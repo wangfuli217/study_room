@@ -10,8 +10,9 @@ class Paddle
 public:
 	virtual ~Paddle() {}
     Paddle(const sf::Vector2f& size, const sf::Vector2f& pos);
-    const sf::RectangleShape& getBody() const { return body; }
+    sf::RectangleShape& getBody() { return body; }
     const sf::Vector2f getPos() const { return body.getPosition(); }
+    void setPos(const sf::Vector2f& pos) { body.setPosition(pos); }
 
     float LeftX() const;
     float RightX() const;

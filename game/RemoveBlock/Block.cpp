@@ -1,6 +1,4 @@
 #include <Block.h>
-#include <random>
-#include <iostream>
 
 Block::Block(const sf::Vector2f& size, const sf::Vector2f& pos)
     : Paddle(size,pos)

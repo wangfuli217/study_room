@@ -2,6 +2,7 @@
 #define __BLOCK_H__
 
 #include <Paddle.h>
+#include <random>
 
 class Block : public Paddle
 {

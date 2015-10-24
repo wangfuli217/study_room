@@ -2,7 +2,6 @@
 #include <AttackPaddle.h>
 #include <Ball.h>
 #include <SFML/Audio.hpp>
-#include <iostream>
 
 bool isBlockCollides(const Ball& ball, const Block& pad);
 bool collisionBlock(Ball& ball, std::map<int,Block*>& paddles);
@@ -10,6 +9,8 @@ bool collisionScreen(Ball& ball);
 bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
 bool isDie(const Ball& ball);
 void initMsg(sf::Text& m, sf::Font& f);
+void collisionScreenBullets(std::map<int,Bullet*>& bullets);
+void shutBlock(std::map<int,Bullet*>& bullets, std::map<int,Block*>& blocks);
 
 const float plateWidth = 1400.f;
 const float plateHeight = 1000.f;
@@ -22,9 +23,6 @@ int main()
     sf::Font font;
     sf::SoundBuffer ballSoundBuf1;
     sf::SoundBuffer ballSoundBuf2;
-    sf::SoundBuffer ballSoundBuf3;
-    sf::SoundBuffer ballSoundBuf4;
-    sf::SoundBuffer ballSoundBuf5;
     int isPlaying = 0;
 
     // create game paddle and colorful target paddles
@@ -40,20 +38,11 @@ int main()
     initMsg(pauseMsg, font);
 
     // 그냥 목소리로 장난치기 ㅋㅋ
-    ballSoundBuf1.loadFromFile("resources/1.wav");
-    sf::Sound sound1(ballSoundBuf1);
+    ballSoundBuf1.loadFromFile("resources/ball.wav");
+    sf::Sound soundCol(ballSoundBuf1);
 
-    ballSoundBuf2.loadFromFile("resources/2.wav");
-    sf::Sound sound2(ballSoundBuf2);
-
-    ballSoundBuf3.loadFromFile("resources/3.wav");
-    sf::Sound sound3(ballSoundBuf3);
-
-    ballSoundBuf4.loadFromFile("resources/4.wav");
-    sf::Sound sound4(ballSoundBuf4);
-
-    ballSoundBuf5.loadFromFile("resources/5.wav");
-    sf::Sound sound5(ballSoundBuf5);
+    ballSoundBuf2.loadFromFile("resources/die.wav");
+    sf::Sound soundDie(ballSoundBuf2);
 
     sf::RenderWindow w(sf::VideoMode(plate.getWidth(), plate.getHeight(), 32),
                        "Block Removal Game",
@@ -73,54 +62,63 @@ int main()
                 break;
             }
 
-            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Return))
             {
                 if(!isPlaying)
                 {
                     isPlaying = true;
+                    apad.clearBullets();
                 }
             }
         }
 
         // apad can always move
-        apad.move();
+        apad.moveBody();
 
         if(isPlaying)
         {
-            // move ball and attack paddle
-            ball.move();
+            apad.shootBullet();
+            apad.moveBullets();
 
-            // check collision between ball and screen/paddle/blocks
-            if( collisionBlock(ball, plate.getBlocks()) ) sound1.play();
-            if( collisionScreen(ball) )                   sound2.play();
-            if( collisionAttackPaddle(ball, apad) )       sound3.play();
+            if( collisionAttackPaddle(ball, apad) )       soundCol.play();
+            if( collisionBlock(ball, plate.getBlocks()) ) soundCol.play();
+            if( collisionScreen(ball) )                   soundCol.play();
 
             if( isDie(ball) )
             {
                 isPlaying = false;
 
-                sound5.play();
+                soundDie.play();
 
-                pauseMsg.setString("You lost!\nPress space to restart orescape to exit");
+                pauseMsg.setString("You lost!\nPress return to restart orescape to exit");
             }
+
+            ball.moveBody();
         }
 
         // If a game hasn't started yet,
         // the ball moves with the attack paddle.
         if(!isPlaying)
         {
-            ball.moveto(apad.TopMiddle());
+            ball.movePos(apad.TopMiddle());
         }
 
         // display window
         w.clear(sf::Color(69,69,69));
 
         plate.drawBlocks(w);
-        apad.draw(w);
-        ball.draw(w);
+        apad.drawBody(w);
+        ball.drawBody(w);
+
         if(!isPlaying)
         {
             w.draw(pauseMsg);
+        }
+        else
+        {
+            collisionScreenBullets(apad.getBullets());
+            shutBlock(apad.getBullets(), plate.getBlocks());
+            apad.drawBullets(w);
         }
 
         w.display();
@@ -247,4 +245,36 @@ bool isDie(const Ball& ball)
     }
 
     return false;
+}
+
+void collisionScreenBullets(std::map<int,Bullet*>& bullets)
+{
+    for(auto i : bullets)
+    {
+        if( (i.second)->TopY() <= 0 )
+        {
+            //std::cout << ">>>> erase bullet : " << i.first << std::endl;
+            bullets.erase(i.first);
+        }
+    }
+}
+
+void shutBlock(std::map<int,Bullet*>& bullets, std::map<int,Block*>& blocks)
+{
+    for(auto i : bullets)
+    {
+        for(auto j : blocks)
+        {
+            // 총알과 블럭이 충돌하여 총알과 블록 삭제
+            if( (i.second)->TopY() <= (j.second)->BottomY()
+            &&  ( (i.second)->Center().x > (j.second)->BottomLeft().x && (i.second)->Center().x < (j.second)->BottomRight().x ) )
+            {
+                std::cout << ">>>> shut block (" << i.first << "," << j.first << ")"
+                          << " count(" << bullets.size() << ", " << blocks.size() << ")" << std::endl;
+                bullets.erase(i.first);
+                blocks.erase(j.first);
+                return;
+            }
+        }
+    }
 }

@@ -2,8 +2,8 @@
 
 void GamePlate::newGame()
 {
-    int numHorizontalBlock = 10;
-    int numVerticalBlock = 4;
+    int numHorizontalBlock = 20;
+    int numVerticalBlock = 6;
     int blockWidth = width / numHorizontalBlock;
     int blockHeight = 40;
     Block * t = nullptr;

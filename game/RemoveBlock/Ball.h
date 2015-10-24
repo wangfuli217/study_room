@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <random>
 #include <cstdlib>
 
 class Ball
@@ -17,10 +18,10 @@ public:
 	{
 		return body;
 	}
-	void move();
-	void moveto(const sf::Vector2f& pos);
-	void draw(sf::RenderWindow& w);
-	void reset();
+	void moveBody();
+	void movePos(const sf::Vector2f& pos);
+	void drawBody(sf::RenderWindow& w);
+	void resetPos();
 	int speedX() const;
 	int speedY() const;
 	const sf::Vector2f getVelocity() const

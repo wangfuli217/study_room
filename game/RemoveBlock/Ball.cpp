@@ -3,6 +3,8 @@
 
 Ball::Ball(int radius)
 {
+    std::random_device rd;
+
     body.setFillColor(sf::Color(255,255,255));
     body.setRadius(radius);
 
@@ -11,18 +13,25 @@ Ball::Ball(int radius)
     // ball starts from the top of apad
     body.setPosition({plateWidth/2-radius, plateHeight-radius-apadSize.y});
 
-    velocity.x = 6;
-    velocity.y = -12;
+    // x 축 속도는 일정하게 시작 
+    velocity.x = 5;
+
+    do
+    {
+        velocity.y = rd() % 15;
+    }while( velocity.y < 5 );
+
+    velocity.y = -(velocity.y);
 
     firstPos = body.getPosition();
 }
 
-void Ball::reset()
+void Ball::resetPos()
 {
     body.setPosition(firstPos);
 }
 
-void Ball::move()
+void Ball::moveBody()
 {
     body.move(velocity);
 }
@@ -40,12 +49,12 @@ int Ball::speedY() const
 // 원을 감쌀 수 있는 사각형의 좌상꼭지점의 위치가 pos 가 됨.
 // 따라서, 원의 중심이 그 위치로 가려면 어떻게 해야하는지 계산해야 함.
 // 그 계산한 값으로 Circle 객체의 setPosition 함수 인자로 넘겨야 함.
-void Ball::moveto(const sf::Vector2f& pos)
+void Ball::movePos(const sf::Vector2f& pos)
 {
     body.setPosition( {pos.x-body.getRadius(), pos.y-body.getRadius()*2} );
 }
 
-void Ball::draw(sf::RenderWindow& w)
+void Ball::drawBody(sf::RenderWindow& w)
 {
     w.draw(body);
 }
