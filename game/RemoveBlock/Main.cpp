@@ -1,13 +1,15 @@
 #include <GamePlate.h>
 #include <AttackPaddle.h>
 #include <Ball.h>
+#include <SFML/Audio.hpp>
 #include <iostream>
 
 bool isBlockCollides(const Ball& ball, const Block& pad);
-void collisionBlock(Ball& ball, std::map<int,Block*>& paddles);
-void collisionScreen(Ball& ball);
-void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
+bool collisionBlock(Ball& ball, std::map<int,Block*>& paddles);
+bool collisionScreen(Ball& ball);
+bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
 bool isDie(const Ball& ball);
+void initMsg(sf::Text& m, sf::Font& f);
 
 const float plateWidth = 1400.f;
 const float plateHeight = 1000.f;
@@ -16,6 +18,9 @@ const sf::Vector2f apadSize = {160, 20};
 
 int main()
 {
+    sf::Text pauseMsg;
+    sf::Font font;
+    sf::SoundBuffer ballSoundBuf;
     int isPlaying = 0;
 
     // create game paddle and colorful target paddles
@@ -27,6 +32,11 @@ int main()
 
     // create ball (start above the attack paddle)
     Ball ball(ballRadius);
+
+    initMsg(pauseMsg, font);
+
+    ballSoundBuf.loadFromFile("resources/ball.wav");
+    sf::Sound sound(ballSoundBuf);
 
     sf::RenderWindow w(sf::VideoMode(plate.getWidth(), plate.getHeight(), 32),
                        "Block Removal Game",
@@ -51,10 +61,6 @@ int main()
                 if(!isPlaying)
                 {
                     isPlaying = true;
-
-                    // reset init position of ball and apad
-                    //ball.reset();
-                    //apad.reset();
                 }
             }
         }
@@ -68,14 +74,15 @@ int main()
             ball.move();
 
             // check collision between ball and screen/paddle/blocks
-            collisionBlock(ball, plate.getBlocks());
-            collisionScreen(ball);
-            collisionAttackPaddle(ball, apad);
+            if( collisionBlock(ball, plate.getBlocks()) ) sound.play();
+            if( collisionScreen(ball) )                   sound.play();
+            if( collisionAttackPaddle(ball, apad) )       sound.play();
 
             if( isDie(ball) )
             {
                 isPlaying = false;
-                plate.pause("You lost! Do you want continue..?");
+
+                pauseMsg.setString("You lost!\nPress space to restart orescape to exit");
             }
         }
 
@@ -92,11 +99,24 @@ int main()
         plate.drawBlocks(w);
         apad.draw(w);
         ball.draw(w);
+        if(!isPlaying)
+        {
+            w.draw(pauseMsg);
+        }
 
         w.display();
     }
 
     return 0;
+}
+
+void initMsg(sf::Text& m, sf::Font& f)
+{
+    f.loadFromFile("resources/sansation.ttf");
+    m.setFont(f);
+    m.setCharacterSize(40);
+    m.setPosition(400.f, plateHeight/2);
+    m.setColor(sf::Color::White);
 }
 
 bool isBlockCollides(const Ball& ball, const Block& block)
@@ -121,7 +141,7 @@ bool isBlockCollides(const Ball& ball, const Block& block)
     return false;
 }
 
-void collisionBlock(Ball& ball, std::map<int,Block*>& blocks)
+bool collisionBlock(Ball& ball, std::map<int,Block*>& blocks)
 {
     for(auto b : blocks)
     {
@@ -132,12 +152,14 @@ void collisionBlock(Ball& ball, std::map<int,Block*>& blocks)
 
             blocks.erase(b.first);
 
-            break;
+            return true;
         }
     }
+
+    return false;
 }
 
-void collisionScreen(Ball& ball)
+bool collisionScreen(Ball& ball)
 {
     int ballCenterX = ball.Center().x;
     int ballCenterY = ball.Center().y;
@@ -148,6 +170,7 @@ void collisionScreen(Ball& ball)
     {
         std::cout << "Screen collides..." << std::endl;
         ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        return true;
     }
 
     // upper screen
@@ -155,10 +178,13 @@ void collisionScreen(Ball& ball)
     {
         std::cout << "Screen collides..." << std::endl;
         ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        return true;
     }
+
+    return false;
 }
 
-void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
+bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
 {
     int ballCenterX  = ball.Center().x;
     int ballBottomY  = ball.Bottom().y;
@@ -176,6 +202,7 @@ void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
         {
             std::cout << "Attack paddle left-size collides." << std::endl;
             ball.setVelocity(ball.getVelocity().x*(1.1), ball.getVelocity().y*(-1.05));
+            return true;
         }
 
         // If the ball hit in the middle, nothing happens.
@@ -183,8 +210,11 @@ void collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
         {
             std::cout << "Attack paddle collides..." << std::endl;
             ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+            return true;
         }
     }
+
+    return false;
 }
 
 bool isDie(const Ball& ball)

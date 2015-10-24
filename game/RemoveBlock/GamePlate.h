@@ -35,15 +35,12 @@ public:
 	}
 	Block& getKeyBlock(const int key);
 	const Block& getKeyBlock(const int key) const;
-	void pause(const std::string& msg);
 
 private:
 	int width;
 	int height;
 	int blockKey;
 	std::map<int,Block*> target;
-    sf::Text pauseMsg;
-    sf::Font font;
 };
 
 #endif // __GAME_PLATE_H__

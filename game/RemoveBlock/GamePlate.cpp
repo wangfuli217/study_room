@@ -26,8 +26,6 @@ void GamePlate::newGame()
             target[++getKey()] = t;
         }
     }
-
-    font.loadFromFile("resources/sansation.ttf");
 }
 
 void GamePlate::drawBlocks(sf::RenderWindow& w)
@@ -46,13 +44,4 @@ Block& GamePlate::getKeyBlock(const int key)
 const Block& GamePlate::getKeyBlock(const int key) const
 {
     return *target.at(key);
-}
-
-void GamePlate::pause(const std::string& msg)
-{
-    pauseMsg.setFont(font);
-    pauseMsg.setCharacterSize(40);
-    pauseMsg.setPosition(170.f, plateHeight/2);
-    pauseMsg.setColor(sf::Color::White);
-    pauseMsg.setString(msg);
 }

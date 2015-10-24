@@ -11,8 +11,8 @@ Ball::Ball(int radius)
     // ball starts from the top of apad
     body.setPosition({plateWidth/2-radius, plateHeight-radius-apadSize.y});
 
-    velocity.x = 5;
-    velocity.y = -10;
+    velocity.x = 6;
+    velocity.y = -12;
 
     firstPos = body.getPosition();
 }
