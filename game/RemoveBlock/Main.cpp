@@ -20,7 +20,11 @@ int main()
 {
     sf::Text pauseMsg;
     sf::Font font;
-    sf::SoundBuffer ballSoundBuf;
+    sf::SoundBuffer ballSoundBuf1;
+    sf::SoundBuffer ballSoundBuf2;
+    sf::SoundBuffer ballSoundBuf3;
+    sf::SoundBuffer ballSoundBuf4;
+    sf::SoundBuffer ballSoundBuf5;
     int isPlaying = 0;
 
     // create game paddle and colorful target paddles
@@ -35,8 +39,21 @@ int main()
 
     initMsg(pauseMsg, font);
 
-    ballSoundBuf.loadFromFile("resources/ball.wav");
-    sf::Sound sound(ballSoundBuf);
+    // 그냥 목소리로 장난치기 ㅋㅋ
+    ballSoundBuf1.loadFromFile("resources/1.wav");
+    sf::Sound sound1(ballSoundBuf1);
+
+    ballSoundBuf2.loadFromFile("resources/2.wav");
+    sf::Sound sound2(ballSoundBuf2);
+
+    ballSoundBuf3.loadFromFile("resources/3.wav");
+    sf::Sound sound3(ballSoundBuf3);
+
+    ballSoundBuf4.loadFromFile("resources/4.wav");
+    sf::Sound sound4(ballSoundBuf4);
+
+    ballSoundBuf5.loadFromFile("resources/5.wav");
+    sf::Sound sound5(ballSoundBuf5);
 
     sf::RenderWindow w(sf::VideoMode(plate.getWidth(), plate.getHeight(), 32),
                        "Block Removal Game",
@@ -74,13 +91,15 @@ int main()
             ball.move();
 
             // check collision between ball and screen/paddle/blocks
-            if( collisionBlock(ball, plate.getBlocks()) ) sound.play();
-            if( collisionScreen(ball) )                   sound.play();
-            if( collisionAttackPaddle(ball, apad) )       sound.play();
+            if( collisionBlock(ball, plate.getBlocks()) ) sound1.play();
+            if( collisionScreen(ball) )                   sound2.play();
+            if( collisionAttackPaddle(ball, apad) )       sound3.play();
 
             if( isDie(ball) )
             {
                 isPlaying = false;
+
+                sound5.play();
 
                 pauseMsg.setString("You lost!\nPress space to restart orescape to exit");
             }
