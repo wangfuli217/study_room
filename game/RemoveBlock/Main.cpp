@@ -5,7 +5,7 @@
 #include <map>
 #include <iostream>
 
-bool isBlockCollides(const Ball& ball, const Block& pad);
+bool isBlockCollides(Ball& ball, const Block& pad);
 bool collisionBlock(Ball& ball, std::map<int,std::shared_ptr<Block>>& paddles);
 bool collisionScreen(Ball& ball);
 bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
@@ -110,13 +110,13 @@ int main()
         }
 
         // If a game hasn't started yet,
-        // the ball moves with the attack paddle.
+        // the ball moves attached to the attack paddle.
         if(!isPlaying)
         {
             ball.movePos(apad.TopMiddle());
         }
 
-        // display window
+        // draw & display window
         w.clear(sf::Color(69,69,69));
 
         plate.drawBlocks(w);
@@ -147,25 +147,60 @@ void initMsg(sf::Text& m, sf::Font& f)
     m.setColor(sf::Color::White);
 }
 
-bool isBlockCollides(const Ball& ball, const Block& block)
+bool isBlockCollides(Ball& ball, const Block& block)
 {
-    float ballX = ball.Top().x;
-    float ballY = ball.Top().y;
-    float blockLeftX = block.LeftX();
-    float blockRightX = block.RightX();
-    float blockBottom = block.BottomY();
+    float ballTopY    = ball.Top().y;
+    float ballBottomY = ball.Bottom().y;
+    float ballLeftX   = ball.Left().x;
+    float ballRightX  = ball.Right().x;
 
-    if( (ballY <= blockBottom) && (ballY > (blockBottom - ball.speedY())) )
+    float blockTopY    = block.TopY();
+    float blockBottomY = block.BottomY();
+    float blockLeftX   = block.LeftX();
+    float blockRightX  = block.RightX();
+
+    // collision between ball-top and block-bottom
+    if( (ballTopY <= blockBottomY)
+     && (ballTopY > blockBottomY - ball.speedY())
+     && (ballLeftX >= blockLeftX)
+     && (ballRightX <= blockRightX) )
     {
-        if( ballX >= blockLeftX && ballX <= blockRightX )
-        {
-            std::cout << "collision target block..."
-                      << "(" << ballX << "," << ballY << ")"
-                      << "(" << blockLeftX << "," << blockRightX << "," << blockBottom << ")"
-                      << std::endl;
-            return true;
-        }
+        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        return true;
     }
+
+#if 0
+    // collision between ball-left and block-right
+    if( (ballLeftX <= blockRightX)
+     && (ballLeftX > blockRightX - ball.speedX())
+     && (ballBottomY >= blockBottomY)
+     && (ballTopY <= blockTopY) )
+    {
+        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        return true;
+    }
+
+    // collision between ball-right and block-left
+    if( (ballRightX >= blockLeftX)
+     && (ballRightX < blockLeftX + ball.speedX())
+     && (ballBottomY >= blockBottomY)
+     && (ballTopY <= blockTopY) )
+    {
+        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        return true;
+    }
+
+    // collision between ball-bottom and block-top
+    if( (ballBottomY >= blockTopY)
+     && (ballBottomY < blockTopY + ball.speedY())
+     && (ballLeftX >= blockLeftX)
+     && (ballRightX <= blockRightX) )
+    {
+        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        return true;
+    }
+#endif
+    
     return false;
 }
 
@@ -175,11 +210,7 @@ bool collisionBlock(Ball& ball, std::map<int,std::shared_ptr<Block>>& blocks)
     {
         if( isBlockCollides(ball, *b.second) )
         {
-            ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
-            // TODO 아래, 양옆에 충돌하는 것이 다르게 velocity 를 설정해야 함. 
-
             blocks.erase(b.first);
-
             return true;
         }
     }
@@ -233,7 +264,7 @@ bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
             return true;
         }
 
-        // If the ball hit in the middle, nothing happens.
+        // If the ball hit in the middle, nothing happens. Just change the direction.
         if( (ballCenterX >= (padLeftX + apadSize.x/3)) && (ballCenterX <= (padRightX - apadSize.x/3)) )
         {
             std::cout << "Attack paddle collides..." << std::endl;

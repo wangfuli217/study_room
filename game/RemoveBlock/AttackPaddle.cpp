@@ -44,7 +44,7 @@ void AttackPaddle::resetPos()
 
 void AttackPaddle::shootBullet() throw()
 {
-    sf::Vector2f bulletSize = {10,10};
+    sf::Vector2f bulletSize = {10,14};
     std::pair<int,std::shared_ptr<Bullet>> newElem;
 
     try
