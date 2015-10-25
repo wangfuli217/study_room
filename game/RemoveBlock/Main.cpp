@@ -2,20 +2,22 @@
 #include <AttackPaddle.h>
 #include <Ball.h>
 #include <SFML/Audio.hpp>
+#include <map>
+#include <iostream>
 
 bool isBlockCollides(const Ball& ball, const Block& pad);
-bool collisionBlock(Ball& ball, std::map<int,Block*>& paddles);
+bool collisionBlock(Ball& ball, std::map<int,std::shared_ptr<Block>>& paddles);
 bool collisionScreen(Ball& ball);
 bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad);
 bool isDie(const Ball& ball);
 void initMsg(sf::Text& m, sf::Font& f);
-void collisionScreenBullets(std::map<int,Bullet*>& bullets);
-void shutBlock(std::map<int,Bullet*>& bullets, std::map<int,Block*>& blocks);
+void collisionScreenBullets(std::map<int,std::shared_ptr<Bullet>>& bullets);
+void shutBlock(std::map<int,std::shared_ptr<Bullet>>& bullets, std::map<int,std::shared_ptr<Block>>& blocks);
 
 const float plateWidth = 1400.f;
 const float plateHeight = 1000.f;
 const int ballRadius = 10;
-const sf::Vector2f apadSize = {160, 20};
+const sf::Vector2f apadSize = {140, 20};
 
 int main()
 {
@@ -158,7 +160,7 @@ bool isBlockCollides(const Ball& ball, const Block& block)
     return false;
 }
 
-bool collisionBlock(Ball& ball, std::map<int,Block*>& blocks)
+bool collisionBlock(Ball& ball, std::map<int,std::shared_ptr<Block>>& blocks)
 {
     for(auto b : blocks)
     {
@@ -247,30 +249,37 @@ bool isDie(const Ball& ball)
     return false;
 }
 
-void collisionScreenBullets(std::map<int,Bullet*>& bullets)
+void collisionScreenBullets(std::map<int,std::shared_ptr<Bullet>>& bullets)
 {
     for(auto i : bullets)
     {
         if( (i.second)->TopY() <= 0 )
         {
-            //std::cout << ">>>> erase bullet : " << i.first << std::endl;
             bullets.erase(i.first);
+            break;
         }
     }
 }
 
-void shutBlock(std::map<int,Bullet*>& bullets, std::map<int,Block*>& blocks)
+void shutBlock(std::map<int,std::shared_ptr<Bullet>>& bullets, std::map<int,std::shared_ptr<Block>>& blocks)
 {
     for(auto i : bullets)
     {
         for(auto j : blocks)
         {
+            int bulletTopY   = (i.second)->TopY();
+            int bulletCenter = (i.second)->Center().x;
+            int blockBottomY = (j.second)->BottomY();
+            int blockLeftX   = (j.second)->BottomLeft().x;
+            int blockRightX  = (j.second)->BottomRight().x;
+
             // 총알과 블럭이 충돌하여 총알과 블록 삭제
-            if( (i.second)->TopY() <= (j.second)->BottomY()
-            &&  ( (i.second)->Center().x > (j.second)->BottomLeft().x && (i.second)->Center().x < (j.second)->BottomRight().x ) )
+            if( bulletTopY <= blockBottomY
+            &&  ( bulletCenter > blockLeftX && bulletCenter < blockRightX ) )
             {
-                std::cout << ">>>> shut block (" << i.first << "," << j.first << ")"
+                std::cout << "shut block (" << i.first << "," << j.first << ")"
                           << " count(" << bullets.size() << ", " << blocks.size() << ")" << std::endl;
+
                 bullets.erase(i.first);
                 blocks.erase(j.first);
                 return;

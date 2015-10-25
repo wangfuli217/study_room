@@ -1,5 +1,9 @@
 #include <AttackPaddle.h>
 
+AttackPaddle::~AttackPaddle()
+{
+}
+
 // calculate first top-left position of paddle
 AttackPaddle::AttackPaddle(const sf::Vector2f& size)
     : Paddle(size, {plateWidth/2-size.x/2, plateHeight-size.y}), bulletKey(0)
@@ -41,8 +45,7 @@ void AttackPaddle::resetPos()
 void AttackPaddle::shootBullet() throw()
 {
     sf::Vector2f bulletSize = {10,10};
-    Bullet * newBullet = nullptr;
-    std::pair<int,Bullet*> newElem;
+    std::pair<int,std::shared_ptr<Bullet>> newElem;
 
     try
     {
@@ -55,11 +58,10 @@ void AttackPaddle::shootBullet() throw()
 
             if( t.asMilliseconds() > 100 )
             {
-                newBullet = new Bullet(bulletSize,Center());
+                std::shared_ptr<Bullet> newBullet(new Bullet(bulletSize,Center()));
                 newElem = std::make_pair(++bulletKey,newBullet);
 
                 bullets.insert(newElem);
-                std::cout << "bullet insert : " << bulletKey << std::endl;
 
                 clock.restart();
             }

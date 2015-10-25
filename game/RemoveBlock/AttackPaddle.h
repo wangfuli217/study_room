@@ -6,6 +6,7 @@
 #include <Variables.h>
 #include <map>
 #include <algorithm>
+#include <iostream>
 
 class Bullet : public Paddle
 {
@@ -21,11 +22,12 @@ class AttackPaddle : public Paddle
 {
 public:
     AttackPaddle(const sf::Vector2f& size);
+    ~AttackPaddle();
     void moveBody();
     void drawBody(sf::RenderWindow& w);
     void resetPos();
     void shootBullet() throw();
-    std::map<int,Bullet*>& getBullets()
+    std::map<int,std::shared_ptr<Bullet>>& getBullets()
     {
 	    return bullets;
     }
@@ -36,7 +38,7 @@ public:
 private:
     sf::Vector2f firstPos;
     int bulletKey;
-    std::map<int,Bullet*> bullets;
+    std::map<int,std::shared_ptr<Bullet>> bullets;
     sf::Clock clock;
 };
 

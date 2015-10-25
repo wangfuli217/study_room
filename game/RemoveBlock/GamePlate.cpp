@@ -6,7 +6,6 @@ void GamePlate::newGame()
     int numVerticalBlock = 6;
     int blockWidth = width / numHorizontalBlock;
     int blockHeight = 40;
-    Block * t = nullptr;
     sf::Vector2f size;
     sf::Vector2f pos;
 
@@ -22,7 +21,7 @@ void GamePlate::newGame()
             pos.x = blockWidth * j;
             pos.y = blockHeight * i;
 
-            t = new Block(size,pos);
+            std::shared_ptr<Block> t(new Block(size,pos));
             target[++getKey()] = t;
         }
     }

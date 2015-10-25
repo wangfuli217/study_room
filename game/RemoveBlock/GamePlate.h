@@ -29,7 +29,7 @@ public:
 		return blockKey;
 	}
 	void drawBlocks(sf::RenderWindow& w);
-	std::map<int,Block*>& getBlocks()
+	std::map<int,std::shared_ptr<Block>>& getBlocks()
 	{
 		return target;
 	}
@@ -40,7 +40,7 @@ private:
 	int width;
 	int height;
 	int blockKey;
-	std::map<int,Block*> target;
+	std::map<int,std::shared_ptr<Block>> target;
 };
 
 #endif // __GAME_PLATE_H__
