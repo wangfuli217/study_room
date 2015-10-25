@@ -70,6 +70,11 @@ int main()
                 {
                     isPlaying = true;
                     apad.clearBullets();
+
+                    if(plate.getBlocks().size() == 0)
+                    {
+                        plate.newGame();
+                    }
                 }
             }
         }
@@ -86,12 +91,18 @@ int main()
             if( collisionBlock(ball, plate.getBlocks()) ) soundCol.play();
             if( collisionScreen(ball) )                   soundCol.play();
 
+            collisionScreenBullets(apad.getBullets());
+            shutBlock(apad.getBullets(), plate.getBlocks());
+
+            if(plate.getBlocks().size() == 0)
+            {
+                isPlaying = false;
+                pauseMsg.setString("You win!\nPress return to restart orescape to exit");
+            }
+
             if( isDie(ball) )
             {
                 isPlaying = false;
-
-                soundDie.play();
-
                 pauseMsg.setString("You lost!\nPress return to restart orescape to exit");
             }
 
@@ -118,8 +129,6 @@ int main()
         }
         else
         {
-            collisionScreenBullets(apad.getBullets());
-            shutBlock(apad.getBullets(), plate.getBlocks());
             apad.drawBullets(w);
         }
 
@@ -274,8 +283,8 @@ void shutBlock(std::map<int,std::shared_ptr<Bullet>>& bullets, std::map<int,std:
             int blockRightX  = (j.second)->BottomRight().x;
 
             // 총알과 블럭이 충돌하여 총알과 블록 삭제
-            if( bulletTopY <= blockBottomY
-            &&  ( bulletCenter > blockLeftX && bulletCenter < blockRightX ) )
+            if( (bulletTopY <= blockBottomY)
+             && (bulletCenter > blockLeftX && bulletCenter < blockRightX) )
             {
                 std::cout << "shut block (" << i.first << "," << j.first << ")"
                           << " count(" << bullets.size() << ", " << blocks.size() << ")" << std::endl;
