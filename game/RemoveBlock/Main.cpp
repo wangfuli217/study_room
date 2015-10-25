@@ -14,8 +14,12 @@ void initMsg(sf::Text& m, sf::Font& f);
 void collisionScreenBullets(std::map<int,std::shared_ptr<Bullet>>& bullets);
 void shutBlock(std::map<int,std::shared_ptr<Bullet>>& bullets, std::map<int,std::shared_ptr<Block>>& blocks);
 
-const float plateWidth = 1400.f;
-const float plateHeight = 1000.f;
+const float horizontalBlockCount = 30;
+const float horizontalBlockSize = 50;
+const float verticalBlockCount = 8;
+const float verticalBlockSize = 40;
+const float plateWidth = horizontalBlockCount * horizontalBlockSize;
+const float plateHeight = verticalBlockCount * verticalBlockSize + 700;
 const int ballRadius = 10;
 const sf::Vector2f apadSize = {140, 20};
 
@@ -70,6 +74,7 @@ int main()
                 {
                     isPlaying = true;
                     apad.clearBullets();
+                    ball.reset();
 
                     if(plate.getBlocks().size() == 0)
                     {
@@ -84,12 +89,14 @@ int main()
 
         if(isPlaying)
         {
+            ball.moveBody();
+
             apad.shootBullet();
             apad.moveBullets();
 
             if( collisionAttackPaddle(ball, apad) )       soundCol.play();
-            if( collisionBlock(ball, plate.getBlocks()) ) soundCol.play();
             if( collisionScreen(ball) )                   soundCol.play();
+            if( collisionBlock(ball, plate.getBlocks()) ) soundCol.play();
 
             collisionScreenBullets(apad.getBullets());
             shutBlock(apad.getBullets(), plate.getBlocks());
@@ -105,8 +112,6 @@ int main()
                 isPlaying = false;
                 pauseMsg.setString("You lost!\nPress return to restart orescape to exit");
             }
-
-            ball.moveBody();
         }
 
         // If a game hasn't started yet,
@@ -159,6 +164,41 @@ bool isBlockCollides(Ball& ball, const Block& block)
     float blockLeftX   = block.LeftX();
     float blockRightX  = block.RightX();
 
+#if 0
+    // collision between ball-top and block-bottom
+    if( (ballTopY <= blockBottomY)
+     && (ballLeftX > blockLeftX) && (ballRightX < blockRightX) )
+    {
+        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        return true;
+    }
+
+    // collision between ball-left and block-right
+    if( (ballLeftX <= blockRightX)
+     && (ballBottomY > blockBottomY) && (ballTopY < blockTopY) )
+    {
+        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        return true;
+    }
+
+    // collision between ball-right and block-left
+    if( (ballRightX >= blockLeftX)
+     && (ballBottomY > blockBottomY) && (ballTopY < blockTopY) )
+    {
+        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        return true;
+    }
+
+    // collision between ball-bottom and block-top
+    if( (ballBottomY >= blockTopY)
+     && (ballLeftX > blockLeftX) && (ballRightX < blockRightX) )
+    {
+        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        return true;
+    }
+#endif
+
+#if 1
     // collision between ball-top and block-bottom
     if( (ballTopY <= blockBottomY)
      && (ballTopY > blockBottomY - ball.speedY())
@@ -169,7 +209,6 @@ bool isBlockCollides(Ball& ball, const Block& block)
         return true;
     }
 
-#if 0
     // collision between ball-left and block-right
     if( (ballLeftX <= blockRightX)
      && (ballLeftX > blockRightX - ball.speedX())
@@ -247,7 +286,6 @@ bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
 {
     int ballCenterX  = ball.Center().x;
     int ballBottomY  = ball.Bottom().y;
-
     int padTopY   = pad.TopY();
     int padLeftX  = pad.LeftX();
     int padRightX = pad.RightX();

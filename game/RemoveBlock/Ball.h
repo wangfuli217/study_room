@@ -21,7 +21,7 @@ public:
 	void moveBody();
 	void movePos(const sf::Vector2f& pos);
 	void drawBody(sf::RenderWindow& w);
-	void resetPos();
+	void reset();
 	int speedX() const;
 	int speedY() const;
 	const sf::Vector2f getVelocity() const

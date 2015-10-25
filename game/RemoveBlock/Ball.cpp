@@ -26,9 +26,16 @@ Ball::Ball(int radius)
     firstPos = body.getPosition();
 }
 
-void Ball::resetPos()
+void Ball::reset()
 {
-    body.setPosition(firstPos);
+    std::random_device rd;
+
+    velocity.x = 5;
+    do
+    {
+        velocity.y = rd() % 15;
+    }while( velocity.y < 5 );
+    velocity.y = -(velocity.y);
 }
 
 void Ball::moveBody()
@@ -59,32 +66,33 @@ void Ball::drawBody(sf::RenderWindow& w)
     w.draw(body);
 }
 
-// Left end point is the standard point of a ball.
+// Left Upper point is the standard point of a ball.
 sf::Vector2f Ball::Left() const
 {
-    return body.getPosition();
+    return { body.getPosition().x,
+             body.getPosition().y + body.getRadius() };
 }
 
 sf::Vector2f Ball::Top() const
 {
     return { body.getPosition().x + body.getRadius(),
-             body.getPosition().y - body.getRadius() };
+             body.getPosition().y };
 }
 
 sf::Vector2f Ball::Bottom() const
 {
     return { body.getPosition().x + body.getRadius(),
-             body.getPosition().y + body.getRadius() };
+             body.getPosition().y + body.getRadius()*2 };
 }
 
 sf::Vector2f Ball::Right() const
 {
     return { body.getPosition().x + body.getRadius()*2,
-             body.getPosition().y };
+             body.getPosition().y + body.getRadius() };
 }
 
 sf::Vector2f Ball::Center() const
 {
     return { body.getPosition().x + body.getRadius(),
-             body.getPosition().y };
+             body.getPosition().y + body.getRadius() };
 }

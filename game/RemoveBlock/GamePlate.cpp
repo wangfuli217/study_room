@@ -2,10 +2,10 @@
 
 void GamePlate::newGame()
 {
-    int numHorizontalBlock = 30;
-    int numVerticalBlock = 8;
-    int blockWidth = width / numHorizontalBlock;
-    int blockHeight = 40;
+    int numHorizontalBlock = horizontalBlockCount;;
+    int numVerticalBlock = verticalBlockCount;
+    int blockWidth = horizontalBlockSize;
+    int blockHeight = verticalBlockSize;
     sf::Vector2f size;
     sf::Vector2f pos;
 
