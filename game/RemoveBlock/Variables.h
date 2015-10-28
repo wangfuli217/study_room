@@ -8,6 +8,7 @@ extern const float verticalBlockSize;
 extern const float plateWidth;
 extern const float plateHeight;
 extern const int ballRadius;
-extern const sf::Vector2f apadSize;
+extern const float ballInitSpeed;
+extern const float pi;
 
 #endif // __VARIABLES_H__

@@ -14,14 +14,19 @@ void initMsg(sf::Text& m, sf::Font& f);
 void collisionScreenBullets(std::map<int,std::shared_ptr<Bullet>>& bullets);
 void shutBlock(std::map<int,std::shared_ptr<Bullet>>& bullets, std::map<int,std::shared_ptr<Block>>& blocks);
 
+// user can vary the variables from here
 const float horizontalBlockCount = 30;
 const float horizontalBlockSize = 50;
 const float verticalBlockCount = 8;
 const float verticalBlockSize = 40;
-const float plateWidth = horizontalBlockCount * horizontalBlockSize;
-const float plateHeight = verticalBlockCount * verticalBlockSize + 700;
+const float ballInitSpeed = 400;
 const int ballRadius = 10;
 const sf::Vector2f apadSize = {140, 20};
+// to here
+
+const float plateWidth = horizontalBlockCount * horizontalBlockSize;
+const float plateHeight = verticalBlockCount * verticalBlockSize + 700;
+const float pi = 3.141592;
 
 int main()
 {
@@ -87,6 +92,7 @@ int main()
         // apad can always move
         apad.moveBody();
 
+        // move objects and check collision
         if(isPlaying)
         {
             ball.moveBody();
@@ -113,11 +119,10 @@ int main()
                 pauseMsg.setString("You lost!\nPress return to restart orescape to exit");
             }
         }
-
-        // If a game hasn't started yet,
-        // the ball moves attached to the attack paddle.
-        if(!isPlaying)
+        else
         {
+            // If a game hasn't started yet,
+            // the ball moves attached to the attack paddle.
             ball.movePos(apad.TopMiddle());
         }
 
@@ -158,87 +163,63 @@ bool isBlockCollides(Ball& ball, const Block& block)
     float ballBottomY = ball.Bottom().y;
     float ballLeftX   = ball.Left().x;
     float ballRightX  = ball.Right().x;
+    float ballCenterX = ball.Center().x;
+    float ballCenterY = ball.Center().y;
 
     float blockTopY    = block.TopY();
     float blockBottomY = block.BottomY();
     float blockLeftX   = block.LeftX();
     float blockRightX  = block.RightX();
 
-#if 0
     // collision between ball-top and block-bottom
     if( (ballTopY <= blockBottomY)
-     && (ballLeftX > blockLeftX) && (ballRightX < blockRightX) )
+        && ((ballCenterX >= blockLeftX) && (ballCenterX <= blockRightX)) )
     {
-        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        ball.setAngle(-ball.getAngle());
         return true;
     }
 
     // collision between ball-left and block-right
     if( (ballLeftX <= blockRightX)
-     && (ballBottomY > blockBottomY) && (ballTopY < blockTopY) )
+        && ((ballCenterY >= blockBottomY) && (ballCenterY <= blockTopY)) )
     {
-        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        if(ball.getAngle() > pi)
+        {
+            // lower direction
+            ball.setAngle(-(ball.getAngle()-pi));
+        }
+        else
+        {
+            // upper direction
+            ball.setAngle(pi-ball.getAngle());
+        }
         return true;
     }
 
     // collision between ball-right and block-left
     if( (ballRightX >= blockLeftX)
-     && (ballBottomY > blockBottomY) && (ballTopY < blockTopY) )
+        && ((ballCenterY >= blockBottomY) && (ballCenterY <= blockTopY)) )
     {
-        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        if(ball.getAngle() < pi/2)
+        {
+            // upper direction
+            ball.setAngle(pi-ball.getAngle());
+        }
+        else
+        {
+            // lower direction
+            ball.setAngle(-(ball.getAngle()-pi));
+        }
         return true;
     }
 
     // collision between ball-bottom and block-top
     if( (ballBottomY >= blockTopY)
-     && (ballLeftX > blockLeftX) && (ballRightX < blockRightX) )
+        && ((ballCenterX >= blockLeftX) && (ballCenterX <= blockRightX)) )
     {
-        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        ball.setAngle(-ball.getAngle());
         return true;
     }
-#endif
-
-#if 1
-    // collision between ball-top and block-bottom
-    if( (ballTopY <= blockBottomY)
-     && (ballTopY > blockBottomY - ball.speedY())
-     && (ballLeftX >= blockLeftX)
-     && (ballRightX <= blockRightX) )
-    {
-        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
-        return true;
-    }
-
-    // collision between ball-left and block-right
-    if( (ballLeftX <= blockRightX)
-     && (ballLeftX > blockRightX - ball.speedX())
-     && (ballBottomY >= blockBottomY)
-     && (ballTopY <= blockTopY) )
-    {
-        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
-        return true;
-    }
-
-    // collision between ball-right and block-left
-    if( (ballRightX >= blockLeftX)
-     && (ballRightX < blockLeftX + ball.speedX())
-     && (ballBottomY >= blockBottomY)
-     && (ballTopY <= blockTopY) )
-    {
-        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
-        return true;
-    }
-
-    // collision between ball-bottom and block-top
-    if( (ballBottomY >= blockTopY)
-     && (ballBottomY < blockTopY + ball.speedY())
-     && (ballLeftX >= blockLeftX)
-     && (ballRightX <= blockRightX) )
-    {
-        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
-        return true;
-    }
-#endif
     
     return false;
 }
@@ -263,11 +244,37 @@ bool collisionScreen(Ball& ball)
     int ballCenterY = ball.Center().y;
     int radius = ball.getBody().getRadius();
 
-    // left,right screen
-    if( (ballCenterX-radius) <= 0 || (ballCenterX+radius) >= plateWidth )
+    // right screen
+    if( (ballCenterX+radius) >= plateWidth )
     {
-        std::cout << "Screen collides..." << std::endl;
-        ball.setVelocity(ball.getVelocity().x*(-1), ball.getVelocity().y);
+        std::cout << "Right-Screen collides..." << std::endl;
+        if(ball.getAngle() < pi/2)
+        {
+            // upper direction
+            ball.setAngle(pi-ball.getAngle());
+        }
+        else
+        {
+            // lower direction
+            ball.setAngle(-(ball.getAngle()-pi));
+        }
+        return true;
+    }
+
+    // left screen
+    if( (ballCenterX-radius) <= 0 )
+    {
+        std::cout << "Left-Screen collides..." << std::endl;
+        if(ball.getAngle() > pi)
+        {
+            // lower direction
+            ball.setAngle(-(ball.getAngle()-pi));
+        }
+        else
+        {
+            // upper direction
+            ball.setAngle(pi-ball.getAngle());
+        }
         return true;
     }
 
@@ -275,7 +282,7 @@ bool collisionScreen(Ball& ball)
     if( ballCenterY <= 0 )
     {
         std::cout << "Screen collides..." << std::endl;
-        ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+        ball.setAngle(-ball.getAngle());
         return true;
     }
 
@@ -298,7 +305,8 @@ bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
         ||  ((ballCenterX > (padRightX - apadSize.x/3)) && (ballCenterX <= padRightX)) )
         {
             std::cout << "Attack paddle left-size collides." << std::endl;
-            ball.setVelocity(ball.getVelocity().x*(1.1), ball.getVelocity().y*(-1.05));
+            ball.setAngle(-ball.getAngle());
+            ball.setSpeed(ball.getSpeed()*1.1);
             return true;
         }
 
@@ -306,7 +314,7 @@ bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
         if( (ballCenterX >= (padLeftX + apadSize.x/3)) && (ballCenterX <= (padRightX - apadSize.x/3)) )
         {
             std::cout << "Attack paddle collides..." << std::endl;
-            ball.setVelocity(ball.getVelocity().x, ball.getVelocity().y*(-1));
+            ball.setAngle(-ball.getAngle());
             return true;
         }
     }
@@ -316,11 +324,11 @@ bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
 
 bool isDie(const Ball& ball)
 {
-    int ballTopY = ball.Top().y;
+    int ballBottomY = ball.Bottom().y;
 
-    if(ballTopY >= plateHeight)
+    if(ballBottomY >= plateHeight)
     {
-        std::cout << "Die... (" << ballTopY << "," << plateHeight << ")" << std::endl;
+        std::cout << "Die... (" << ballBottomY << "," << plateHeight << ")" << std::endl;
         return true;
     }
 

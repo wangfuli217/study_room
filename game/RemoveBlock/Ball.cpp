@@ -13,44 +13,57 @@ Ball::Ball(int radius)
     // ball starts from the top of apad
     body.setPosition({plateWidth/2-radius, plateHeight-radius-apadSize.y});
 
-    // x 축 속도는 일정하게 시작 
-    velocity.x = 5;
+    angle = calBallAngle();
+    speed = ballInitSpeed;
 
-    do
-    {
-        velocity.y = rd() % 15;
-    }while( velocity.y < 5 );
+    std::cout << "Ball (speed,angle) = "
+              << "(" << speed << "," << angle*180/pi << ")" << std::endl;
 
-    velocity.y = -(velocity.y);
+    //clock.restart();
 
     firstPos = body.getPosition();
 }
 
 void Ball::reset()
 {
-    std::random_device rd;
+    angle = calBallAngle();
+    speed = ballInitSpeed;
 
-    velocity.x = 5;
-    do
-    {
-        velocity.y = rd() % 15;
-    }while( velocity.y < 5 );
-    velocity.y = -(velocity.y);
+    std::cout << "Reset Ball (speed,angle) = "
+              << "(" << speed << "," << angle*180/pi << ")" << std::endl;
+
+    clock.restart();
 }
 
+sf::Vector2f Ball::calVelocity()
+{
+    float deltaTime = clock.restart().asSeconds();
+    float velX;
+    float velY;
+
+    velX = speed * std::cos(angle) * deltaTime;
+    velY = -(speed * std::sin(angle) * deltaTime);
+
+    // std::cout << "Calulate velocity ("
+    //           << velX << "," << velY << ")" << std::endl;
+    return {velX,velY};
+}
+
+// moves ball only here
 void Ball::moveBody()
 {
-    body.move(velocity);
+    snapshotVelocity = calVelocity();
+    body.move(snapshotVelocity);
 }
 
 int Ball::speedX() const
 {
-    return abs(static_cast<int>(velocity.x));
+    return abs(static_cast<int>(snapshotVelocity.x));
 }
 
 int Ball::speedY() const
 {
-    return abs(static_cast<int>(velocity.y));
+    return abs(static_cast<int>(snapshotVelocity.y));
 }
 
 // 원을 감쌀 수 있는 사각형의 좌상꼭지점의 위치가 pos 가 됨.

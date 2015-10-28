@@ -5,6 +5,10 @@
 #include <iostream>
 #include <random>
 #include <cstdlib>
+#include <cmath>
+
+float calBallAngle();
+extern const sf::Vector2f apadSize;
 
 class Ball
 {
@@ -24,25 +28,36 @@ public:
 	void reset();
 	int speedX() const;
 	int speedY() const;
-	const sf::Vector2f getVelocity() const
+	float getSpeed()
 	{
-		return velocity;
+		return speed;
 	}
-	void setVelocity(int x, int y)
+	void setSpeed(float s)
 	{
-		velocity.x = x;
-		velocity.y = y;
+		speed = s;
+	}	
+	float getAngle()
+	{
+		return angle;
+	}
+	void setAngle(float a)
+	{
+		angle = a;
 	}
 	sf::Vector2f Top() const;
 	sf::Vector2f Left() const;
 	sf::Vector2f Bottom() const;
 	sf::Vector2f Right() const;
 	sf::Vector2f Center() const;
+	sf::Vector2f calVelocity();
 
 private:
 	sf::CircleShape body;
-    sf::Vector2f velocity;
     sf::Vector2f firstPos;
+    sf::Clock clock;
+    sf::Vector2f snapshotVelocity;
+    float speed;
+    float angle;
 };
 
 #endif // __BALL_H__

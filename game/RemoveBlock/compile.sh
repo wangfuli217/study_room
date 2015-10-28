@@ -6,5 +6,6 @@ g++ -g -Wall -O0 -std=c++11 -c Paddle.cpp -I.
 g++ -g -Wall -O0 -std=c++11 -c Block.cpp -I.
 g++ -g -Wall -O0 -std=c++11 -c AttackPaddle.cpp -I.
 g++ -g -Wall -O0 -std=c++11 -c Ball.cpp -I.
-g++ -o RemoveBlock Main.o GamePlate.o Paddle.o Block.o AttackPaddle.o Ball.o \
+g++ -g -Wall -O0 -std=c++11 -c Util.cpp -I.
+g++ -o RemoveBlock Main.o GamePlate.o Paddle.o Block.o AttackPaddle.o Ball.o Util.o\
     -lsfml-system -lsfml-graphics -lsfml-audio -lsfml-window

@@ -26,7 +26,7 @@ public:
     void moveBody();
     void drawBody(sf::RenderWindow& w);
     void resetPos();
-    void shootBullet() throw();
+    void shootBullet();
     std::map<int,std::shared_ptr<Bullet>>& getBullets()
     {
 	    return bullets;
