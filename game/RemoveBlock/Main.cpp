@@ -15,11 +15,11 @@ void collisionScreenBullets(std::map<int,std::shared_ptr<Bullet>>& bullets);
 void shutBlock(std::map<int,std::shared_ptr<Bullet>>& bullets, std::map<int,std::shared_ptr<Block>>& blocks);
 
 // user can vary the variables from here
-const float horizontalBlockCount = 30;
-const float horizontalBlockSize = 50;
-const float verticalBlockCount = 8;
+const float horizontalBlockCount = 20;
+const float horizontalBlockSize = 70;
+const float verticalBlockCount = 6;
 const float verticalBlockSize = 40;
-const float ballInitSpeed = 400;
+const float ballInitSpeed = 600;
 const int ballRadius = 10;
 const sf::Vector2f apadSize = {140, 20};
 // to here
@@ -46,9 +46,10 @@ int main()
     // create ball (start above the attack paddle)
     Ball ball(ballRadius);
 
+    // init pause message
     initMsg(pauseMsg, font);
 
-    // 그냥 목소리로 장난치기 ㅋㅋ
+    // play with voice ^^
     ballSoundBuf1.loadFromFile("resources/ball.wav");
     sf::Sound soundCol(ballSoundBuf1);
 
@@ -95,24 +96,28 @@ int main()
         // move objects and check collision
         if(isPlaying)
         {
+            // move ball's position
             ball.moveBody();
 
+            // create(shoot) new bullet and move bullets' positions
             apad.shootBullet();
             apad.moveBullets();
 
+            // collision checking between objects
             if( collisionAttackPaddle(ball, apad) )       soundCol.play();
             if( collisionScreen(ball) )                   soundCol.play();
             if( collisionBlock(ball, plate.getBlocks()) ) soundCol.play();
-
             collisionScreenBullets(apad.getBullets());
             shutBlock(apad.getBullets(), plate.getBlocks());
 
+            // all the blocks shut down
             if(plate.getBlocks().size() == 0)
             {
                 isPlaying = false;
                 pauseMsg.setString("You win!\nPress return to restart orescape to exit");
             }
 
+            // ball fell into the bottom of the game plate
             if( isDie(ball) )
             {
                 isPlaying = false;
@@ -126,9 +131,10 @@ int main()
             ball.movePos(apad.TopMiddle());
         }
 
-        // draw & display window
+        // clear window
         w.clear(sf::Color(69,69,69));
 
+        // draw objects into window
         plate.drawBlocks(w);
         apad.drawBody(w);
         ball.drawBody(w);
@@ -142,6 +148,7 @@ int main()
             apad.drawBullets(w);
         }
 
+        // display window including drawn objects
         w.display();
     }
 
@@ -160,7 +167,6 @@ void initMsg(sf::Text& m, sf::Font& f)
 bool isBlockCollides(Ball& ball, const Block& block)
 {
     float ballTopY    = ball.Top().y;
-    float ballBottomY = ball.Bottom().y;
     float ballLeftX   = ball.Left().x;
     float ballRightX  = ball.Right().x;
     float ballCenterX = ball.Center().x;
@@ -171,29 +177,33 @@ bool isBlockCollides(Ball& ball, const Block& block)
     float blockLeftX   = block.LeftX();
     float blockRightX  = block.RightX();
 
-    // collision between ball-top and block-bottom
+    // collision between ball and block-top/bottom
     if( (ballTopY <= blockBottomY)
-        && ((ballCenterX >= blockLeftX) && (ballCenterX <= blockRightX)) )
+        && ((ballCenterX >= blockLeftX) && (ballCenterX <= blockRightX)))
     {
-        ball.setAngle(-ball.getAngle());
-        return true;
+        if(ball.getAngle() > 0 && ball.getAngle() < pi)
+        {
+            ball.setAngle(2*pi-ball.getAngle());
+            return true;
+        }
     }
 
-    // collision between ball-left and block-right
     if( (ballLeftX <= blockRightX)
         && ((ballCenterY >= blockBottomY) && (ballCenterY <= blockTopY)) )
     {
         if(ball.getAngle() > pi)
         {
             // lower direction
-            ball.setAngle(-(ball.getAngle()-pi));
+            ball.setAngle(3*pi-(ball.getAngle()));
+            return true;
         }
-        else
+
+        if(ball.getAngle() < pi)
         {
             // upper direction
             ball.setAngle(pi-ball.getAngle());
+            return true;
         }
-        return true;
     }
 
     // collision between ball-right and block-left
@@ -204,22 +214,28 @@ bool isBlockCollides(Ball& ball, const Block& block)
         {
             // upper direction
             ball.setAngle(pi-ball.getAngle());
+            return true;
         }
-        else
+
+        if(ball.getAngle() > (3/2)*pi)
         {
             // lower direction
-            ball.setAngle(-(ball.getAngle()-pi));
+            ball.setAngle(3*pi-(ball.getAngle()));
+            return true;
         }
         return true;
     }
 
-    // collision between ball-bottom and block-top
+    // TODO collision between ball-bottom and block-top
+    /*
     if( (ballBottomY >= blockTopY)
         && ((ballCenterX >= blockLeftX) && (ballCenterX <= blockRightX)) )
     {
+        std::cout << "fffffffffffffffffff" << std::endl;
         ball.setAngle(-ball.getAngle());
         return true;
     }
+    */
     
     return false;
 }
@@ -256,7 +272,7 @@ bool collisionScreen(Ball& ball)
         else
         {
             // lower direction
-            ball.setAngle(-(ball.getAngle()-pi));
+            ball.setAngle(3*pi-(ball.getAngle()));
         }
         return true;
     }
@@ -268,7 +284,7 @@ bool collisionScreen(Ball& ball)
         if(ball.getAngle() > pi)
         {
             // lower direction
-            ball.setAngle(-(ball.getAngle()-pi));
+            ball.setAngle(3*pi-(ball.getAngle()));
         }
         else
         {
@@ -282,7 +298,7 @@ bool collisionScreen(Ball& ball)
     if( ballCenterY <= 0 )
     {
         std::cout << "Screen collides..." << std::endl;
-        ball.setAngle(-ball.getAngle());
+        ball.setAngle(2*pi-ball.getAngle());
         return true;
     }
 
@@ -297,24 +313,24 @@ bool collisionAttackPaddle(Ball& ball, const AttackPaddle& pad)
     int padLeftX  = pad.LeftX();
     int padRightX = pad.RightX();
 
-    if( (ballBottomY >= padTopY) && (ballBottomY < (padTopY + ball.speedY())) )
+    if(ballBottomY >= padTopY)
     {
-        // If the ball hits in the left/right 1/3 side of the pad,
-        // it gets faster in the x/y direction (bit more in the x direction).
+        // If the ball hits in the left/right 1/3 side of the pad, it gets faster.
         if( ((ballCenterX >= padLeftX) && (ballCenterX < (padLeftX + apadSize.x/3)))
-        ||  ((ballCenterX > (padRightX - apadSize.x/3)) && (ballCenterX <= padRightX)) )
+            || ((ballCenterX > (padRightX - apadSize.x/3)) && (ballCenterX <= padRightX)) )
         {
-            std::cout << "Attack paddle left-size collides." << std::endl;
-            ball.setAngle(-ball.getAngle());
-            ball.setSpeed(ball.getSpeed()*1.1);
+            std::cout << "Attack paddle side collides..." << std::endl;
+            ball.setAngle(2*pi-ball.getAngle());
+            ball.setSpeed(ball.getSpeed()*1.01);
             return true;
         }
 
-        // If the ball hit in the middle, nothing happens. Just change the direction.
+        // If the ball hit in the middle, it gets slower.
         if( (ballCenterX >= (padLeftX + apadSize.x/3)) && (ballCenterX <= (padRightX - apadSize.x/3)) )
         {
-            std::cout << "Attack paddle collides..." << std::endl;
-            ball.setAngle(-ball.getAngle());
+            std::cout << "Attack paddle center collides..." << std::endl;
+            ball.setAngle(2*pi-ball.getAngle());
+            ball.setSpeed(ball.getSpeed()*0.99);
             return true;
         }
     }
