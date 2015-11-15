@@ -146,7 +146,7 @@ def modify_config(base_dir, member_name, shmkey, shmaddr, cluster_port, listen_p
     append_string += "SHARED_MEMORY_STATIC_KEY  = " + str(shmkey)       + "\n"
     append_string += "SHARED_MEMORY_ADDRESS     = " + str(shmaddr)      + "\n"
     append_string += "LOCAL_CLUSTER_MEMBER      = " + member_name       + "\n"
-    append_string += "LOCAL_CLUSTER_MEMBER_HOST = " + host_addr         + "\n"
+    append_string += "LOCAL_CLUSTER_MEMBER_HOST = " + "'" + host_addr + "'" + "\n"
     append_string += "LOCAL_CLUSTER_MEMBER_PORT = " + str(cluster_port) + "\n"
 
     f = open(base_dir + "/" + member_name + "/conf/sundb.properties.conf", "a")
@@ -178,12 +178,13 @@ def prepare_new_test_stuff():
 
     # copy home sub dirs & modify config file
     from_dir = product_home + "/Gliese/home"
+    cluster_dir = product_home + '/Cluster'
+
     for i in range(1, group_count+1):
         for j in range(1, node_count+1):
             member_name = mk_member_name(i,j)
 
             # copy dirs
-            cluster_dir = product_home + '/Cluster'
             to_dir = cluster_dir + '/' + member_name
             print "    [ " + to_dir + " ]"
             os.mkdir(to_dir)
@@ -201,7 +202,29 @@ def prepare_new_test_stuff():
             listen_port  = base_listen_port + add_value
             modify_config(cluster_dir, member_name, shmkey, shmaddr, cluster_port, listen_port)
 
-#def create_new_dbs_and_mount():
+def create_new_dbs_and_mount():
+    print "==> Create DB & Mount"
+
+    create_string='gcreatedb --cluster --db_name=SUNDB'
+    startup_string='''
+                    \cstartup
+                    alter system mount global database
+                    \q
+                   '''
+    cluster_dir = product_home + '/Cluster'
+
+    # create each members' db
+    for i in range(1, group_count+1):
+        for j in range(1, node_count+1):
+            member_name = mk_member_name(i,j)
+            memb_home_dir = cluster_dir + "/" + member_name
+            os.environ['SUNDB_HOME'] = memb_home_dir
+            os.environ['SUNDB_DATA'] = memb_home_dir
+
+            # create db
+            os.popen(create_string)
+            subprocess.Popen('gsql --as sysdba', stderr=subprocess.STDOUT).communicate(script)[0]
+            
 #script = '''
 #root (hd0,1)
 #find /boot/grub/menu.lst
