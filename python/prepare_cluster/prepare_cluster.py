@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import sys,os,commands,signal
-import shutil,subprocess
+import shutil
+from subprocess import Popen, PIPE, STDOUT
 
 ##############################################
 # global variables
@@ -66,10 +67,15 @@ def copytree(src, dst, symlinks=False, ignore=None):
                 shutil.copy2(s, d)
 
 def kill_processes(plist):
-    print "==> Killing Processes"
     for proc in plist:
-        kill_string  = 'pkill ' + '^' + proc
-        commands.getoutput(kill_string)
+        pgrep_string = 'pgrep ' + '\"^' + proc + '\"'
+        pid_list = commands.getoutput(pgrep_string).split('\n')
+        if len(pid_list) == 1 and len(pid_list[0]) == 0:
+            None
+        else:
+            for pid in pid_list:
+                kill_string  = 'kill -9 ' + pid
+                commands.getoutput(kill_string)
 
 def remove_shared_memory(user):
     rmshm_string="ipcs -m | grep `echo " + user + " | cut -c 1-7` | awk '{print \"ipcrm -m \" $2}' | sh -v"
@@ -145,9 +151,10 @@ def modify_config(base_dir, member_name, shmkey, shmaddr, cluster_port, listen_p
     append_string  = ""
     append_string += "SHARED_MEMORY_STATIC_KEY  = " + str(shmkey)       + "\n"
     append_string += "SHARED_MEMORY_ADDRESS     = " + str(shmaddr)      + "\n"
-    append_string += "LOCAL_CLUSTER_MEMBER      = " + member_name       + "\n"
-    append_string += "LOCAL_CLUSTER_MEMBER_HOST = " + "'" + host_addr + "'" + "\n"
+    append_string += "LOCAL_CLUSTER_MEMBER      = " + "'" + member_name + "'" + "\n"
+    append_string += "LOCAL_CLUSTER_MEMBER_HOST = " + "'" + host_addr   + "'" + "\n"
     append_string += "LOCAL_CLUSTER_MEMBER_PORT = " + str(cluster_port) + "\n"
+    append_string += "SHARED_SERVERS            = 2"                    + "\n"
 
     f = open(base_dir + "/" + member_name + "/conf/sundb.properties.conf", "a")
     f.write(append_string)
@@ -205,12 +212,7 @@ def prepare_new_test_stuff():
 def create_new_dbs_and_mount():
     print "==> Create DB & Mount"
 
-    create_string='gcreatedb --cluster --db_name=SUNDB'
-    startup_string='''
-                    \cstartup
-                    alter system mount global database
-                    \q
-                   '''
+    create_cmd = ['gcreatedb', ' --cluster', ' --db_name=SUNDB']
     cluster_dir = product_home + '/Cluster'
 
     # create each members' db
@@ -218,21 +220,23 @@ def create_new_dbs_and_mount():
         for j in range(1, node_count+1):
             member_name = mk_member_name(i,j)
             memb_home_dir = cluster_dir + "/" + member_name
+            print "    [ " + memb_home_dir + " ]"
+
             os.environ['SUNDB_HOME'] = memb_home_dir
             os.environ['SUNDB_DATA'] = memb_home_dir
+            os.environ['PATH'] = memb_home_dir + "/bin:" + os.environ['PATH']
 
             # create db
-            os.popen(create_string)
-            subprocess.Popen('gsql --as sysdba', stderr=subprocess.STDOUT).communicate(script)[0]
-            
-#script = '''
-#root (hd0,1)
-#find /boot/grub/menu.lst
-#setup (hd0)
-#quit
-#'''
-#    print subprocess.Popen('grub', stderr=subprocess.STDOUT).communicate(script)[0]
+            proc = Popen(create_cmd, stdout=PIPE)
+            output = proc.communicate()[0]
+            # print output
 
+            #subprocess.call(shlex.split('gsql --as sysdba --import aa.sql'))
+            #p = Popen(['gsql', '--as', 'sysdba'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+            #output = p.communicate(input=b'\cstartup local open\nalter system mount global database\n\q')[0]
+            #print(output.decode())
+
+            
 ##############################################
 # main function
 ##############################################
