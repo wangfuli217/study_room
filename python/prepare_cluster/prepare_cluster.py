@@ -215,6 +215,15 @@ def create_new_dbs_and_mount():
     create_cmd = ['gcreatedb', ' --cluster', ' --db_name=SUNDB']
     cluster_dir = product_home + '/Cluster'
 
+    startup_string = '''
+                      \cstartup local open
+                      alter system mount global database
+                      \q
+                     '''
+    f = open('tmp.sql', "w")
+    f.write(startup_string)
+    f.close()
+
     # create each members' db
     for i in range(1, group_count+1):
         for j in range(1, node_count+1):
@@ -230,6 +239,7 @@ def create_new_dbs_and_mount():
             proc = Popen(create_cmd, stdout=PIPE)
             output = proc.communicate()[0]
             # print output
+
 
             #subprocess.call(shlex.split('gsql --as sysdba --import aa.sql'))
             #p = Popen(['gsql', '--as', 'sysdba'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
