@@ -215,10 +215,39 @@ def prepare_new_test_stuff():
             listen_port  = base_listen_port + add_value
             modify_config(cluster_dir, member_name, shmkey, shmaddr, cluster_port, listen_port)
 
-def create_new_dbs_and_mount():
+
+##############################################
+# create all cluster dbs
+##############################################
+def create_new_dbs():
     global product_home
 
-    print "==> Create DB & Mount"
+    print "==> Create DB"
+    cluster_dir = product_home + '/Cluster'
+
+    # create each members' db
+    for i in range(1, group_count+1):
+        for j in range(1, node_count+1):
+            member_name = mk_member_name(i,j)
+            memb_home_dir = cluster_dir + "/" + member_name
+            print "    [ " + memb_home_dir + " ]"
+
+            os.environ['SUNDB_HOME'] = memb_home_dir
+            os.environ['SUNDB_DATA'] = memb_home_dir
+            os.environ['PATH'] = memb_home_dir + "/bin:" + os.environ['PATH']
+
+            # create db
+            command_line = 'gcreatedb --cluster --db_name=SUNDB --home=' + memb_home_dir
+            exec_shell_command(command_line)
+
+
+##############################################
+# cstartup & mount
+##############################################
+def global_mount_new_dbs():
+    global product_home
+
+    print "==> DB Global Mount"
     cluster_dir = product_home + '/Cluster'
 
     startup_string = '\cstartup local open\nalter system mount global database;\n\q\n'
@@ -238,17 +267,11 @@ def create_new_dbs_and_mount():
             os.environ['SUNDB_DATA'] = memb_home_dir
             os.environ['PATH'] = memb_home_dir + "/bin:" + os.environ['PATH']
 
-            # create db
-            print "     - Create DB"
-            command_line = 'gcreatedb --cluster --db_name=SUNDB --home=' + memb_home_dir
-            exec_shell_command(command_line)
-
             # cstartup & mount
             print "     - CStartup & Mount"
             command_line = 'gsql --as sysdba --import tmp.sql'
             exec_shell_command(command_line)
 
-            #subprocess.call(shlex.split('gsql --as sysdba --import tmp.sql'))
             #p = Popen(['gsql', '--as', 'sysdba'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
             #output = p.communicate(input=b'\cstartup local open\n\q')[0]
             #print(output.decode())
@@ -376,8 +399,11 @@ def main():
     remove_old_test_stuff()
 
     prepare_new_test_stuff()
-    create_new_dbs_and_mount()
+    create_new_dbs()
+
+    global_mount_new_dbs()
     prepare_cluster_open()
+
     create_meta()
 
 if __name__ == '__main__':
