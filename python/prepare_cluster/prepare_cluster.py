@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys,os,commands,signal
-import shutil
+import shutil,subprocess,shlex
 from subprocess import Popen, PIPE, STDOUT
 
 ##############################################
@@ -13,6 +13,7 @@ group_count = 0
 node_count = 0
 product_home = None
 process_list = [ 'gmaster',
+                 'gbalancer',
                  'gserver',
                  'cserver',
                  'gdispatcher',
@@ -84,6 +85,11 @@ def remove_shared_memory(user):
 def mk_member_name(gidx,nidx):
     return 'G' + str(gidx) + 'N' + str(nidx)
 
+def exec_shell_command(command_string):
+    devnull = open('/dev/null', 'w')
+    process = Popen(shlex.split(command_string), stdout=devnull)
+    retcode = process.wait()
+    
 
 ##############################################
 # check args & environment variables
@@ -170,7 +176,7 @@ def modify_config(base_dir, member_name, shmkey, shmaddr, cluster_port, listen_p
     append_string  = "[" + member_name + "]"      + "\n"
     append_string += "HOST = " + host_addr        + "\n"
     append_string += "PORT = " + str(listen_port) + "\n"
-    append_string += "SERVER_MODE = SHARED"
+    append_string += "SERVER_MODE = SHARED"       + "\n\n"
 
     f = open(base_dir + "/" + "prepare_cluster.odbc.ini", "a")
     f.write(append_string)
@@ -210,17 +216,14 @@ def prepare_new_test_stuff():
             modify_config(cluster_dir, member_name, shmkey, shmaddr, cluster_port, listen_port)
 
 def create_new_dbs_and_mount():
-    print "==> Create DB & Mount"
+    global product_home
 
-    create_cmd = ['gcreatedb', ' --cluster', ' --db_name=SUNDB']
+    print "==> Create DB & Mount"
     cluster_dir = product_home + '/Cluster'
 
-    startup_string = '''
-                      \cstartup local open
-                      alter system mount global database
-                      \q
-                     '''
+    startup_string = '\cstartup local open\nalter system mount global database;\n\q\n'
     f = open('tmp.sql', "w")
+    f.truncate()
     f.write(startup_string)
     f.close()
 
@@ -236,15 +239,131 @@ def create_new_dbs_and_mount():
             os.environ['PATH'] = memb_home_dir + "/bin:" + os.environ['PATH']
 
             # create db
-            proc = Popen(create_cmd, stdout=PIPE)
-            output = proc.communicate()[0]
-            # print output
+            print "     - Create DB"
+            command_line = 'gcreatedb --cluster --db_name=SUNDB --home=' + memb_home_dir
+            exec_shell_command(command_line)
 
+            # cstartup & mount
+            print "     - CStartup & Mount"
+            command_line = 'gsql --as sysdba --import tmp.sql'
+            exec_shell_command(command_line)
 
-            #subprocess.call(shlex.split('gsql --as sysdba --import aa.sql'))
+            #subprocess.call(shlex.split('gsql --as sysdba --import tmp.sql'))
             #p = Popen(['gsql', '--as', 'sysdba'], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-            #output = p.communicate(input=b'\cstartup local open\nalter system mount global database\n\q')[0]
+            #output = p.communicate(input=b'\cstartup local open\n\q')[0]
             #print(output.decode())
+
+            print "     - Start Listener"
+            command_line = 'glsnr --start --home=' + memb_home_dir
+            exec_shell_command(command_line)
+
+
+##############################################
+# prepare cluster group & member, open database
+##############################################
+def create_cluster_group(gidx,nidx,port):
+    global host_addr
+
+    group_name = 'G' + str(gidx)
+    member_name = mk_member_name(gidx,nidx)
+
+    create_string = 'create cluster group ' + group_name \
+                       + ' cluster member ' + member_name \
+                       + ' host \'' + host_addr + '\' port ' + str(port) + ';\n\q\n'
+    f = open('tmp.sql', "w")
+    f.truncate()
+    f.write(create_string)
+    f.close()
+
+    command_line = 'gsql --as sysdba --import tmp.sql'
+    exec_shell_command(command_line)
+
+
+def add_cluster_member(gidx,nidx,port):
+    global host_addr
+
+    group_name = 'G' + str(gidx)
+    member_name = mk_member_name(gidx,nidx)
+
+    add_string = 'alter cluster group ' + group_name \
+                  + ' add cluster member ' + member_name \
+                  + ' host \'' + host_addr + '\' port ' + str(port) + ';\n\q\n'
+    f = open('tmp.sql', "w")
+    f.truncate()
+    f.write(add_string)
+    f.close()
+
+    command_line = 'gsql --as sysdba --import tmp.sql'
+    exec_shell_command(command_line)
+
+
+def open_global_database():
+    open_string = 'alter system open global database;\n\q\n'
+
+    f = open('tmp.sql', "w")
+    f.truncate()
+    f.write(open_string)
+    f.close()
+
+    command_line = 'gsql --as sysdba --import tmp.sql'
+    exec_shell_command(command_line)
+    
+
+def prepare_cluster_open():
+    global product_home
+
+    print "==> Create Cluster Groups/Members and Open"
+
+    cluster_dir = product_home + '/Cluster'
+
+    driving_node_dir = cluster_dir + "/" + mk_member_name(1,1)
+    os.environ['SUNDB_HOME'] = driving_node_dir
+    os.environ['SUNDB_DATA'] = driving_node_dir
+    os.environ['PATH'] = driving_node_dir + "/bin:" + os.environ['PATH']
+
+    for i in range(1, group_count+1):
+        for j in range(1, node_count+1):
+            member_name = mk_member_name(i,j)
+            print "    [ " + member_name + " ]"
+
+            add_value = (i*1000) + (j*100)
+            cluster_port  = base_cluster_port + add_value
+
+            if j == 1:
+                create_cluster_group(i,j,cluster_port)
+            else:
+                add_cluster_member(i,j,cluster_port)
+
+    open_global_database()
+
+
+##############################################
+# create meta
+##############################################
+def create_meta():
+    print "==> Create Meta"
+
+    global product_home
+
+    cluster_dir = product_home + '/Cluster'
+    member_name = mk_member_name(1,1)
+    memb_home_dir = cluster_dir + "/" + member_name
+
+    os.environ['SUNDB_HOME'] = memb_home_dir
+    os.environ['SUNDB_DATA'] = memb_home_dir
+    os.environ['PATH'] = memb_home_dir + "/bin:" + os.environ['PATH']
+
+    command_line = 'gsql --as sysdba --no-prompt --import ' \
+                    + memb_home_dir + '/admin/DictionarySchema.sql'
+    exec_shell_command(command_line)
+
+    command_line = 'gsql --as sysdba --no-prompt --import ' \
+                    + memb_home_dir + '/admin/InformationSchema.sql'
+    exec_shell_command(command_line)
+
+    command_line = 'gsql --as sysdba --no-prompt --import ' \
+                    + memb_home_dir + '/admin/PerformanceViewSchema.sql'
+    exec_shell_command(command_line)
 
             
 ##############################################
@@ -258,7 +377,8 @@ def main():
 
     prepare_new_test_stuff()
     create_new_dbs_and_mount()
-
+    prepare_cluster_open()
+    create_meta()
 
 if __name__ == '__main__':
     main()
