@@ -7,8 +7,8 @@ int main()
     ofstream fout("test.out");  // default ofstream constructor + open
     if(!fout)
     {
-	cerr << "Error opening test.out for writing" << endl;
-	return 1;
+        cerr << "Error opening test.out for writing" << endl;
+        return 1;
     }
 
     fout << "12345";
@@ -16,11 +16,11 @@ int main()
     ios_base::streampos curPos = fout.tellp();
     if(5 == curPos)
     {
-	cout << "Test passed : Currently at position 5" << endl;
+        cout << "Test passed : Currently at position 5" << endl;
     }
     else
     {
-	cout << "Test failed : Not at position 5" << endl;
+        cout << "Test failed : Not at position 5" << endl;
     }
 
     fout.seekp(2,ios_base::beg);
@@ -30,8 +30,8 @@ int main()
     ifstream fin("test.out");
     if(!fin)
     {
-	cerr << "Error opening test.out for reading" << endl;
-	return 1;
+        cerr << "Error opening test.out for reading" << endl;
+        return 1;
     }
 
     int testVal;
@@ -39,11 +39,11 @@ int main()
     const int expected = 12045;
     if(testVal == expected)
     {
-	cout << "Test passed : Value is " << expected << endl;
+        cout << "Test passed : Value is " << expected << endl;
     }
     else
     {
-	cout << "Test failed : Value is not " << expected
-	     << " (it was " << testVal << ")" << endl;
+        cout << "Test failed : Value is not " << expected
+            << " (it was " << testVal << ")" << endl;
     }
 }
