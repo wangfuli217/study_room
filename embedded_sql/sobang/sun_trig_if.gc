@@ -7,18 +7,24 @@
 #define EXIST   1
 #define NONE    0
 
-#define CHECK_ERR(level,msg)      \
-    if( SQLCODE != SUCCESS )      \
-    {                             \
-	    LogDBError( level, msg ); \
-	    return FAILURE;           \
+#define CHECK_ELOG(level,msg)                              \
+	if( (SQLCODE != SUCCESS) && (SQLCODE != SQL_NO_DATA) ) \
+    {                                                      \
+	    LogDBError( level, msg );                          \
     }
 
-#define CHECK_UPDATE(level,msg)   \
-    if( SQLCODE != SUCCESS )      \
-    {                             \
-	    LogDBError( level, msg ); \
-	    goto error_update;        \
+#define CHECK_ERR(level,msg)                               \
+	if( (SQLCODE != SUCCESS) && (SQLCODE != SQL_NO_DATA) ) \
+    {                                                      \
+	    LogDBError( level, msg );                          \
+	    goto error;                                        \
+    }
+
+#define CHECK_UPDATE(level,msg)                            \
+	if( (SQLCODE != SUCCESS) && (SQLCODE != SQL_NO_DATA) ) \
+    {                                                      \
+	    LogDBError( level, msg );                          \
+	    goto error_update;                                 \
     }
 
 
@@ -177,26 +183,26 @@ void DisconDBConnection()
 int ProcessWonJang()
 {
     EXEC SQL BEGIN DECLARE SECTION;
-        VARCHAR      IF_SEQ            [32];    // PK
-        VARCHAR      IF_REG_DTTM       [17];    // NOT NULL
-        char         IF_CUD_FALG       [1];     // NOT NULL
-        VARCHAR      IF_HNDL_DTTM      [17];
-        char         IF_HNDL_FALG      [1];     // NOT NULL
-        VARCHAR      IF_HNDL_ERR       [300];
+        VARCHAR      IF_SEQ            [32 +1];    // PK
+        VARCHAR      IF_REG_DTTM       [17 +1];    // NOT NULL
+        char         IF_CUD_FLAG       [1  +1];   // NOT NULL
+        VARCHAR      IF_HNDL_DTTM      [17 +1];
+        char         IF_HNDL_FLAG      [1  +1];   // NOT NULL
+        VARCHAR      IF_HNDL_ERR       [300+1];
         NUMBER(20)   VL_TRACE_INFO_SEQ;
-        VARCHAR      DEVICE_ID         [12];
-        VARCHAR      DSR_SEQ           [12];
-        VARCHAR      WARD_ID           [7];
-        VARCHAR      CAR_ID            [20];
-        VARCHAR      INPUT_DATETIME    [14];
+        VARCHAR      DEVICE_ID         [12 +1];
+        VARCHAR      DSR_SEQ           [12 +1];
+        VARCHAR      WARD_ID           [7  +1];
+        VARCHAR      CAR_ID            [20 +1];
+        VARCHAR      INPUT_DATETIME    [14 +1];
         NUMBER(4)    INPUT_SEQ;
-        VARCHAR      COLLECT_TIME      [12];
+        VARCHAR      COLLECT_TIME      [12 +1];
         NUMBER(10)   CAR_GIS_X;
         NUMBER(10)   CAR_GIS_Y;
-        char         D_WEEKDAY         [1];
-        VARCHAR      D_UPWARD_ID       [7];
+        char         D_WEEKDAY         [1  +1];
+        VARCHAR      D_UPWARD_ID       [7  +1];
 
-        int          IF_CUD_FALG_ind;
+        int          IF_CUD_FLAG_ind;
         int          VL_TRACE_INFO_SEQ_ind;
         int          INPUT_SEQ_ind;
         int          CAR_GIS_X_ind;
@@ -213,15 +219,14 @@ int ProcessWonJang()
      * Prepare SQL
      ********************************************/
     sprintf( sSelectSql, "SELECT * "
-                           "FROM VL_TRACE_INFO_IF"
-                          "WHERE IF_HNDL_FLAG = 'N'"
-                          "ORDER BY IF_SEQ"
-                            "FOR UPDATE" );
+                           "FROM VL_TRACE_INFO_IF "
+                          "WHERE IF_HNDL_FLAG = 'N' "
+                          "ORDER BY IF_SEQ" );
 
     EXEC SQL PREPARE IF_STMT FROM :sSelectSql;
     CHECK_ERR( LOG_E, "Prepare statement error" );
 
-    EXEC SQL DECLARE IF_CUR CURSOR FOR SELECT_STMT;
+    EXEC SQL DECLARE IF_CUR CURSOR FOR IF_STMT;
 
     /*********************************************
      * SQL Execution
@@ -238,9 +243,9 @@ int ProcessWonJang()
          ********************************************/
 	    EXEC SQL FETCH IF_CUR INTO :IF_SEQ,
                                    :IF_REG_DTTM,
-                                   :IF_CUD_FALG :IF_CUD_FALG_ind,
+                                   :IF_CUD_FLAG :IF_CUD_FLAG_ind,
                                    :IF_HNDL_DTTM,
-                                   :IF_HNDL_FALG,
+                                   :IF_HNDL_FLAG,
                                    :IF_HNDL_ERR,
                                    :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
                                    :DEVICE_ID,
@@ -273,74 +278,139 @@ int ProcessWonJang()
 
 
         /*********************************************
-         * 원장 Table 1 입력 
+         * 연계작업구분에 따라 원장 테이블 Insert/Update/Delete
          ********************************************/
-	    EXEC SQL INSERT INTO VL_TRACE_INFO 
-                      VALUES( :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
-                              :DEVICE_ID,
-                              :DSR_SEQ,
-                              :WARD_ID,
-                              :CAR_ID,
-                              :INPUT_DATETIME,
-                              :INPUT_SEQ :INPUT_SEQ_ind,
-                              :COLLECT_TIME,
-                              :CAR_GIS_X :CAR_GIS_X_ind,
-                              :CAR_GIS_Y :CAR_GIS_Y_ind,
-                              :D_WEEKDAY :D_WEEKDAY_ind );
-
-        CHECK_UPDATE( LOG_E, "Insert VL_TRACE_INFO error" );
-
-
-        /*********************************************
-         * 원장 Table2 에 이미 입력된 상태인지 검사 
-         * 없으면 Insert, 있으면 Update
-         * (다른 사용자가 원장 Table2 에 입력하는 일은 없다.)
-         ********************************************/
-        EXEC SQL SELECT COUNT(*)
-                   INTO :sWonJangCount
-	               FROM VL_TRACE_INFO2
-                  WHERE DEVICE_ID = :DEVICE_ID
-                    AND DSR_SEQ   = :DSR_SEQ
-                    AND CAR_ID    = :CAR_ID;
-
-        CHECK_UPDATE( LOG_E, "Select VL_TRACE_INFO2 error" );
-
-        if( sWonJangCount > 0 )
+        if( IF_CUD_FLAG[0] == 'I' )
         {
-	        EXEC SQL UPDATE VL_TRACE_INFO2
-		                SET DEVICE_ID       =  :DEVICE_ID,
-                            DSR_SEQ         =  :DSR_SEQ,
-                            WARD_ID         =  :WARD_ID,
-                            CAR_ID          =  :CAR_ID,
-                            INPUT_DATETIME  =  :INPUT_DATETIME,
-                            INPUT_SEQ       =  :INPUT_SEQ :INPUT_SEQ_ind,
-                            COLLECT_TIME    =  :COLLECT_TIME,
-                            CAR_GIS_X       =  :CAR_GIS_X :CAR_GIS_X_ind,
-                            CAR_GIS_Y       =  :CAR_GIS_Y :CAR_GIS_Y_ind,
-                            D_WEEKDAY       =  :D_WEEKDAY :D_WEEKDAY_ind
-                      WHERE DEVICE_ID       = :DEVICE_ID
-                        AND DSR_SEQ         = :DSR_SEQ
-                        AND CAR_ID          = :CAR_ID;
+            /*********************************************
+            * 원장 Table 1 입력 
+            ********************************************/
+            EXEC SQL INSERT INTO VL_TRACE_INFO 
+                        VALUES( :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
+                                :DEVICE_ID,
+                                :DSR_SEQ,
+                                :WARD_ID,
+                                :CAR_ID,
+                                :INPUT_DATETIME,
+                                :INPUT_SEQ :INPUT_SEQ_ind,
+                                :COLLECT_TIME,
+                                :CAR_GIS_X :CAR_GIS_X_ind,
+                                :CAR_GIS_Y :CAR_GIS_Y_ind,
+                                :D_WEEKDAY :D_WEEKDAY_ind );
+
+            CHECK_UPDATE( LOG_E, "Insert VL_TRACE_INFO error" );
+
+            /*********************************************
+            * 원장 Table2 에 이미 입력된 상태인지 검사 
+            * 없으면 Insert, 있으면 Update
+            * (다른 사용자가 원장 Table2 에 입력하는 일은 없다.)
+            ********************************************/
+            EXEC SQL SELECT COUNT(*)
+                    INTO :sWonJangCount
+                    FROM VL_TRACE_INFO2
+                   WHERE DEVICE_ID  = :DEVICE_ID
+                     AND DSR_SEQ    = :DSR_SEQ
+                     AND CAR_ID     = :CAR_ID;
+
+            CHECK_UPDATE( LOG_E, "Select VL_TRACE_INFO2 error" );
+
+            if( sWonJangCount > 0 )
+            {
+                EXEC SQL UPDATE VL_TRACE_INFO2
+                            SET VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
+                                WARD_ID           = :WARD_ID,
+                                INPUT_DATETIME    = :INPUT_DATETIME,
+                                INPUT_SEQ         = :INPUT_SEQ :INPUT_SEQ_ind,
+                                COLLECT_TIME      = :COLLECT_TIME,
+                                CAR_GIS_X         = :CAR_GIS_X :CAR_GIS_X_ind,
+                                CAR_GIS_Y         = :CAR_GIS_Y :CAR_GIS_Y_ind,
+                                D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind
+                          WHERE DEVICE_ID         = :DEVICE_ID
+                            AND DSR_SEQ           = :DSR_SEQ
+                            AND CAR_ID            = :CAR_ID;
+
+                CHECK_UPDATE( LOG_E, "Update VL_TRACE_INFO2 error" );
+            }
+            else
+            {
+                EXEC SQL INSERT INTO VL_TRACE_INFO2
+                            VALUES( :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
+                                    :DEVICE_ID,
+                                    :DSR_SEQ,
+                                    :WARD_ID,
+                                    :CAR_ID,
+                                    :INPUT_DATETIME,
+                                    :INPUT_SEQ :INPUT_SEQ_ind,
+                                    :COLLECT_TIME,
+                                    :CAR_GIS_X :CAR_GIS_X_ind,
+                                    :CAR_GIS_Y :CAR_GIS_Y_ind,
+                                    :D_WEEKDAY :D_WEEKDAY_ind );
+
+                CHECK_UPDATE( LOG_E, "Insert VL_TRACE_INFO2 error" );
+            }
+        }
+        else if( IF_CUD_FLAG[0] == 'U' )
+        {
+            EXEC SQL UPDATE VL_TRACE_INFO
+                        SET DEVICE_ID         = :DEVICE_ID,
+                            DSR_SEQ           = :DSR_SEQ,
+                            WARD_ID           = :WARD_ID,
+                            CAR_ID            = :CAR_ID,
+                            INPUT_DATETIME    = :INPUT_DATETIME,
+                            INPUT_SEQ         = :INPUT_SEQ :INPUT_SEQ_ind,
+                            COLLECT_TIME      = :COLLECT_TIME,
+                            CAR_GIS_X         = :CAR_GIS_X :CAR_GIS_X_ind,
+                            CAR_GIS_Y         = :CAR_GIS_Y :CAR_GIS_Y_ind 
+                      WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+
+            CHECK_UPDATE( LOG_E, "Update VL_TRACE_INFO error" );
+
+            EXEC SQL UPDATE VL_TRACE_INFO2
+                        SET DEVICE_ID         = :DEVICE_ID,
+                            DSR_SEQ           = :DSR_SEQ,
+                            WARD_ID           = :WARD_ID,
+                            CAR_ID            = :CAR_ID,
+                            INPUT_DATETIME    = :INPUT_DATETIME,
+                            INPUT_SEQ         = :INPUT_SEQ :INPUT_SEQ_ind,
+                            COLLECT_TIME      = :COLLECT_TIME,
+                            CAR_GIS_X         = :CAR_GIS_X :CAR_GIS_X_ind,
+                            CAR_GIS_Y         = :CAR_GIS_Y :CAR_GIS_Y_ind 
+                      WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
 
             CHECK_UPDATE( LOG_E, "Update VL_TRACE_INFO2 error" );
+        } 
+        else if( IF_CUD_FLAG[0] == 'D' )
+        {
+	        EXEC SQL DELETE
+		               FROM VL_TRACE_INFO
+                      WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+
+            CHECK_UPDATE( LOG_E, "Delete VL_TRACE_INFO error" );
+
+            /*
+             * TODO
+             *   Delete 가 되었을 때 이전 데이터를 복구해주어야 하는가...
+             */
+	        EXEC SQL DELETE
+		               FROM VL_TRACE_INFO2
+                      WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+
+            CHECK_UPDATE( LOG_E, "Delete VL_TRACE_INFO2 error" );
         }
         else
         {
-            EXEC SQL INSERT INTO VL_TRACE_INFO2
-                          VALUES( :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
-                                  :DEVICE_ID,
-                                  :DSR_SEQ,
-                                  :WARD_ID,
-                                  :CAR_ID,
-                                  :INPUT_DATETIME,
-                                  :INPUT_SEQ :INPUT_SEQ_ind,
-                                  :COLLECT_TIME,
-                                  :CAR_GIS_X :CAR_GIS_X_ind,
-                                  :CAR_GIS_Y :CAR_GIS_Y_ind,
-                                  :D_WEEKDAY :D_WEEKDAY_ind );
+            EXEC SQL UPDATE VL_TRACE_INFO_IF
+	                    SET IF_HNDL_FLAG = 'F',
+	                        IF_HNDL_ERROR = 'Invalid IF_CUD_FLAG'
+                      WHERE IF_SEQ = :IF_SEQ;
 
-            CHECK_UPDATE( LOG_E, "Insert VL_TRACE_INFO2 error" );
+            EXEC SQL COMMIT WORK;
         }
+            
 
         /*********************************************
          * 연계 완료 Update
@@ -359,9 +429,14 @@ int ProcessWonJang()
 
     EXEC SQL CLOSE IF_CUR;
 
-    Log( LOG_I, "Processed Count(%d)\n" );
+    Log( LOG_I, "Processed Count(%d)\n", sCount );
 
 	return SUCCESS;
+
+error:
+    EXEC SQL CLOSE IF_CUR;
+
+    return FAILURE;
 
 error_update:
 
@@ -375,7 +450,8 @@ error_update:
     sErrorMsg.len = strlen( sErrorMsg.arr );
 
     EXEC SQL UPDATE VL_TRACE_INFO_IF
-                SET IF_HNDL_ERROR = :sErrorMsg
+                SET IF_HNDL_FLAG = 'F',
+                    IF_HNDL_ERROR = :sErrorMsg
               WHERE IF_SEQ = :IF_SEQ;
 
     return FAILURE;
@@ -417,6 +493,7 @@ int checkInterfaceTable()
     }
     else
     {
+        Log( LOG_D, "Check Count(%d)\n", sCount );
 	    if( sCount > 0 )
 	    {
             return EXIST;
@@ -437,6 +514,10 @@ void ConnectionToDB( const char     * aHostInfo,
                      const char     * aUserName,
                      const char     * aPassword )
 {
+    EXEC SQL BEGIN DECLARE SECTION;
+    int    sTmp;
+    EXEC SQL END DECLARE SECTION;
+
 	int    sRet;
 	int    sInitRetryCount = 0;
 	int    sConnectInterval = 1;
@@ -444,7 +525,7 @@ void ConnectionToDB( const char     * aHostInfo,
     /*********************************************
      * 항상 세션 점검을 한번씩 해준다.
      ********************************************/
-	EXEC SQL SELECT 1 FROM DUAL;
+	EXEC SQL SELECT 1 INTO :sTmp FROM DUAL;
 	if( SQLCODE == SUCCESS )
 	{
 		return;
@@ -500,6 +581,9 @@ int TryConnectToDB( const char   * aHostInfo,
     CHECK_ERR( LOG_C, "Connect to DB Fail" );
 
     return SUCCESS;
+
+error:
+    return FAILURE;
 }
 
 /*

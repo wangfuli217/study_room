@@ -3,9 +3,9 @@ CREATE TABLE VL_TRACE_INFO_IF
 (
     IF_SEQ              VARCHAR(32)   CONSTRAINT PK_VL_TRACE_INFO_IF PRIMARY KEY,
     IF_REG_DTTM         VARCHAR(17)   NOT NULL,
-    IF_CUD_FALG         char(1)       NOT NULL,
+    IF_CUD_FLAG         char(1)       NOT NULL,
     IF_HNDL_DTTM        VARCHAR(17),
-    IF_HNDL_FALG        char(1)       NOT NULL,
+    IF_HNDL_FLAG        char(1)       NOT NULL,
     IF_HNDL_ERR         VARCHAR(300),
     VL_TRACE_INFO_SEQ   NUMBER(20),
     DEVICE_ID           VARCHAR(12),
@@ -50,3 +50,5 @@ CREATE TABLE VL_TRACE_INFO2
     CAR_GIS_Y           NUMBER(10), 
     D_WEEKDAY           char(1)
 );
+
+commit;
