@@ -267,19 +267,12 @@ int ProcessWonJang()
 
         CHECK_ERR( LOG_E, "Fetch error" );
 
-        /*********************************************
-         * Flag Update - 연계중
-         ********************************************/
-        EXEC SQL UPDATE VL_TRACE_INFO_IF
-	                SET IF_HNDL_FLAG = 'P'
-                  WHERE IF_SEQ = :IF_SEQ;
-
-        CHECK_ERR( LOG_E, "Update IFTable Flag(P) error" );
-
 
         /*********************************************
          * 연계작업구분에 따라 원장 테이블 Insert/Update/Delete
          ********************************************/
+        Log( LOG_D, "IF_HNDL_FLAG(%s) IF_CUD_FLAG(%s)\n", IF_HNDL_FLAG, IF_CUD_FLAG );
+
         if( IF_CUD_FLAG[0] == 'I' )
         {
             /*********************************************
@@ -362,7 +355,8 @@ int ProcessWonJang()
                             CAR_GIS_X         = :CAR_GIS_X :CAR_GIS_X_ind,
                             CAR_GIS_Y         = :CAR_GIS_Y :CAR_GIS_Y_ind 
                       WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
-                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind
+                      LIMIT 1;
 
             CHECK_UPDATE( LOG_E, "Update VL_TRACE_INFO error" );
 
@@ -377,7 +371,8 @@ int ProcessWonJang()
                             CAR_GIS_X         = :CAR_GIS_X :CAR_GIS_X_ind,
                             CAR_GIS_Y         = :CAR_GIS_Y :CAR_GIS_Y_ind 
                       WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
-                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind
+                      LIMIT 1;
 
             CHECK_UPDATE( LOG_E, "Update VL_TRACE_INFO2 error" );
         } 
@@ -386,7 +381,8 @@ int ProcessWonJang()
 	        EXEC SQL DELETE
 		               FROM VL_TRACE_INFO
                       WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
-                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind
+                      LIMIT 1;
 
             CHECK_UPDATE( LOG_E, "Delete VL_TRACE_INFO error" );
 
@@ -397,7 +393,8 @@ int ProcessWonJang()
 	        EXEC SQL DELETE
 		               FROM VL_TRACE_INFO2
                       WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
-                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind;
+                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind
+                      LIMIT 1;
 
             CHECK_UPDATE( LOG_E, "Delete VL_TRACE_INFO2 error" );
         }
@@ -424,7 +421,6 @@ int ProcessWonJang()
         EXEC SQL COMMIT WORK;
 
 	    ++sCount;
-	    // printIFRecord( &sIFRecord );
     }
 
     EXEC SQL CLOSE IF_CUR;
