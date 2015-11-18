@@ -1,0 +1,663 @@
+#include "sun_trig_if.h"
+
+#define SUCCESS 0
+#define FAILURE 1
+#define DISCONN 2
+
+#define EXIST   1
+#define NONE    0
+
+#define CHECK_ERR(level,msg)      \
+    if( SQLCODE != SUCCESS )      \
+    {                             \
+	    LogDBError( level, msg ); \
+	    return FAILURE;           \
+    }
+
+#define CHECK_UPDATE(level,msg)   \
+    if( SQLCODE != SUCCESS )      \
+    {                             \
+	    LogDBError( level, msg ); \
+	    goto error_update;        \
+    }
+
+
+/*********************************************
+ * Global variables 
+ ********************************************/
+char       gLogFileName[256];
+char       gLogFilePrefix[256];
+int        gLogLevel;
+FILE      *gLogFp;
+int        gCurrentYDay;
+pthread_mutex_t gLogLock = PTHREAD_MUTEX_INITIALIZER;
+
+EXEC SQL INCLUDE SQLCA;
+
+void ShowUsage(char * prog_name)
+{
+    printf("\n");
+    printf("----------------- [ HELP ] ------------------\n");
+    printf("   %s [u:p:t:i:d:hH]\n", prog_name);
+    printf("     -u username           : db user name\n");
+    printf("     -p password           : db password\n");
+    printf("     -i check_interval     : interval seconds for checking interface table\n");
+    printf("     -d data_keeping_days  : days for keeping ledger data\n");
+    printf("     -t trace_logfile_path : trace logfile path(including filename)\n");
+    printf("\n");
+    printf(" ex> %s -u test -p test -i 5 -d 7 -t if.trc\n", prog_name);
+    printf("----------------- [ HELP ] ------------------\n");
+}
+
+int main(int argc, char *argv[])
+{
+    int    opt;
+    int    sLogLevel = LOG_C|LOG_E|LOG_W|LOG_I|LOG_D;
+    char   sLogPrefix[256];
+    char   sUserName[64];
+    char   sPassword[64];
+    int    sCheckInterval = 0;
+    int    sDataKeepDay = 0;
+
+    /*********************************************
+     * Process command line arguments
+     ********************************************/
+    if( argc < 6 )
+    {
+        ShowUsage(argv[0]);
+        exit(1);
+    }
+
+    memset( sUserName, 0x00, sizeof(sUserName) );
+    memset( sPassword, 0x00, sizeof(sPassword) );
+    memset( sLogPrefix, 0x00, sizeof(sLogPrefix) );
+
+    while( (opt=getopt(argc, argv, "u:p:t:i:d:hH")) != EOF )
+    {
+        switch(opt)
+        {
+            case 'u' :
+                strcpy( sUserName, optarg );
+                break;
+
+            case 'p' :
+                strcpy( sPassword, optarg );
+                break;
+
+            case 'i' :
+	            sCheckInterval = atoi(optarg);
+                break;
+
+            case 'd' :
+	            sDataKeepDay = atoi(optarg);
+                break;
+
+            case 't' :
+	            strcpy( sLogPrefix, optarg );
+                break;
+
+            case 'h' :
+            case 'H' :
+            default :
+                ShowUsage(argv[0]);
+                exit(0);
+        }
+    }
+
+    /*********************************************
+     * Check command line arguments
+     ********************************************/
+    if( (sUserName[0]   == 0x0) || (sPassword[0]   == 0x0) ||
+        (sLogPrefix[0]  == 0x0) || (sCheckInterval <= 0)   ||
+        (sDataKeepDay   <= 0) )
+    {
+        ShowUsage(argv[0]);
+        exit(0);
+    }
+
+    /*********************************************
+     * Register signal handler
+     ********************************************/
+    RegistSignal();
+
+    /*********************************************
+     * Open trace logfile
+     ********************************************/
+    if( OpenLog(sLogPrefix, sLogLevel) < 0 )
+    {
+        exit(1);
+    }
+
+    /*********************************************
+     * Do it's own job periodically
+     ********************************************/
+    Log(LOG_I, "UserName(%s) CheckInterval(%d) DataKeepDay(%d)\n",
+                sUserName, sCheckInterval, sDataKeepDay );
+
+    DoJob( sUserName, sPassword, sCheckInterval, sDataKeepDay );
+
+    CloseLog();
+
+    return 0;
+}
+
+
+/*
+ * (1). Interface Table 에서 연계 대상 레코드 있는지 검사
+ * (2). 연계 대상 레코드가 있으면 원장 테이블에 입력 및 갱신 후 Flag Update
+ * (3). 원장테이블에서 저장기간이 지난 데이터 삭제 
+ */
+void DoJob( const char     * aUserName,
+            const char     * aPassword,
+            int              aCheckInterval,
+            int              aDataKeepDay )
+{
+	while(1)
+	{
+        ConnectionToDB( "DSN=SUNDB", aUserName, aPassword );
+
+		if( checkInterfaceTable() == EXIST )       // --(1)
+		{
+			ProcessWonJang();                      // --(2)
+		}
+
+		deleteExpiredWonJangData( aDataKeepDay );  // --(3)
+
+		sleep(aCheckInterval);
+	}
+
+	DisconDBConnection();
+}
+
+void DisconDBConnection()
+{
+	EXEC SQL COMMIT WORK RELEASE;
+}
+
+int ProcessWonJang()
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+        VARCHAR      IF_SEQ            [32];    // PK
+        VARCHAR      IF_REG_DTTM       [17];    // NOT NULL
+        char         IF_CUD_FALG       [1];     // NOT NULL
+        VARCHAR      IF_HNDL_DTTM      [17];
+        char         IF_HNDL_FALG      [1];     // NOT NULL
+        VARCHAR      IF_HNDL_ERR       [300];
+        NUMBER(20)   VL_TRACE_INFO_SEQ;
+        VARCHAR      DEVICE_ID         [12];
+        VARCHAR      DSR_SEQ           [12];
+        VARCHAR      WARD_ID           [7];
+        VARCHAR      CAR_ID            [20];
+        VARCHAR      INPUT_DATETIME    [14];
+        NUMBER(4)    INPUT_SEQ;
+        VARCHAR      COLLECT_TIME      [12];
+        NUMBER(10)   CAR_GIS_X;
+        NUMBER(10)   CAR_GIS_Y;
+        char         D_WEEKDAY         [1];
+        VARCHAR      D_UPWARD_ID       [7];
+
+        int          IF_CUD_FALG_ind;
+        int          VL_TRACE_INFO_SEQ_ind;
+        int          INPUT_SEQ_ind;
+        int          CAR_GIS_X_ind;
+        int          CAR_GIS_Y_ind;
+        int          D_WEEKDAY_ind;
+
+        int          sCount = 0;
+        int          sWonJangCount = 0;
+        char         sSelectSql[128];
+        VARCHAR      sErrorMsg[300];
+    EXEC SQL END DECLARE SECTION;
+
+    /*********************************************
+     * Prepare SQL
+     ********************************************/
+    sprintf( sSelectSql, "SELECT * "
+                           "FROM VL_TRACE_INFO_IF"
+                          "WHERE IF_HNDL_FLAG = 'N'"
+                          "ORDER BY IF_SEQ"
+                            "FOR UPDATE" );
+
+    EXEC SQL PREPARE IF_STMT FROM :sSelectSql;
+    CHECK_ERR( LOG_E, "Prepare statement error" );
+
+    EXEC SQL DECLARE IF_CUR CURSOR FOR SELECT_STMT;
+
+    /*********************************************
+     * SQL Execution
+     ********************************************/
+    EXEC SQL OPEN IF_CUR;
+    CHECK_ERR( LOG_E, "Open cursor error" );
+
+    sCount = 0;
+
+    while(1)
+    {
+        /*********************************************
+         * Fetch Record From Interface Table
+         ********************************************/
+	    EXEC SQL FETCH IF_CUR INTO :IF_SEQ,
+                                   :IF_REG_DTTM,
+                                   :IF_CUD_FALG :IF_CUD_FALG_ind,
+                                   :IF_HNDL_DTTM,
+                                   :IF_HNDL_FALG,
+                                   :IF_HNDL_ERR,
+                                   :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
+                                   :DEVICE_ID,
+                                   :DSR_SEQ,
+                                   :WARD_ID,
+                                   :CAR_ID,
+                                   :INPUT_DATETIME,
+                                   :INPUT_SEQ :INPUT_SEQ_ind,
+                                   :COLLECT_TIME,
+                                   :CAR_GIS_X :CAR_GIS_X_ind,
+                                   :CAR_GIS_Y :CAR_GIS_Y_ind,
+                                   :D_WEEKDAY :D_WEEKDAY_ind,
+                                   :D_UPWARD_ID;
+
+	    if( SQLCODE == SQL_NO_DATA )
+	    {
+		    break;
+	    }
+
+        CHECK_ERR( LOG_E, "Fetch error" );
+
+        /*********************************************
+         * Flag Update - 연계중
+         ********************************************/
+        EXEC SQL UPDATE VL_TRACE_INFO_IF
+	                SET IF_HNDL_FLAG = 'P'
+                  WHERE IF_SEQ = :IF_SEQ;
+
+        CHECK_ERR( LOG_E, "Update IFTable Flag(P) error" );
+
+
+        /*********************************************
+         * 원장 Table 1 입력 
+         ********************************************/
+	    EXEC SQL INSERT INTO VL_TRACE_INFO 
+                      VALUES( :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
+                              :DEVICE_ID,
+                              :DSR_SEQ,
+                              :WARD_ID,
+                              :CAR_ID,
+                              :INPUT_DATETIME,
+                              :INPUT_SEQ :INPUT_SEQ_ind,
+                              :COLLECT_TIME,
+                              :CAR_GIS_X :CAR_GIS_X_ind,
+                              :CAR_GIS_Y :CAR_GIS_Y_ind,
+                              :D_WEEKDAY :D_WEEKDAY_ind );
+
+        CHECK_UPDATE( LOG_E, "Insert VL_TRACE_INFO error" );
+
+
+        /*********************************************
+         * 원장 Table2 에 이미 입력된 상태인지 검사 
+         * 없으면 Insert, 있으면 Update
+         * (다른 사용자가 원장 Table2 에 입력하는 일은 없다.)
+         ********************************************/
+        EXEC SQL SELECT COUNT(*)
+                   INTO :sWonJangCount
+	               FROM VL_TRACE_INFO2
+                  WHERE DEVICE_ID = :DEVICE_ID
+                    AND DSR_SEQ   = :DSR_SEQ
+                    AND CAR_ID    = :CAR_ID;
+
+        CHECK_UPDATE( LOG_E, "Select VL_TRACE_INFO2 error" );
+
+        if( sWonJangCount > 0 )
+        {
+	        EXEC SQL UPDATE VL_TRACE_INFO2
+		                SET DEVICE_ID       =  :DEVICE_ID,
+                            DSR_SEQ         =  :DSR_SEQ,
+                            WARD_ID         =  :WARD_ID,
+                            CAR_ID          =  :CAR_ID,
+                            INPUT_DATETIME  =  :INPUT_DATETIME,
+                            INPUT_SEQ       =  :INPUT_SEQ :INPUT_SEQ_ind,
+                            COLLECT_TIME    =  :COLLECT_TIME,
+                            CAR_GIS_X       =  :CAR_GIS_X :CAR_GIS_X_ind,
+                            CAR_GIS_Y       =  :CAR_GIS_Y :CAR_GIS_Y_ind,
+                            D_WEEKDAY       =  :D_WEEKDAY :D_WEEKDAY_ind
+                      WHERE DEVICE_ID       = :DEVICE_ID
+                        AND DSR_SEQ         = :DSR_SEQ
+                        AND CAR_ID          = :CAR_ID;
+
+            CHECK_UPDATE( LOG_E, "Update VL_TRACE_INFO2 error" );
+        }
+        else
+        {
+            EXEC SQL INSERT INTO VL_TRACE_INFO2
+                          VALUES( :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind,
+                                  :DEVICE_ID,
+                                  :DSR_SEQ,
+                                  :WARD_ID,
+                                  :CAR_ID,
+                                  :INPUT_DATETIME,
+                                  :INPUT_SEQ :INPUT_SEQ_ind,
+                                  :COLLECT_TIME,
+                                  :CAR_GIS_X :CAR_GIS_X_ind,
+                                  :CAR_GIS_Y :CAR_GIS_Y_ind,
+                                  :D_WEEKDAY :D_WEEKDAY_ind );
+
+            CHECK_UPDATE( LOG_E, "Insert VL_TRACE_INFO2 error" );
+        }
+
+        /*********************************************
+         * 연계 완료 Update
+         ********************************************/
+        EXEC SQL UPDATE VL_TRACE_INFO_IF
+	                SET IF_HNDL_FLAG = 'S'
+                  WHERE IF_SEQ = :IF_SEQ;
+
+        CHECK_UPDATE( LOG_E, "Update IFTable Flag(S) error" );
+
+        EXEC SQL COMMIT WORK;
+
+	    ++sCount;
+	    // printIFRecord( &sIFRecord );
+    }
+
+    EXEC SQL CLOSE IF_CUR;
+
+    Log( LOG_I, "Processed Count(%d)\n" );
+
+	return SUCCESS;
+
+error_update:
+
+	EXEC SQL ROLLBACK WORK;
+    EXEC SQL CLOSE IF_CUR;
+	
+    sprintf( sErrorMsg.arr, "SQLCODE(%d) SQLSTATE(%s) ERROR MSG(%s)\n",
+                            SQLCODE,
+                            SQLSTATE,
+                            sqlca.sqlerrm.sqlerrmc );
+    sErrorMsg.len = strlen( sErrorMsg.arr );
+
+    EXEC SQL UPDATE VL_TRACE_INFO_IF
+                SET IF_HNDL_ERROR = :sErrorMsg
+              WHERE IF_SEQ = :IF_SEQ;
+
+    return FAILURE;
+}
+
+void deleteExpiredWonJangData( int aDataKeepDay )
+{
+	EXEC SQL DELETE
+		       FROM VL_TRACE_INFO2
+		WHERE INPUT_DATE_TIME < TO_CHAR(SYSDATE-7, 'yyyymmddhh24miss');
+
+	if( SQLCODE == SUCCESS )
+	{
+        EXEC SQL COMMIT WORK;
+	}
+	else
+	{
+        EXEC SQL ROLLBACK WORK;
+	}
+}
+
+int checkInterfaceTable()
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+    int    sCount;
+    EXEC SQL END DECLARE SECTION;
+
+    sCount = 0;
+
+    EXEC SQL
+	  SELECT COUNT(*)
+	    INTO :sCount
+	    FROM VL_TRACE_INFO_IF
+	   WHERE IF_HNDL_FLAG = 'N';
+
+    if( SQLCODE != SUCCESS )
+    {
+	    LogDBError( LOG_C, "Check Interface Table Error");
+    }
+    else
+    {
+	    if( sCount > 0 )
+	    {
+            return EXIST;
+	    }
+	    else
+	    {
+            return NONE;
+	    }
+    }
+
+    return NONE;
+}
+
+/*
+ * wait util connecting to db successfully
+ */
+void ConnectionToDB( const char     * aHostInfo,
+                     const char     * aUserName,
+                     const char     * aPassword )
+{
+	int    sRet;
+	int    sInitRetryCount = 0;
+	int    sConnectInterval = 1;
+
+    /*********************************************
+     * 항상 세션 점검을 한번씩 해준다.
+     ********************************************/
+	EXEC SQL SELECT 1 FROM DUAL;
+	if( SQLCODE == SUCCESS )
+	{
+		return;
+	}
+
+	EXEC SQL ROLLBACK WORK RELEASE;
+
+    /*********************************************
+     * DB 접속 
+     ********************************************/
+retry:
+	sRet = TryConnectToDB( aHostInfo, aUserName, aPassword );
+	if( sRet == FAILURE )
+	{
+        /*********************************************
+		 * 처음에는 1 초마다 재시도, 10 초 후에는 5 초마다 재시도 
+         ********************************************/
+		if( ++sInitRetryCount >= 10 )
+		{
+			sConnectInterval = 5;
+		}
+		else
+		{
+			sConnectInterval = 1;
+		}
+
+        sleep( sConnectInterval );
+		goto retry;
+	}
+
+	Log( LOG_C, "Connect to DB Success. User(%s)\n", aUserName );
+}
+		
+
+/*
+ * Connect to db
+ */
+int TryConnectToDB( const char   * aHostInfo,
+                    const char   * aUserID,
+                    const char   * aPasswd )
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+    VARCHAR  sUid[80];
+    VARCHAR  sPwd[20];
+    VARCHAR  sConnStr[1024];
+    EXEC SQL END DECLARE SECTION;
+
+    VarCopy( sUid.arr, &sUid.len, aUserID );
+    VarCopy( sPwd.arr, &sPwd.len, aPasswd );
+    VarCopy( sConnStr.arr, &sConnStr.len, aHostInfo );
+
+    EXEC SQL CONNECT :sUid IDENTIFIED BY :sPwd USING :sConnStr;
+    CHECK_ERR( LOG_C, "Connect to DB Fail" );
+
+    return SUCCESS;
+}
+
+/*
+ * open trace logfile 
+ * logfile name : aFilePrefix.20151125 (aFilePrefix is given by user)
+ */
+int OpenLog( char *aFilePrefix, int aLogLevel )
+{
+    time_t         sClock;
+    struct tm    * sTM;
+    char           sDate[16];
+
+    if( aFilePrefix == NULL )
+    {
+        fprintf(stderr, "Invalid logfile prefix\n");
+        return -1;
+    }
+
+    sClock = time (0);
+    sTM    = localtime (&sClock);
+
+    memset( sDate, 0x00, sizeof(sDate) );
+    sprintf( sDate, "%04d%02d%02d", sTM->tm_year+1900, sTM->tm_mon+1, sTM->tm_mday );
+
+    sprintf( gLogFileName, "%s.%s", aFilePrefix, sDate );
+
+    if( access(gLogFileName, R_OK|W_OK) == 0 )
+    {
+        gLogFp = fopen (gLogFileName, "a");
+    }
+    else
+    {
+	    if( errno == ENOENT )
+	    {
+            gLogFp = fopen (gLogFileName, "w");
+	    }
+	    else
+	    {
+		    fprintf(stderr, "Logfile access error. errno(%d) : %s\n", errno, strerror(errno));
+	    }
+    }
+
+    if(gLogFp == NULL)
+    {
+        return -2;
+    }
+    else
+    {
+        gLogLevel = aLogLevel;
+
+        /*********************************************
+         * 날짜가 바뀌었을 때 자동으로 로그파일이 바뀔 수 있도록 
+         * 현재 날짜와 Filename Prefix를 기억해둠.
+         ********************************************/
+        gCurrentYDay = sTM->tm_yday;
+        strcpy(gLogFilePrefix, aFilePrefix);
+    }
+
+    return 0;
+}
+
+
+/*
+ * write log data
+ */
+int Log(int aLevel, char *aFormat,...)
+{
+    va_list        ap;
+    time_t         sClock;
+    struct tm     *sTM;
+
+    if( !(aLevel & gLogLevel) || gLogFp == NULL ) return 0;
+
+    pthread_mutex_lock(&gLogLock);
+
+    time (&sClock);
+    sTM  = localtime (&sClock);
+
+    if( gCurrentYDay != sTM->tm_yday)
+    {
+	    CloseLog();
+        OpenLog(gLogFilePrefix, gLogLevel);
+
+        if( gLogFp == NULL )
+        {
+            pthread_mutex_unlock(&gLogLock);
+	        return 0;
+        }
+        else
+        {
+            fprintf( gLogFp, "[%04d-%02d-%02d] START LOG\n",
+                             sTM->tm_year+1900,
+                             sTM->tm_mon+1,
+                             sTM->tm_mday );
+        }
+    }
+
+    fprintf( gLogFp, "[%04d/%02d/%02d %02d:%02d:%02d] ",
+                     sTM->tm_year+1900, sTM->tm_mon+1, sTM->tm_mday, 
+                     sTM->tm_hour, sTM->tm_min, sTM->tm_sec);
+
+    va_start (ap, aFormat);
+    vfprintf (gLogFp, aFormat, ap);
+    va_end (ap);
+
+    fflush (gLogFp);
+
+    pthread_mutex_unlock(&gLogLock);
+
+    return 0;
+}
+
+/*
+ * close log
+ */
+void CloseLog ()
+{
+    fflush (gLogFp);
+    fclose (gLogFp);
+    gLogFp = NULL;
+}
+
+/*
+ * signal handler
+ */
+void sigh(int signo)
+{
+    Log(LOG_C, "sig(%d) caught !!!\n", signo);
+    exit(1);
+}
+
+/*
+ * register signal handler
+ */
+void RegistSignal()
+{
+    int        i;
+
+    for(i=1 ; i<16 ; i++)  signal(i,sigh);
+    signal(SIGCHLD,SIG_IGN);
+    signal(SIGPIPE,SIG_IGN);
+    signal(SIGHUP,SIG_IGN);
+}
+
+void LogDBError(int aLogLevel, const char * aMsg)
+{                                                               \
+    Log( aLogLevel, "%s. SQLCODE(%d) SQLSTATE(%s) ERROR MSG(%s)\n",
+                    aMsg,
+                    SQLCODE,
+                    SQLSTATE,
+                    sqlca.sqlerrm.sqlerrmc );
+}
+
+void VarCopy( char * aArr, int * aLen, const char * aSrcStr )
+{
+    if( aSrcStr != NULL )
+    {
+        strcpy( aArr, aSrcStr );
+        *aLen = strlen( aSrcStr );
+    }
+}
