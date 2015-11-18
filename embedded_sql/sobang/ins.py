@@ -18,7 +18,7 @@ i = 46338639
 j = 12552029
 
 def make_string(idx):
-    str1 = 'insert ito vl_trace_info_if values (' + \
+    str1 = 'insert into vl_trace_info_if values (' + \
            '\'' + str(a+idx) +  '\', '   + \
            'to_char(sysdate, \'yyyymmddhh24missSSS\'), \'I\', to_char(sysdate, \'yyyymmddhh24missSSS\'), \'N\', NULL, ' + \
            str(b+idx) +  ', '            + \
@@ -32,16 +32,18 @@ def make_string(idx):
            str(i+idx) + ', '             + \
            str(j+idx) + ', '             + \
            '\'1'  + '\', '               + \
-           'NULL'
-    print str1
+           'NULL );\n'
+    return str1
 
 def main():
     f = open('data.sql', 'w');
     f.truncate();
 
-    for i in range(1,5):
+    for i in range(1,10000):
         write_string = make_string(i)
-        #f.write(write_string);
+        f.write(write_string);
+        if i % 1000 == 0:
+            f.write('commit;\n')
 
     f.close();
 
