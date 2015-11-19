@@ -9,16 +9,8 @@ CFLAGS = -g -Wall
 INC = -I$(SUNDB_HOME)/include
 LFLAGS = -L$(SUNDB_HOME)/lib
 
-LIB = -lsundbesql -lpthread -ldl -lm -lrt
-ifeq ($(CSMODE), 1)
-    LIB += -lsundbc
-else
-    ifeq ($(MIXMODE), 1)
-        LIB += -lsundb
-    else
-        LIB += -lsundba
-    endif
-endif
+#LIB = -lsundbesql -lpthread -ldl -lm -lrt -lsundba
+LIB = -lsundbesql -lsundba -lpthread -ldl -lm -lrt
 
 GPEC = gpec
 GPECFLAGS = 
