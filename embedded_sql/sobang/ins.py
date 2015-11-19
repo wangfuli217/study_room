@@ -39,7 +39,7 @@ def main():
     f = open('data.sql', 'w');
     f.truncate();
 
-    for i in range(1,10000):
+    for i in range(1,10000+1):
         write_string = make_string(i)
         f.write(write_string);
         if i % 1000 == 0:
