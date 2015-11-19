@@ -1,11 +1,4 @@
-#include "sun_trig_if.h"
-
-#define SUCCESS 0
-#define FAILURE 1
-#define DISCONN 2
-
-#define EXIST   1
-#define NONE    0
+#include "vl_trace.h"
 
 #define CHECK_ELOG(level,msg)                              \
 	if( (SQLCODE != SUCCESS) && (SQLCODE != SQL_NO_DATA) ) \
@@ -271,7 +264,8 @@ int ProcessWonJang()
         /*********************************************
          * 연계작업구분에 따라 원장 테이블 Insert/Update/Delete
          ********************************************/
-        Log( LOG_D, "IF_SEQ(%d) IF_HNDL_FLAG(%s) IF_CUD_FLAG(%s)\n", IF_SEQ.arr, IF_HNDL_FLAG, IF_CUD_FLAG );
+        //Log( LOG_D, "IF_SEQ(%d) IF_HNDL_FLAG(%s) IF_CUD_FLAG(%s)\n",
+        //              IF_SEQ.arr, IF_HNDL_FLAG, IF_CUD_FLAG );
 
         if( IF_CUD_FLAG[0] == 'I' )
         {

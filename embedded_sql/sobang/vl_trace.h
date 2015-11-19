@@ -1,5 +1,5 @@
-#ifndef __SUN_TRIG_IF_H__
-#define __SUN_TRIG_IF_H__
+#ifndef __VL_TRACE_H__
+#define __VL_TRACE_H__
 
 #include <string.h>
 #include <errno.h>
@@ -32,6 +32,13 @@ enum
     LOG_I   = LOG_INFO,
     LOG_D   = LOG_DEBUG
 };
+
+#define SUCCESS 0
+#define FAILURE 1
+#define DISCONN 2
+
+#define EXIST   1
+#define NONE    0
 
 void DoJob( const char     * aUserName,
             const char     * aPassword,
@@ -74,4 +81,4 @@ int checkInterfaceTable();
 
 void DisconDBConnection();
 
-#endif
+#endif  // __VL_TRACE_H__

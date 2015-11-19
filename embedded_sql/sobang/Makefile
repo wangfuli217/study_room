@@ -23,7 +23,7 @@ endif
 GPEC = gpec
 GPECFLAGS = 
 
-BIN = sun_trig_if
+BIN = vl_trace
 
 ifneq ($(MAKECMDGOALS), clean)
 ifneq ($(MAKECMDGOALS), all)
