@@ -282,4 +282,10 @@ String operator + (const String& left, const String& right)
     return string;
 }
 
+std::ostream& operator << (std::ostream& os, const String& str)
+{
+    os << str.toAnsiString();
+    return os;
+}
+
 }; // namespace cr

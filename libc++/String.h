@@ -5,6 +5,7 @@
 #include <cstring>
 #include <string>
 #include <locale>
+#include <iostream>
 #include "Config.h"
 #include "Utf.h"
 
@@ -17,6 +18,16 @@ namespace cr
 /**
  * \brief  Utility string class that automatically handles
  *         coversions between types and encodings
+ *
+ * cr::String is a utility string class defined mainly for
+ * convenience. It is a Unicode string (implemented using
+ * UTF-32), thus it can store any character in the world
+ * (European, Chinese, Arabic, Hebrew, etc.).
+ *
+ * It automatically handles conversions from/to ANSI and
+ * wide strings, so that you can work with standard string
+ * classes and still be compatible with functions taking a
+ * cr::String.
  */
 class String
 {
@@ -478,8 +489,48 @@ bool operator >= (const String& left, const String& right);
  */
 String operator + (const String& left, const String& right);
 
+/**
+ * \relates String
+ * \brief output stream
+ *
+ * \param os  Output stream (left operand)
+ * \param str String (right operand)
+ *
+ * \return Output stream
+ */
+std::ostream& operator << (std::ostream& os, const String& str);
+
 #include "String.inl"
 
 };  // namespace cr
 
 #endif // __STRING_H__
+
+/**
+ * You can create a string instance and initialize it in any ways.
+ *
+ * \code
+ * cr::String s;
+ *
+ * std::string s1 = s;  // automatically converted to ANSI string
+ * std::wstring s2 = s; // automatically converted to wide string
+ * s = "hello";         // automatically converted from ANSI string
+ * s = L"hello";        // automatically converted from wide string
+ * s += 'a';            // automatically converted from ANSI string
+ * s += L'a';           // automatically converted from wide string
+ *
+ * cr::String s3("world");
+ * std::cout << s << " " << s3 << std::endl;
+ * \endcode
+ *
+ * Conversions involving ANSI strings use the default user locale. However
+ * it is possible to use a custom locale if necessary:
+ *
+ * \code
+ * std::locale locale;
+ * cr::String s;
+ * ...
+ * std::string s1 = s.toAnsiString(locale);
+ * s = cr::String("hello", locale);
+ * \endcode
+ */
