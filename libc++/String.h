@@ -1,15 +1,19 @@
 #ifndef __STRING_H__
 #define __STRING_H__
 
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <locale>
+#include "Config.h"
+#include "Utf.h"
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)
  */
 namespace cr
 {
-	
+
 /**
  * \brief  Utility string class that automatically handles
  *         coversions between types and encodings
@@ -39,7 +43,7 @@ public:
 	 * \param ansiChar ANSI character to convert
 	 * \param locale   Locale to use for conversion
 	 */
-	String(char ansiChar, const std::local& locale = std::locale());
+	String(char ansiChar, const std::locale& locale = std::locale());
 
 	/**
 	 * \brief Construct from single UTF-32 charater
@@ -53,7 +57,7 @@ public:
 	 *
 	 * \param utf32Char UTF-32 character to convert
 	 */
-	String(UInt32 utf32Char);
+	String(Uint32 utf32Char);
 
 
 	/**
@@ -74,7 +78,7 @@ public:
 	 * \param ansiString ANSI string to convert
 	 * \param locale     Locale to use for conversion
 	 */
-	String(const char& ansiString, const std::locale& locale = std::locale());
+	String(const std::string& ansiString, const std::locale& locale = std::locale());
 
 	/**
 	 * \brief Construct from null-terminated C-style wide string
@@ -445,7 +449,7 @@ private:
     friend bool operator == (const String& left, const String& right);
     friend bool operator < (const String& left, const String& right);
 
-    str::basic_string<Uint32> m_string;  /**< internal UTF-32 character string */
+    std::basic_string<Uint32> m_string;  /**< internal UTF-32 character string */
 };
 
 
@@ -474,7 +478,7 @@ bool operator >= (const String& left, const String& right);
  */
 String operator + (const String& left, const String& right);
 
-#include <String.inl>
+#include "String.inl"
 
 };  // namespace cr
 
