@@ -2,11 +2,13 @@
 #define __CONFIG_H__
 
 /**
+ * \brief namespace : cr(CloudRain21) (my private library)
+ *
  * Define portable fixed-size types
  */
 namespace cr
 {
-	/*
+	/**
 	 * All "common" platforms use the same size for char, short and int
 	 * (basically there are 3 types for 3 sizes, so no other match is possible),
 	 * we can use them without doing any kind of check
@@ -41,6 +43,6 @@ namespace cr
         typedef unsigned long long Uint64;
     #endif
 
-} // namespace sf
+} // namespace cr
 
 #endif // __CONFIG_H__

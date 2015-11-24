@@ -15,4 +15,8 @@ int main()
  
   cr::String s3("world");
   std::cout << s << " " << s3 << std::endl;
+
+  cr::String s4;
+  std::cin >> s4;
+  std::cout << s4;
 }

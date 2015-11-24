@@ -458,7 +458,8 @@ public:
 	
 private:
     friend bool operator == (const String& left, const String& right);
-    friend bool operator < (const String& left, const String& right);
+    friend bool operator  < (const String& left, const String& right);
+    friend std::istream& operator >> (std::istream& os, String& str);
 
     std::basic_string<Uint32> m_string;  /**< internal UTF-32 character string */
 };
@@ -500,13 +501,27 @@ String operator + (const String& left, const String& right);
  */
 std::ostream& operator << (std::ostream& os, const String& str);
 
+/**
+ * \relates String
+ * \brief input stream
+ *
+ * \param is  Input stream (left operand)
+ * \param str String (right operand)
+ *
+ * \return Input stream
+ */
+std::istream& operator >> (std::istream& os, String& str);
+
 #include "String.inl"
 
 };  // namespace cr
 
 #endif // __STRING_H__
 
+
+
 /**
+ * \brief How to Use
  * You can create a string instance and initialize it in any ways.
  *
  * \code
