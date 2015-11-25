@@ -455,7 +455,7 @@ void deleteExpiredWonJangData( int aDataKeepDay )
     sDataKeepDay = aDataKeepDay;
 
 	EXEC SQL DELETE
-		       FROM VL_TRACE_INFO2
+		       FROM VL_TRACE_INFO
 		WHERE INPUT_DATE_TIME < TO_CHAR(SYSDATE-:sDataKeepDay, 'yyyymmddhh24miss');
 
 	if( SQLCODE == SUCCESS )
