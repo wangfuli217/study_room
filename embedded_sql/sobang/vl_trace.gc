@@ -38,13 +38,14 @@ void ShowUsage(char * prog_name)
     printf("\n");
     printf("----------------- [ HELP ] ------------------\n");
     printf("   %s [u:p:t:i:d:hH]\n", prog_name);
+    printf("     -d dsn                : DSN name\n");
     printf("     -u username           : db user name\n");
     printf("     -p password           : db password\n");
     printf("     -i check_interval     : interval seconds for checking interface table\n");
-    printf("     -d data_keeping_days  : days for keeping ledger data\n");
+    printf("     -k data_keeping_days  : days for keeping ledger data\n");
     printf("     -t trace_logfile_path : trace logfile path(including filename)\n");
     printf("\n");
-    printf(" ex> %s -u test -p test -i 5 -d 7 -t if.trc\n", prog_name);
+    printf(" ex> %s -d SUNDB -u test -p test -i 5 -k 7 -t if.trc\n", prog_name);
     printf("----------------- [ HELP ] ------------------\n");
 }
 
@@ -53,6 +54,7 @@ int main(int argc, char *argv[])
     int    opt;
     int    sLogLevel = LOG_C|LOG_E|LOG_W|LOG_I|LOG_D;
     char   sLogPrefix[256];
+    char   sDSN[64];
     char   sUserName[64];
     char   sPassword[64];
     int    sCheckInterval = 0;
@@ -61,7 +63,7 @@ int main(int argc, char *argv[])
     /*********************************************
      * Process command line arguments
      ********************************************/
-    if( argc < 6 )
+    if( argc < 7 )
     {
         ShowUsage(argv[0]);
         exit(1);
@@ -71,10 +73,14 @@ int main(int argc, char *argv[])
     memset( sPassword, 0x00, sizeof(sPassword) );
     memset( sLogPrefix, 0x00, sizeof(sLogPrefix) );
 
-    while( (opt=getopt(argc, argv, "u:p:t:i:d:hH")) != EOF )
+    while( (opt=getopt(argc, argv, "d:u:p:t:i:k:hH")) != EOF )
     {
         switch(opt)
         {
+            case 'd' :
+                strcpy( sDSN, optarg );
+                break;
+
             case 'u' :
                 strcpy( sUserName, optarg );
                 break;
@@ -87,7 +93,7 @@ int main(int argc, char *argv[])
 	            sCheckInterval = atoi(optarg);
                 break;
 
-            case 'd' :
+            case 'k' :
 	            sDataKeepDay = atoi(optarg);
                 break;
 
@@ -106,9 +112,9 @@ int main(int argc, char *argv[])
     /*********************************************
      * Check command line arguments
      ********************************************/
-    if( (sUserName[0]   == 0x0) || (sPassword[0]   == 0x0) ||
-        (sLogPrefix[0]  == 0x0) || (sCheckInterval <= 0)   ||
-        (sDataKeepDay   <= 0) )
+    if( (sDSN[0]        == 0x0) || (sUserName[0]   == 0x0) ||
+        (sPassword[0]   == 0x0) || (sLogPrefix[0]  == 0x0) ||
+        (sCheckInterval <= 0)   || (sDataKeepDay   <= 0) )
     {
         ShowUsage(argv[0]);
         exit(0);
@@ -130,10 +136,10 @@ int main(int argc, char *argv[])
     /*********************************************
      * Do it's own job periodically
      ********************************************/
-    Log(LOG_I, "UserName(%s) CheckInterval(%d) DataKeepDay(%d)\n",
-                sUserName, sCheckInterval, sDataKeepDay );
+    Log(LOG_I, "DSN(%s) UserName(%s) CheckInterval(%d) DataKeepDay(%d)\n",
+                sDSN, sUserName, sCheckInterval, sDataKeepDay );
 
-    DoJob( sUserName, sPassword, sCheckInterval, sDataKeepDay );
+    DoJob( sDSN, sUserName, sPassword, sCheckInterval, sDataKeepDay );
 
     CloseLog();
 
@@ -146,14 +152,19 @@ int main(int argc, char *argv[])
  * (2). 연계 대상 레코드가 있으면 원장 테이블에 입력 및 갱신 후 Flag Update
  * (3). 원장테이블에서 저장기간이 지난 데이터 삭제 
  */
-void DoJob( const char     * aUserName,
+void DoJob( const char     * aDSN,
+	        const char     * aUserName,
             const char     * aPassword,
             int              aCheckInterval,
             int              aDataKeepDay )
 {
+	char   sDSN[64];
+
+	sprintf(sDSN, "DSN=%s", aDSN);
+
 	while(1)
 	{
-        ConnectionToDB( "DSN=SUNDB", aUserName, aPassword );
+        ConnectionToDB( sDSN, aUserName, aPassword );
 
 		if( checkInterfaceTable() == EXIST )       // --(1)
 		{

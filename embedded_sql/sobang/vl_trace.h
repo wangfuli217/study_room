@@ -40,7 +40,8 @@ enum
 #define EXIST   1
 #define NONE    0
 
-void DoJob( const char     * aUserName,
+void DoJob( const char     * aDSN,
+	        const char     * aUserName,
             const char     * aPassword,
             int              aCheckInterval,
             int              aDataKeepDay );
