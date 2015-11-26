@@ -79,7 +79,9 @@ Out Utf<8>::encode(Uint32 input, Out output, Uint8 replacement)
          * Invalid character
          */
         if (replacement)
+        {
             *output++ = replacement;
+        }
     }
     else
     {
@@ -598,7 +600,9 @@ template <typename In, typename Out>
 Out Utf<32>::toUtf8(In begin, In end, Out output)
 {
     while (begin < end)
+    {
         output = Utf<8>::encode(*begin++, output);
+    }
 
     return output;
 }
@@ -607,7 +611,9 @@ template <typename In, typename Out>
 Out Utf<32>::toUtf16(In begin, In end, Out output)
 {
     while (begin < end)
+    {
         output = Utf<16>::encode(*begin++, output);
+    }
 
     return output;
 }
@@ -686,9 +692,13 @@ Out Utf<32>::encodeAnsi(Uint32 codepoint, Out output, char replacement, const st
 
         char character = 0;
         if (wctomb(&character, static_cast<wchar_t>(codepoint)) >= 0)
+        {
             *output++ = character;
+        }
         else if (replacement)
+        {
             *output++ = replacement;
+        }
 
         return output;
     #else

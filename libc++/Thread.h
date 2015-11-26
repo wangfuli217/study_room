@@ -160,7 +160,7 @@ private:
 
 #include "Thread.inl"
 	
-}; // namespace cr
+} // namespace cr
 
 
 #endif // __THREAD_H__

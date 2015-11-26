@@ -33,9 +33,9 @@ namespace cr
                 m_string.reserve(length + 1);
 
                 Utf32::fromAnsi( ansiString,
-                                ansiString + length,
-                                std::back_inserter(m_string),
-                                locale);
+                                 ansiString + length,
+                                 std::back_inserter(m_string),
+                                 locale );
             }
         }
     }
@@ -46,9 +46,9 @@ namespace cr
         m_string.reserve(ansiString.length() + 1);
 
         Utf32::fromAnsi( ansiString.begin(),
-                        ansiString.end(),
-                        std::back_inserter(m_string),
-                        locale);
+                         ansiString.end(),
+                         std::back_inserter(m_string),
+                         locale);
     }
 
     String::String(const wchar_t* wideString)
@@ -61,8 +61,8 @@ namespace cr
                 m_string.reserve(length + 1);
 
                 Utf32::fromWide( wideString,
-                                wideString + length,
-                                std::back_inserter(m_string));
+                                 wideString + length,
+                                 std::back_inserter(m_string));
             }
         }
     }
@@ -72,14 +72,16 @@ namespace cr
         m_string.reserve(wideString.length() + 1);
 
         Utf32::fromWide( wideString.begin(),
-                        wideString.end(),
-                        std::back_inserter(m_string));
+                         wideString.end(),
+                         std::back_inserter(m_string));
     }
 
     String::String(const Uint32* utf32String)
     {
         if(utf32String)
+        {
             m_string = utf32String;
+        }
     }
 
     String::String(const std::basic_string<Uint32>& utf32String) :
@@ -105,19 +107,19 @@ namespace cr
     std::string String::toAnsiString(const std::locale& locale) const
     {
         /*
-        * Prepare the output string
-        */
+         * Prepare the output string
+         */
         std::string output;
-        output.reserve(m_string.length() + 1);
+        output.reserve( m_string.length() + 1 );
 
         /*
-        * Convert
-        */
+         * Convert
+         */
         Utf32::toAnsi( m_string.begin(),
-                    m_string.end(),
-                    std::back_inserter(output),
-                    0,
-                    locale);
+                       m_string.end(),
+                       std::back_inserter(output),
+                       0,
+                       locale);
 
         return output;
     }
@@ -125,18 +127,18 @@ namespace cr
     std::wstring String::toWideString() const
     {
         /*
-        * Prepare the output string
-        */
+         * Prepare the output string
+         */
         std::wstring output;
         output.reserve(m_string.length() + 1);
 
         /*
-        * Convert
-        */
+         * Convert
+         */
         Utf32::toWide( m_string.begin(),
-                    m_string.end(),
-                    std::back_inserter(output),
-                    0);
+                       m_string.end(),
+                       std::back_inserter(output),
+                       0);
 
         return output;
     }
@@ -144,14 +146,14 @@ namespace cr
     std::basic_string<Uint16> String::toUtf16() const
     {
         /*
-        * Prepare the output string
-        */
+         * Prepare the output string
+         */
         std::basic_string<Uint16> output;
         output.reserve(m_string.length());
 
         /*
-        * Convert
-        */
+         * Convert
+         */
         Utf32::toUtf16( m_string.begin(),
                         m_string.end(),
                         std::back_inserter(output) );
@@ -219,8 +221,8 @@ namespace cr
     void String::replace(std::size_t position, std::size_t length, const String& replaceWith)
     {
         m_string.replace( position,
-                        length,
-                        replaceWith.m_string );
+                          length,
+                          replaceWith.m_string );
     }
 
     void String::replace(const String& searchFor, const String& replaceWith)
@@ -230,8 +232,8 @@ namespace cr
         std::size_t pos = find(searchFor);
 
         /*
-        * Replace each occurrence of search
-        */
+         * Replace each occurrence of search
+         */
         while(pos != InvalidPos)
         {
             replace(pos, len, replaceWith);

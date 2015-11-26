@@ -50,8 +50,14 @@ namespace priv
         void(C::*m_function)();
         C* m_object;
     };
-};  // namespace priv
+}  // namespace priv
 
+template<typename F>
+Thread::Thread(F functor) :
+    m_impl      (NULL),
+    m_entryPoint(new priv::ThreadFunctor<F>(functor))
+{
+}
 
 template<typename F, typename A>
 Thread::Thread(F function, A argument) :
@@ -61,7 +67,7 @@ Thread::Thread(F function, A argument) :
 }
 
 template<typename C>
-Thread::Thread(void(C::*function)(), C* object)
+Thread::Thread(void(C::*function)(), C* object) :
     m_impl      (NULL),
     m_entryPoint(new priv::ThreadMemberFunc<C>(function, object))
 {

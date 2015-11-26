@@ -21,12 +21,12 @@ public:
 	/**
 	 * \brief Default constructor -- allocate the storage
 	 */
-	ThreadLocalImp();
+	ThreadLocalImpl();
 
 	/**
 	 * \brief Destructor -- free the storage
 	 */
-	~ThreadLocalImp();
+	~ThreadLocalImpl();
 
 	/**
 	 * \brief Set the thread-specific value of the variable

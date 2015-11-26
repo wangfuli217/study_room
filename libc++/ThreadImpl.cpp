@@ -44,7 +44,7 @@ namespace priv
         }
     }
 
-    void * ThreadImple::entryPoint(void * userData)
+    void * ThreadImpl::entryPoint(void * userData)
     {
         /*
          * The Thread instance is stored in the user data
