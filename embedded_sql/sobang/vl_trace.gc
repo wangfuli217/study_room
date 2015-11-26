@@ -45,7 +45,7 @@ void ShowUsage(char * prog_name)
     printf("     -k data_keeping_days  : days for keeping ledger data\n");
     printf("     -t trace_logfile_path : trace logfile path(including filename)\n");
     printf("\n");
-    printf(" ex> %s -d SUNDB -u test -p test -i 5 -k 7 -t if.trc\n", prog_name);
+    printf(" ex> %s -d SUNDB -u test -p test -i 5 -k 7 -t $SUNDB_DATA/trc/if.trc\n", prog_name);
     printf("----------------- [ HELP ] ------------------\n");
 }
 
@@ -390,18 +390,6 @@ int ProcessWonJang()
                       LIMIT 1;
 
             CHECK_UPDATE( LOG_E, "Delete VL_TRACE_INFO error" );
-
-            /*
-             * TODO
-             *   Delete 가 되었을 때 이전 데이터를 복구해주어야 하는가...
-             */
-	        EXEC SQL DELETE
-		               FROM VL_TRACE_INFO2
-                      WHERE VL_TRACE_INFO_SEQ = :VL_TRACE_INFO_SEQ :VL_TRACE_INFO_SEQ_ind
-                        AND D_WEEKDAY         = :D_WEEKDAY :D_WEEKDAY_ind
-                      LIMIT 1;
-
-            CHECK_UPDATE( LOG_E, "Delete VL_TRACE_INFO2 error" );
         }
         else
         {
@@ -460,9 +448,15 @@ error_update:
 
 void deleteExpiredWonJangData( int aDataKeepDay )
 {
+    EXEC SQL BEGIN DECLARE SECTION;
+        int  sDataKeepDay;
+    EXEC SQL END DECLARE SECTION;
+
+    sDataKeepDay = aDataKeepDay;
+
 	EXEC SQL DELETE
-		       FROM VL_TRACE_INFO2
-		WHERE INPUT_DATE_TIME < TO_CHAR(SYSDATE-7, 'yyyymmddhh24miss');
+		       FROM VL_TRACE_INFO
+		WHERE INPUT_DATE_TIME < TO_CHAR(SYSDATE-:sDataKeepDay, 'yyyymmddhh24miss');
 
 	if( SQLCODE == SUCCESS )
 	{
@@ -580,6 +574,12 @@ int TryConnectToDB( const char   * aHostInfo,
 
     EXEC SQL CONNECT :sUid IDENTIFIED BY :sPwd USING :sConnStr;
     CHECK_ERR( LOG_C, "Connect to DB Fail" );
+
+    /*********************************************
+     * Session 에서 발생시키는 Redo Log 를 이중화전송(Propagation)
+     * 하지 않는다. (양방향 이중화 Dup 방지)
+     ********************************************/
+    EXEC SQL ALTER SESSION SET SESSION_PROPAGATE_REDO_LOG = 0;
 
     return SUCCESS;
 
