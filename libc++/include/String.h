@@ -6,8 +6,8 @@
 #include <string>
 #include <locale>
 #include <iostream>
-#include "Config.h"
-#include "Utf.h"
+#include <Config.h>
+#include <Utf.h>
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)
@@ -512,7 +512,7 @@ std::ostream& operator << (std::ostream& os, const String& str);
  */
 std::istream& operator >> (std::istream& os, String& str);
 
-#include "String.inl"
+#include <String.inl>
 
 };  // namespace cr
 

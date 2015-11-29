@@ -630,32 +630,14 @@ template <typename In>
 Uint32 Utf<32>::decodeAnsi(In input, const std::locale& locale)
 {
     /*
-     * On Windows, GCC's standard library (glibc++) has almost
-     * no support for Unicode stuff. As a consequence, in this
-     * context we can only use the default locale and ignore
-     * the one passed as parameter.
+     * Get the facet of the locale which deals with character conversion
      */
-    #if defined(SFML_SYSTEM_WINDOWS) &&                       /* if Windows ... */                          \
-       (defined(__GLIBCPP__) || defined (__GLIBCXX__)) &&     /* ... and standard library is glibc++ ... */ \
-      !(defined(__SGI_STL_PORT) || defined(_STLPORT_VERSION)) /* ... and STLPort is not used on top of it */
+    const std::ctype<wchar_t>& facet = std::use_facet< std::ctype<wchar_t> >(locale);
 
-        (void)locale; /* to avoid warnings */
-
-        wchar_t character = 0;
-        mbtowc(&character, &input, 1);
-        return static_cast<Uint32>(character);
-
-    #else
-        /*
-         * Get the facet of the locale which deals with character conversion
-         */
-        const std::ctype<wchar_t>& facet = std::use_facet< std::ctype<wchar_t> >(locale);
-
-        /*
-         * Use the facet to convert each character of the input string
-         */
-        return static_cast<Uint32>(facet.widen(input));
-    #endif
+    /*
+     * Use the facet to convert each character of the input string
+     */
+    return static_cast<Uint32>(facet.widen(input));
 }
 
 
@@ -678,42 +660,16 @@ template <typename Out>
 Out Utf<32>::encodeAnsi(Uint32 codepoint, Out output, char replacement, const std::locale& locale)
 {
     /*
-     * On Windows, gcc's standard library (glibc++) has almost
-     * no support for Unicode stuff. As a consequence, in this
-     * context we can only use the default locale and ignore
-     * the one passed as parameter.
+     * Get the facet of the locale which deals with character conversion
      */
+    const std::ctype<wchar_t>& facet = std::use_facet< std::ctype<wchar_t> >(locale);
 
-    #if defined(SFML_SYSTEM_WINDOWS) &&                       /* if Windows ... */                          \
-       (defined(__GLIBCPP__) || defined (__GLIBCXX__)) &&     /* ... and standard library is glibc++ ... */ \
-      !(defined(__SGI_STL_PORT) || defined(_STLPORT_VERSION)) /* ... and STLPort is not used on top of it */
+    /*
+     * Use the facet to convert each character of the input string
+     */
+    *output++ = facet.narrow(static_cast<wchar_t>(codepoint), replacement);
 
-        (void)locale; /* to avoid warnings */
-
-        char character = 0;
-        if (wctomb(&character, static_cast<wchar_t>(codepoint)) >= 0)
-        {
-            *output++ = character;
-        }
-        else if (replacement)
-        {
-            *output++ = replacement;
-        }
-
-        return output;
-    #else
-        /*
-         * Get the facet of the locale which deals with character conversion
-         */
-        const std::ctype<wchar_t>& facet = std::use_facet< std::ctype<wchar_t> >(locale);
-
-        /*
-         * Use the facet to convert each character of the input string
-         */
-        *output++ = facet.narrow(static_cast<wchar_t>(codepoint), replacement);
-
-        return output;
-    #endif
+    return output;
 }
 
 

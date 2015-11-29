@@ -1,0 +1,13 @@
+env = Environment( CC = 'g++',
+                   CCFLAGS = '-g -Wall -O0 -std=c++11' )
+
+env.Append( CPPPATH = [ '../include' ] )
+#env.Append( CPPPATH = [ '../include',
+#                        '/usr/include/c++/4.2.1',
+#                        '/usr/include/c++/4.2.1/tr1' ] )
+
+env.Object('Time.cpp')
+env.Object('ClockImpl.cpp')
+env.Object('Clock.cpp')
+env.Object('ThreadLocalImpl.cpp')
+env.Object('ThreadImpl.cpp')

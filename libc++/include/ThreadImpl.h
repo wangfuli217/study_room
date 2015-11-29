@@ -1,8 +1,8 @@
 #ifndef __THREAD_IMPL_H__
 #define __THREAD_IMPL_H__
 
-#include "Config.h"
-#include "NonCopyable.h"
+#include <Config.h>
+#include <NonCopyable.h>
 #include <pthread.h>
 
 /**

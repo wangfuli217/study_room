@@ -1,8 +1,9 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
-#include "NonCopyable.h"
-#include "ThreadImpl.h"
+#include <NonCopyable.h>
+#include <ThreadImpl.h>
+#include <cstdlib>
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)
@@ -158,7 +159,7 @@ private:
 	priv::ThreadFunc * m_entryPoint;  /**< Abstraction of the function to run */
 };
 
-#include "Thread.inl"
+#include <Thread.inl>
 	
 } // namespace cr
 

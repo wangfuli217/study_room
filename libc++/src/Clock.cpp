@@ -1,5 +1,4 @@
-#include "Clock.h"
-#include "ClockImpl.h"
+#include <Clock.h>
 
 namespace cr
 {

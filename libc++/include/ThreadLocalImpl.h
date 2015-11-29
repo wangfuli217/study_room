@@ -1,7 +1,8 @@
 #ifndef __THREAD_LOCAL_IMPL_H__
 #define __THREAD_LOCAL_IMPL_H__
 
-#include "NonCopyable.h"
+#include <NonCopyable.h>
+#include <stddef.h>
 #include <pthread.h>
 
 

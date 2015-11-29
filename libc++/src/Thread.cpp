@@ -1,5 +1,4 @@
-#include "Thread.h"
-#include "ThreadImpl.h"
+#include <Thread.h>
 
 namespace cr
 {

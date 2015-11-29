@@ -1,7 +1,7 @@
 #ifndef __TIME_H__
 #define __TIME_H__
 
-#include "Config.h"
+#include <Config.h>
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)

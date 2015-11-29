@@ -1,8 +1,10 @@
 #ifndef __CLOCK_IMPL_H__
 #define __CLOCK_IMPL_H__
 
-#include "Config.h"
-#include "Time.h"
+#include <Config.h>
+#include <Time.h>
+#include <cstddef>
+#include <cstdlib>
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)
