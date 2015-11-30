@@ -495,7 +495,7 @@ String operator + (const String& left, const String& right);
  *
  * \return Output stream
  */
-std::ostream& operator << (std::ostream& os, const String& str);
+//std::ostream& operator << (std::ostream& os, const String& str);
 
 /**
  * \relates String
@@ -506,7 +506,7 @@ std::ostream& operator << (std::ostream& os, const String& str);
  *
  * \return Input stream
  */
-std::istream& operator >> (std::istream& os, String& str);
+//std::istream& operator >> (std::istream& os, String& str);
 
 #include <String.inl>
 

@@ -1,15 +1,19 @@
+
 env = Environment( CC = 'g++',
-                   CCFLAGS = '-g -Wall -O0 -std=c++11' )
+                   CCFLAGS = '-g -Wall -O0 -std=c++11',
+                   LIBPATH = '../lib',
+                   CPPPATH = '../include' )
 
-env.Append( CPPPATH = [ '../include' ] )
-#env.Append( CPPPATH = [ '../include',
-#                        '/usr/include/c++/4.2.1',
-#                        '/usr/include/c++/4.2.1/tr1' ] )
+#env.Append( CPPPATH = [ '../include' ] )
 
-env.Object('Time.cpp')
-env.Object('ClockImpl.cpp')
-env.Object('Clock.cpp')
-env.Object('ThreadLocalImpl.cpp')
-env.Object('ThreadImpl.cpp')
-env.Object('Thread.cpp')
-env.Object('String.cpp')
+libcr = env.SharedLibrary( 'cr',
+                         [ 'Time.cpp',
+                           'ClockImpl.cpp',
+                           'Clock.cpp',
+                           'ThreadLocalImpl.cpp',
+                           'ThreadImpl.cpp',
+                           'Thread.cpp',
+                           'String.cpp' ] )
+
+env.Install( '$LIBPATH', libcr )
+env.Alias( 'install', '$LIBPATH' )

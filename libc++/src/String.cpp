@@ -312,6 +312,7 @@ namespace cr
         return string;
     }
 
+#if 0
     std::ostream& operator << (std::ostream& os, const String& str)
     {
         os << str.toAnsiString();
@@ -326,5 +327,6 @@ namespace cr
 
         return is;
     }
+#endif
 
 }; // namespace cr
