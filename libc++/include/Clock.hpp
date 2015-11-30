@@ -1,8 +1,8 @@
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
 
-#include <Time.h>
-#include <ClockImpl.h>
+#include <Time.hpp>
+#include <ClockImpl.hpp>
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)

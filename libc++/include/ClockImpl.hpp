@@ -1,8 +1,8 @@
 #ifndef __CLOCK_IMPL_H__
 #define __CLOCK_IMPL_H__
 
-#include <Config.h>
-#include <Time.h>
+#include <Config.hpp>
+#include <Time.hpp>
 #include <cstddef>
 #include <cstdlib>
 

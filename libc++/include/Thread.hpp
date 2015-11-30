@@ -1,8 +1,8 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
-#include <NonCopyable.h>
-#include <ThreadImpl.h>
+#include <NonCopyable.hpp>
+#include <ThreadImpl.hpp>
 #include <cstdlib>
 
 /**

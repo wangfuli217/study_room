@@ -1,7 +1,7 @@
 #ifndef __THREAD_LOCAL_H__
 #define __THREAD_LOCAL_H__
 
-#include <NonCopyable.h>
+#include <NonCopyable.hpp>
 #include <cstdlib>
 
 /**

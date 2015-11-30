@@ -1,4 +1,4 @@
-#include <ClockImpl.h>
+#include <ClockImpl.hpp>
 
 #if defined(__APPLE__) && defined(__MACH__)
     #include <mach/mach_time.h>

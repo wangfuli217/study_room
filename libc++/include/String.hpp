@@ -1,13 +1,9 @@
 #ifndef __STRING_H__
 #define __STRING_H__
 
-#include <cstdlib>
-#include <cstring>
-#include <string>
+#include <Utf.hpp>
 #include <locale>
-#include <iostream>
-#include <Config.h>
-#include <Utf.h>
+#include <string>
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)

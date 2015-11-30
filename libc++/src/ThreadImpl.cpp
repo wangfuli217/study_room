@@ -1,5 +1,5 @@
-#include <ThreadImpl.h>
-#include <Thread.h>
+#include <ThreadImpl.hpp>
+#include <Thread.hpp>
 #include <iostream>
 #include <cassert>
 

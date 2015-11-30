@@ -1,6 +1,7 @@
 #ifndef __UTF_H__
 #define __UTF_H__
 
+#include <Config.hpp>
 #include <algorithm>
 #include <locale>
 #include <string>

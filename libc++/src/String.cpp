@@ -1,4 +1,7 @@
-#include <String.h>
+#include <String.hpp>
+#include <Utf.hpp>
+#include <iterator>
+#include <cstring>
 
 namespace cr
 {
