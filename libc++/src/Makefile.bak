@@ -1,0 +1,567 @@
+# source files.
+SRC = Clock.cpp Time.cpp ClockImpl.cpp \
+      Thread.cpp ThreadImpl.cpp ThreadLocalImpl.cpp \
+      String.cpp
+
+OBJ = $(SRC:.cpp=.o)
+
+OUT = ../lib/libcr.a
+
+# include directories
+INCLUDES = -I../include
+
+# C++ compiler flags (-g -O2 -Wall)
+#CCFLAGS = -g -O2 -Wall -std=c++11
+CCFLAGS = -g -Wall -O0 -std=c++11 
+
+# compiler
+CCC = g++
+
+# library paths
+LIBS = -lm -lrt
+
+# link flags
+LDFLAGS = 
+
+.SUFFIXES: .cpp
+
+default: dep $(OUT)
+
+.cpp.o:
+	$(CCC) $(CCFLAGS) $(INCLUDES) -c $< #-o $@
+
+$(OUT): $(OBJ)
+	ar rcs $(OUT) $(OBJ)
+
+depend: dep
+
+dep:
+	makedepend -- $(CFLAGS) -- $(INCLUDES) $(SRC)
+
+clean:
+	rm -f $(OBJ) $(OUT)
+# DO NOT DELETE
+
+Clock.o: ../include/Clock.h ../include/Time.h ../include/Config.h
+Clock.o: ../include/ClockImpl.h /usr/include/c++/4.2.1/cstddef
+Clock.o: /usr/include/c++/4.2.1/bits/c++config.h
+Clock.o: /usr/include/c++/4.2.1/bits/os_defines.h /usr/include/unistd.h
+Clock.o: /usr/include/_types.h /usr/include/sys/_types.h
+Clock.o: /usr/include/sys/cdefs.h /usr/include/sys/_symbol_aliasing.h
+Clock.o: /usr/include/sys/_posix_availability.h /usr/include/machine/_types.h
+Clock.o: /usr/include/i386/_types.h
+Clock.o: /usr/include/sys/_pthread/_pthread_types.h /usr/include/sys/unistd.h
+Clock.o: /usr/include/sys/_types/_posix_vdisable.h
+Clock.o: /usr/include/sys/_types/_seek_set.h
+Clock.o: /usr/include/sys/_types/_size_t.h /usr/include/_types/_uint64_t.h
+Clock.o: /usr/include/Availability.h /usr/include/AvailabilityInternal.h
+Clock.o: /usr/include/sys/_types/_ssize_t.h /usr/include/sys/_types/_uid_t.h
+Clock.o: /usr/include/sys/_types/_gid_t.h /usr/include/sys/_types/_intptr_t.h
+Clock.o: /usr/include/sys/_types/_off_t.h /usr/include/sys/_types/_pid_t.h
+Clock.o: /usr/include/sys/_types/_useconds_t.h
+Clock.o: /usr/include/sys/_types/_null.h /usr/include/sys/select.h
+Clock.o: /usr/include/sys/appleapiopts.h /usr/include/sys/_types/_fd_def.h
+Clock.o: /usr/include/sys/_types/_timespec.h
+Clock.o: /usr/include/sys/_types/_timeval.h /usr/include/sys/_types/_time_t.h
+Clock.o: /usr/include/sys/_types/_suseconds_t.h
+Clock.o: /usr/include/sys/_types/_sigset_t.h
+Clock.o: /usr/include/sys/_types/_fd_setsize.h
+Clock.o: /usr/include/sys/_types/_fd_set.h /usr/include/sys/_types/_fd_clr.h
+Clock.o: /usr/include/sys/_types/_fd_isset.h
+Clock.o: /usr/include/sys/_types/_fd_zero.h
+Clock.o: /usr/include/sys/_types/_fd_copy.h /usr/include/sys/_select.h
+Clock.o: /usr/include/sys/_types/_dev_t.h /usr/include/sys/_types/_mode_t.h
+Clock.o: /usr/include/sys/_types/_uuid_t.h /usr/include/gethostuuid.h
+Clock.o: /usr/include/c++/4.2.1/bits/cpu_defines.h /usr/include/stddef.h
+Clock.o: /usr/include/sys/_types/_offsetof.h
+Clock.o: /usr/include/sys/_types/_ptrdiff_t.h
+Clock.o: /usr/include/sys/_types/_rsize_t.h
+Clock.o: /usr/include/sys/_types/_wchar_t.h /usr/include/sys/_types/_wint_t.h
+Clock.o: /usr/include/c++/4.2.1/cstdlib /usr/include/c++/4.2.1/tr1/stdlib.h
+Clock.o: /usr/include/c++/4.2.1/tr1/cstdlib
+Time.o: ../include/Time.h ../include/Config.h
+ClockImpl.o: ../include/ClockImpl.h ../include/Config.h ../include/Time.h
+ClockImpl.o: /usr/include/c++/4.2.1/cstddef
+ClockImpl.o: /usr/include/c++/4.2.1/bits/c++config.h
+ClockImpl.o: /usr/include/c++/4.2.1/bits/os_defines.h /usr/include/unistd.h
+ClockImpl.o: /usr/include/_types.h /usr/include/sys/_types.h
+ClockImpl.o: /usr/include/sys/cdefs.h /usr/include/sys/_symbol_aliasing.h
+ClockImpl.o: /usr/include/sys/_posix_availability.h
+ClockImpl.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
+ClockImpl.o: /usr/include/sys/_pthread/_pthread_types.h
+ClockImpl.o: /usr/include/sys/unistd.h
+ClockImpl.o: /usr/include/sys/_types/_posix_vdisable.h
+ClockImpl.o: /usr/include/sys/_types/_seek_set.h
+ClockImpl.o: /usr/include/sys/_types/_size_t.h
+ClockImpl.o: /usr/include/_types/_uint64_t.h /usr/include/Availability.h
+ClockImpl.o: /usr/include/AvailabilityInternal.h
+ClockImpl.o: /usr/include/sys/_types/_ssize_t.h
+ClockImpl.o: /usr/include/sys/_types/_uid_t.h
+ClockImpl.o: /usr/include/sys/_types/_gid_t.h
+ClockImpl.o: /usr/include/sys/_types/_intptr_t.h
+ClockImpl.o: /usr/include/sys/_types/_off_t.h
+ClockImpl.o: /usr/include/sys/_types/_pid_t.h
+ClockImpl.o: /usr/include/sys/_types/_useconds_t.h
+ClockImpl.o: /usr/include/sys/_types/_null.h /usr/include/sys/select.h
+ClockImpl.o: /usr/include/sys/appleapiopts.h
+ClockImpl.o: /usr/include/sys/_types/_fd_def.h
+ClockImpl.o: /usr/include/sys/_types/_timespec.h
+ClockImpl.o: /usr/include/sys/_types/_timeval.h
+ClockImpl.o: /usr/include/sys/_types/_time_t.h
+ClockImpl.o: /usr/include/sys/_types/_suseconds_t.h
+ClockImpl.o: /usr/include/sys/_types/_sigset_t.h
+ClockImpl.o: /usr/include/sys/_types/_fd_setsize.h
+ClockImpl.o: /usr/include/sys/_types/_fd_set.h
+ClockImpl.o: /usr/include/sys/_types/_fd_clr.h
+ClockImpl.o: /usr/include/sys/_types/_fd_isset.h
+ClockImpl.o: /usr/include/sys/_types/_fd_zero.h
+ClockImpl.o: /usr/include/sys/_types/_fd_copy.h /usr/include/sys/_select.h
+ClockImpl.o: /usr/include/sys/_types/_dev_t.h
+ClockImpl.o: /usr/include/sys/_types/_mode_t.h
+ClockImpl.o: /usr/include/sys/_types/_uuid_t.h /usr/include/gethostuuid.h
+ClockImpl.o: /usr/include/c++/4.2.1/bits/cpu_defines.h /usr/include/stddef.h
+ClockImpl.o: /usr/include/sys/_types/_offsetof.h
+ClockImpl.o: /usr/include/sys/_types/_ptrdiff_t.h
+ClockImpl.o: /usr/include/sys/_types/_rsize_t.h
+ClockImpl.o: /usr/include/sys/_types/_wchar_t.h
+ClockImpl.o: /usr/include/sys/_types/_wint_t.h /usr/include/c++/4.2.1/cstdlib
+ClockImpl.o: /usr/include/c++/4.2.1/tr1/stdlib.h
+ClockImpl.o: /usr/include/c++/4.2.1/tr1/cstdlib ../include/time.h
+Thread.o: ../include/Thread.h ../include/NonCopyable.h
+Thread.o: ../include/ThreadImpl.h ../include/Config.h
+Thread.o: /usr/include/c++/4.2.1/cstdlib
+Thread.o: /usr/include/c++/4.2.1/bits/c++config.h
+Thread.o: /usr/include/c++/4.2.1/bits/os_defines.h /usr/include/unistd.h
+Thread.o: /usr/include/_types.h /usr/include/sys/_types.h
+Thread.o: /usr/include/sys/cdefs.h /usr/include/sys/_symbol_aliasing.h
+Thread.o: /usr/include/sys/_posix_availability.h
+Thread.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
+Thread.o: /usr/include/sys/_pthread/_pthread_types.h
+Thread.o: /usr/include/sys/unistd.h /usr/include/sys/_types/_posix_vdisable.h
+Thread.o: /usr/include/sys/_types/_seek_set.h
+Thread.o: /usr/include/sys/_types/_size_t.h /usr/include/_types/_uint64_t.h
+Thread.o: /usr/include/Availability.h /usr/include/AvailabilityInternal.h
+Thread.o: /usr/include/sys/_types/_ssize_t.h /usr/include/sys/_types/_uid_t.h
+Thread.o: /usr/include/sys/_types/_gid_t.h
+Thread.o: /usr/include/sys/_types/_intptr_t.h
+Thread.o: /usr/include/sys/_types/_off_t.h /usr/include/sys/_types/_pid_t.h
+Thread.o: /usr/include/sys/_types/_useconds_t.h
+Thread.o: /usr/include/sys/_types/_null.h /usr/include/sys/select.h
+Thread.o: /usr/include/sys/appleapiopts.h /usr/include/sys/_types/_fd_def.h
+Thread.o: /usr/include/sys/_types/_timespec.h
+Thread.o: /usr/include/sys/_types/_timeval.h
+Thread.o: /usr/include/sys/_types/_time_t.h
+Thread.o: /usr/include/sys/_types/_suseconds_t.h
+Thread.o: /usr/include/sys/_types/_sigset_t.h
+Thread.o: /usr/include/sys/_types/_fd_setsize.h
+Thread.o: /usr/include/sys/_types/_fd_set.h /usr/include/sys/_types/_fd_clr.h
+Thread.o: /usr/include/sys/_types/_fd_isset.h
+Thread.o: /usr/include/sys/_types/_fd_zero.h
+Thread.o: /usr/include/sys/_types/_fd_copy.h /usr/include/sys/_select.h
+Thread.o: /usr/include/sys/_types/_dev_t.h /usr/include/sys/_types/_mode_t.h
+Thread.o: /usr/include/sys/_types/_uuid_t.h /usr/include/gethostuuid.h
+Thread.o: /usr/include/c++/4.2.1/bits/cpu_defines.h
+Thread.o: /usr/include/c++/4.2.1/cstddef /usr/include/stddef.h
+Thread.o: /usr/include/sys/_types/_offsetof.h
+Thread.o: /usr/include/sys/_types/_ptrdiff_t.h
+Thread.o: /usr/include/sys/_types/_rsize_t.h
+Thread.o: /usr/include/sys/_types/_wchar_t.h
+Thread.o: /usr/include/sys/_types/_wint_t.h
+Thread.o: /usr/include/c++/4.2.1/tr1/stdlib.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cstdlib /usr/include/c++/4.2.1/cstring
+Thread.o: ../include/string.h /usr/include/c++/4.2.1/string
+Thread.o: /usr/include/c++/4.2.1/bits/stringfwd.h
+Thread.o: /usr/include/c++/4.2.1/bits/char_traits.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_algobase.h
+Thread.o: /usr/include/c++/4.2.1/climits /usr/include/c++/4.2.1/tr1/limits.h
+Thread.o: /usr/include/c++/4.2.1/tr1/climits /usr/include/c++/4.2.1/iosfwd
+Thread.o: /usr/include/c++/4.2.1/bits/c++locale.h
+Thread.o: /usr/include/c++/4.2.1/clocale /usr/include/locale.h
+Thread.o: /usr/include/_locale.h /usr/include/c++/4.2.1/cstdio
+Thread.o: /usr/include/c++/4.2.1/tr1/stdio.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cstdio /usr/include/c++/4.2.1/cstdarg
+Thread.o: /usr/include/c++/4.2.1/tr1/stdarg.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cstdarg
+Thread.o: /usr/include/c++/4.2.1/bits/c++io.h
+Thread.o: /usr/include/c++/4.2.1/bits/gthr.h
+Thread.o: /usr/include/c++/4.2.1/bits/gthr-default.h /usr/include/pthread.h
+Thread.o: /usr/include/pthread/pthread_impl.h /usr/include/pthread/sched.h
+Thread.o: /usr/include/pthread_impl.h ../include/time.h
+Thread.o: /usr/include/sys/_pthread/_pthread_attr_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_cond_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_key_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_once_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
+Thread.o: /usr/include/sys/_pthread/_pthread_t.h /usr/include/pthread/qos.h
+Thread.o: /usr/include/sys/qos.h /usr/include/sys/_types/_mach_port_t.h
+Thread.o: /usr/include/c++/4.2.1/cctype /usr/include/c++/4.2.1/tr1/ctype.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cctype
+Thread.o: /usr/include/c++/4.2.1/bits/postypes.h
+Thread.o: /usr/include/c++/4.2.1/cwchar /usr/include/c++/4.2.1/ctime
+Thread.o: /usr/include/c++/4.2.1/tr1/wchar.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cwchar
+Thread.o: /usr/include/c++/4.2.1/tr1/stdint.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cstdint
+Thread.o: /usr/include/c++/4.2.1/bits/functexcept.h
+Thread.o: /usr/include/c++/4.2.1/exception_defines.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_pair.h
+Thread.o: /usr/include/c++/4.2.1/bits/cpp_type_traits.h
+Thread.o: /usr/include/c++/4.2.1/ext/type_traits.h
+Thread.o: /usr/include/c++/4.2.1/utility
+Thread.o: /usr/include/c++/4.2.1/bits/stl_relops.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_iterator_base_types.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_iterator_base_funcs.h
+Thread.o: /usr/include/c++/4.2.1/bits/concept_check.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_iterator.h
+Thread.o: /usr/include/c++/4.2.1/debug/debug.h /usr/include/c++/4.2.1/memory
+Thread.o: /usr/include/c++/4.2.1/bits/allocator.h
+Thread.o: /usr/include/c++/4.2.1/bits/c++allocator.h
+Thread.o: /usr/include/c++/4.2.1/ext/new_allocator.h
+Thread.o: /usr/include/c++/4.2.1/new /usr/include/c++/4.2.1/exception
+Thread.o: /usr/include/c++/4.2.1/bits/stl_construct.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_uninitialized.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_raw_storage_iter.h
+Thread.o: /usr/include/c++/4.2.1/limits
+Thread.o: /usr/include/c++/4.2.1/bits/ostream_insert.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_function.h
+Thread.o: /usr/include/c++/4.2.1/bits/basic_string.h
+Thread.o: /usr/include/c++/4.2.1/ext/atomicity.h
+Thread.o: /usr/include/c++/4.2.1/bits/atomic_word.h
+Thread.o: /usr/include/c++/4.2.1/algorithm
+Thread.o: /usr/include/c++/4.2.1/bits/stl_algo.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_heap.h
+Thread.o: /usr/include/c++/4.2.1/bits/stl_tempbuf.h
+Thread.o: /usr/include/c++/4.2.1/bits/basic_string.tcc
+Thread.o: /usr/include/c++/4.2.1/locale
+Thread.o: /usr/include/c++/4.2.1/bits/localefwd.h
+Thread.o: /usr/include/c++/4.2.1/bits/locale_classes.h
+Thread.o: /usr/include/c++/4.2.1/bits/locale_facets.h
+Thread.o: /usr/include/c++/4.2.1/cwctype /usr/include/c++/4.2.1/tr1/wctype.h
+Thread.o: /usr/include/c++/4.2.1/tr1/cwctype
+Thread.o: /usr/include/c++/4.2.1/bits/ctype_base.h
+Thread.o: /usr/include/c++/4.2.1/bits/ios_base.h
+Thread.o: /usr/include/c++/4.2.1/streambuf
+Thread.o: /usr/include/c++/4.2.1/bits/streambuf.tcc
+Thread.o: /usr/include/c++/4.2.1/bits/ctype_inline.h
+Thread.o: /usr/include/c++/4.2.1/bits/codecvt.h
+Thread.o: /usr/include/c++/4.2.1/bits/time_members.h
+Thread.o: /usr/include/c++/4.2.1/bits/messages_members.h
+Thread.o: /usr/include/c++/4.2.1/bits/locale_facets.tcc
+Thread.o: /usr/include/c++/4.2.1/typeinfo
+Thread.o: /usr/include/c++/4.2.1/bits/streambuf_iterator.h
+Thread.o: /usr/include/c++/4.2.1/iostream /usr/include/c++/4.2.1/ostream
+Thread.o: /usr/include/c++/4.2.1/ios /usr/include/c++/4.2.1/bits/basic_ios.h
+Thread.o: /usr/include/c++/4.2.1/bits/basic_ios.tcc
+Thread.o: /usr/include/c++/4.2.1/bits/ostream.tcc
+Thread.o: /usr/include/c++/4.2.1/istream
+Thread.o: /usr/include/c++/4.2.1/bits/istream.tcc ../include/Utf.h
+Thread.o: ../include/Utf.inl ../include/String.inl ../include/Thread.inl
+ThreadImpl.o: ../include/ThreadImpl.h ../include/Config.h
+ThreadImpl.o: ../include/NonCopyable.h /usr/include/c++/4.2.1/cstdlib
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/c++config.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/os_defines.h /usr/include/unistd.h
+ThreadImpl.o: /usr/include/_types.h /usr/include/sys/_types.h
+ThreadImpl.o: /usr/include/sys/cdefs.h /usr/include/sys/_symbol_aliasing.h
+ThreadImpl.o: /usr/include/sys/_posix_availability.h
+ThreadImpl.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_types.h
+ThreadImpl.o: /usr/include/sys/unistd.h
+ThreadImpl.o: /usr/include/sys/_types/_posix_vdisable.h
+ThreadImpl.o: /usr/include/sys/_types/_seek_set.h
+ThreadImpl.o: /usr/include/sys/_types/_size_t.h
+ThreadImpl.o: /usr/include/_types/_uint64_t.h /usr/include/Availability.h
+ThreadImpl.o: /usr/include/AvailabilityInternal.h
+ThreadImpl.o: /usr/include/sys/_types/_ssize_t.h
+ThreadImpl.o: /usr/include/sys/_types/_uid_t.h
+ThreadImpl.o: /usr/include/sys/_types/_gid_t.h
+ThreadImpl.o: /usr/include/sys/_types/_intptr_t.h
+ThreadImpl.o: /usr/include/sys/_types/_off_t.h
+ThreadImpl.o: /usr/include/sys/_types/_pid_t.h
+ThreadImpl.o: /usr/include/sys/_types/_useconds_t.h
+ThreadImpl.o: /usr/include/sys/_types/_null.h /usr/include/sys/select.h
+ThreadImpl.o: /usr/include/sys/appleapiopts.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_def.h
+ThreadImpl.o: /usr/include/sys/_types/_timespec.h
+ThreadImpl.o: /usr/include/sys/_types/_timeval.h
+ThreadImpl.o: /usr/include/sys/_types/_time_t.h
+ThreadImpl.o: /usr/include/sys/_types/_suseconds_t.h
+ThreadImpl.o: /usr/include/sys/_types/_sigset_t.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_setsize.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_set.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_clr.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_isset.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_zero.h
+ThreadImpl.o: /usr/include/sys/_types/_fd_copy.h /usr/include/sys/_select.h
+ThreadImpl.o: /usr/include/sys/_types/_dev_t.h
+ThreadImpl.o: /usr/include/sys/_types/_mode_t.h
+ThreadImpl.o: /usr/include/sys/_types/_uuid_t.h /usr/include/gethostuuid.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/cpu_defines.h
+ThreadImpl.o: /usr/include/c++/4.2.1/cstddef /usr/include/stddef.h
+ThreadImpl.o: /usr/include/sys/_types/_offsetof.h
+ThreadImpl.o: /usr/include/sys/_types/_ptrdiff_t.h
+ThreadImpl.o: /usr/include/sys/_types/_rsize_t.h
+ThreadImpl.o: /usr/include/sys/_types/_wchar_t.h
+ThreadImpl.o: /usr/include/sys/_types/_wint_t.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/stdlib.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cstdlib
+ThreadImpl.o: /usr/include/c++/4.2.1/cstring ../include/string.h
+ThreadImpl.o: /usr/include/c++/4.2.1/string
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stringfwd.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/char_traits.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_algobase.h
+ThreadImpl.o: /usr/include/c++/4.2.1/climits
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/limits.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/climits
+ThreadImpl.o: /usr/include/c++/4.2.1/iosfwd
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/c++locale.h
+ThreadImpl.o: /usr/include/c++/4.2.1/clocale /usr/include/locale.h
+ThreadImpl.o: /usr/include/_locale.h /usr/include/c++/4.2.1/cstdio
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/stdio.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cstdio
+ThreadImpl.o: /usr/include/c++/4.2.1/cstdarg
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/stdarg.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cstdarg
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/c++io.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/gthr.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/gthr-default.h
+ThreadImpl.o: /usr/include/pthread.h /usr/include/pthread/pthread_impl.h
+ThreadImpl.o: /usr/include/pthread/sched.h /usr/include/pthread_impl.h
+ThreadImpl.o: ../include/time.h /usr/include/sys/_pthread/_pthread_attr_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_cond_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_key_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_once_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
+ThreadImpl.o: /usr/include/sys/_pthread/_pthread_t.h
+ThreadImpl.o: /usr/include/pthread/qos.h /usr/include/sys/qos.h
+ThreadImpl.o: /usr/include/sys/_types/_mach_port_t.h
+ThreadImpl.o: /usr/include/c++/4.2.1/cctype
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/ctype.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cctype
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/postypes.h
+ThreadImpl.o: /usr/include/c++/4.2.1/cwchar /usr/include/c++/4.2.1/ctime
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/wchar.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cwchar
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/stdint.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cstdint
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/functexcept.h
+ThreadImpl.o: /usr/include/c++/4.2.1/exception_defines.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_pair.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/cpp_type_traits.h
+ThreadImpl.o: /usr/include/c++/4.2.1/ext/type_traits.h
+ThreadImpl.o: /usr/include/c++/4.2.1/utility
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_relops.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_iterator_base_types.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_iterator_base_funcs.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/concept_check.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_iterator.h
+ThreadImpl.o: /usr/include/c++/4.2.1/debug/debug.h
+ThreadImpl.o: /usr/include/c++/4.2.1/memory
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/allocator.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/c++allocator.h
+ThreadImpl.o: /usr/include/c++/4.2.1/ext/new_allocator.h
+ThreadImpl.o: /usr/include/c++/4.2.1/new /usr/include/c++/4.2.1/exception
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_construct.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_uninitialized.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_raw_storage_iter.h
+ThreadImpl.o: /usr/include/c++/4.2.1/limits
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/ostream_insert.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_function.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/basic_string.h
+ThreadImpl.o: /usr/include/c++/4.2.1/ext/atomicity.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/atomic_word.h
+ThreadImpl.o: /usr/include/c++/4.2.1/algorithm
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_algo.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_heap.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/stl_tempbuf.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/basic_string.tcc
+ThreadImpl.o: /usr/include/c++/4.2.1/locale
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/localefwd.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/locale_classes.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/locale_facets.h
+ThreadImpl.o: /usr/include/c++/4.2.1/cwctype
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/wctype.h
+ThreadImpl.o: /usr/include/c++/4.2.1/tr1/cwctype
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/ctype_base.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/ios_base.h
+ThreadImpl.o: /usr/include/c++/4.2.1/streambuf
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/streambuf.tcc
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/ctype_inline.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/codecvt.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/time_members.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/messages_members.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/locale_facets.tcc
+ThreadImpl.o: /usr/include/c++/4.2.1/typeinfo
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/streambuf_iterator.h
+ThreadImpl.o: /usr/include/c++/4.2.1/iostream /usr/include/c++/4.2.1/ostream
+ThreadImpl.o: /usr/include/c++/4.2.1/ios
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/basic_ios.h
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/basic_ios.tcc
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/ostream.tcc
+ThreadImpl.o: /usr/include/c++/4.2.1/istream
+ThreadImpl.o: /usr/include/c++/4.2.1/bits/istream.tcc ../include/Utf.h
+ThreadImpl.o: ../include/Utf.inl ../include/String.inl ../include/Thread.h
+ThreadImpl.o: ../include/Thread.inl /usr/include/c++/4.2.1/cassert
+ThreadImpl.o: /usr/include/assert.h
+ThreadLocalImpl.o: ../include/ThreadLocalImpl.h ../include/NonCopyable.h
+ThreadLocalImpl.o: /usr/include/pthread.h /usr/include/_types.h
+ThreadLocalImpl.o: /usr/include/sys/_types.h /usr/include/sys/cdefs.h
+ThreadLocalImpl.o: /usr/include/sys/_symbol_aliasing.h
+ThreadLocalImpl.o: /usr/include/sys/_posix_availability.h
+ThreadLocalImpl.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_types.h
+ThreadLocalImpl.o: /usr/include/pthread/pthread_impl.h
+ThreadLocalImpl.o: /usr/include/pthread/sched.h /usr/include/pthread_impl.h
+ThreadLocalImpl.o: ../include/time.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_attr_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_cond_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_key_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_once_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
+ThreadLocalImpl.o: /usr/include/sys/_pthread/_pthread_t.h
+ThreadLocalImpl.o: /usr/include/pthread/qos.h /usr/include/Availability.h
+ThreadLocalImpl.o: /usr/include/AvailabilityInternal.h /usr/include/sys/qos.h
+ThreadLocalImpl.o: /usr/include/sys/_types/_mach_port_t.h
+ThreadLocalImpl.o: /usr/include/sys/_types/_sigset_t.h
+String.o: ../include/String.h /usr/include/c++/4.2.1/cstdlib
+String.o: /usr/include/c++/4.2.1/bits/c++config.h
+String.o: /usr/include/c++/4.2.1/bits/os_defines.h /usr/include/unistd.h
+String.o: /usr/include/_types.h /usr/include/sys/_types.h
+String.o: /usr/include/sys/cdefs.h /usr/include/sys/_symbol_aliasing.h
+String.o: /usr/include/sys/_posix_availability.h
+String.o: /usr/include/machine/_types.h /usr/include/i386/_types.h
+String.o: /usr/include/sys/_pthread/_pthread_types.h
+String.o: /usr/include/sys/unistd.h /usr/include/sys/_types/_posix_vdisable.h
+String.o: /usr/include/sys/_types/_seek_set.h
+String.o: /usr/include/sys/_types/_size_t.h /usr/include/_types/_uint64_t.h
+String.o: /usr/include/Availability.h /usr/include/AvailabilityInternal.h
+String.o: /usr/include/sys/_types/_ssize_t.h /usr/include/sys/_types/_uid_t.h
+String.o: /usr/include/sys/_types/_gid_t.h
+String.o: /usr/include/sys/_types/_intptr_t.h
+String.o: /usr/include/sys/_types/_off_t.h /usr/include/sys/_types/_pid_t.h
+String.o: /usr/include/sys/_types/_useconds_t.h
+String.o: /usr/include/sys/_types/_null.h /usr/include/sys/select.h
+String.o: /usr/include/sys/appleapiopts.h /usr/include/sys/_types/_fd_def.h
+String.o: /usr/include/sys/_types/_timespec.h
+String.o: /usr/include/sys/_types/_timeval.h
+String.o: /usr/include/sys/_types/_time_t.h
+String.o: /usr/include/sys/_types/_suseconds_t.h
+String.o: /usr/include/sys/_types/_sigset_t.h
+String.o: /usr/include/sys/_types/_fd_setsize.h
+String.o: /usr/include/sys/_types/_fd_set.h /usr/include/sys/_types/_fd_clr.h
+String.o: /usr/include/sys/_types/_fd_isset.h
+String.o: /usr/include/sys/_types/_fd_zero.h
+String.o: /usr/include/sys/_types/_fd_copy.h /usr/include/sys/_select.h
+String.o: /usr/include/sys/_types/_dev_t.h /usr/include/sys/_types/_mode_t.h
+String.o: /usr/include/sys/_types/_uuid_t.h /usr/include/gethostuuid.h
+String.o: /usr/include/c++/4.2.1/bits/cpu_defines.h
+String.o: /usr/include/c++/4.2.1/cstddef /usr/include/stddef.h
+String.o: /usr/include/sys/_types/_offsetof.h
+String.o: /usr/include/sys/_types/_ptrdiff_t.h
+String.o: /usr/include/sys/_types/_rsize_t.h
+String.o: /usr/include/sys/_types/_wchar_t.h
+String.o: /usr/include/sys/_types/_wint_t.h
+String.o: /usr/include/c++/4.2.1/tr1/stdlib.h
+String.o: /usr/include/c++/4.2.1/tr1/cstdlib /usr/include/c++/4.2.1/cstring
+String.o: ../include/string.h /usr/include/c++/4.2.1/string
+String.o: /usr/include/c++/4.2.1/bits/stringfwd.h
+String.o: /usr/include/c++/4.2.1/bits/char_traits.h
+String.o: /usr/include/c++/4.2.1/bits/stl_algobase.h
+String.o: /usr/include/c++/4.2.1/climits /usr/include/c++/4.2.1/tr1/limits.h
+String.o: /usr/include/c++/4.2.1/tr1/climits /usr/include/c++/4.2.1/iosfwd
+String.o: /usr/include/c++/4.2.1/bits/c++locale.h
+String.o: /usr/include/c++/4.2.1/clocale /usr/include/locale.h
+String.o: /usr/include/_locale.h /usr/include/c++/4.2.1/cstdio
+String.o: /usr/include/c++/4.2.1/tr1/stdio.h
+String.o: /usr/include/c++/4.2.1/tr1/cstdio /usr/include/c++/4.2.1/cstdarg
+String.o: /usr/include/c++/4.2.1/tr1/stdarg.h
+String.o: /usr/include/c++/4.2.1/tr1/cstdarg
+String.o: /usr/include/c++/4.2.1/bits/c++io.h
+String.o: /usr/include/c++/4.2.1/bits/gthr.h
+String.o: /usr/include/c++/4.2.1/bits/gthr-default.h /usr/include/pthread.h
+String.o: /usr/include/pthread/pthread_impl.h /usr/include/pthread/sched.h
+String.o: /usr/include/pthread_impl.h ../include/time.h
+String.o: /usr/include/sys/_pthread/_pthread_attr_t.h
+String.o: /usr/include/sys/_pthread/_pthread_cond_t.h
+String.o: /usr/include/sys/_pthread/_pthread_condattr_t.h
+String.o: /usr/include/sys/_pthread/_pthread_key_t.h
+String.o: /usr/include/sys/_pthread/_pthread_mutex_t.h
+String.o: /usr/include/sys/_pthread/_pthread_mutexattr_t.h
+String.o: /usr/include/sys/_pthread/_pthread_once_t.h
+String.o: /usr/include/sys/_pthread/_pthread_rwlock_t.h
+String.o: /usr/include/sys/_pthread/_pthread_rwlockattr_t.h
+String.o: /usr/include/sys/_pthread/_pthread_t.h /usr/include/pthread/qos.h
+String.o: /usr/include/sys/qos.h /usr/include/sys/_types/_mach_port_t.h
+String.o: /usr/include/c++/4.2.1/cctype /usr/include/c++/4.2.1/tr1/ctype.h
+String.o: /usr/include/c++/4.2.1/tr1/cctype
+String.o: /usr/include/c++/4.2.1/bits/postypes.h
+String.o: /usr/include/c++/4.2.1/cwchar /usr/include/c++/4.2.1/ctime
+String.o: /usr/include/c++/4.2.1/tr1/wchar.h
+String.o: /usr/include/c++/4.2.1/tr1/cwchar
+String.o: /usr/include/c++/4.2.1/tr1/stdint.h
+String.o: /usr/include/c++/4.2.1/tr1/cstdint
+String.o: /usr/include/c++/4.2.1/bits/functexcept.h
+String.o: /usr/include/c++/4.2.1/exception_defines.h
+String.o: /usr/include/c++/4.2.1/bits/stl_pair.h
+String.o: /usr/include/c++/4.2.1/bits/cpp_type_traits.h
+String.o: /usr/include/c++/4.2.1/ext/type_traits.h
+String.o: /usr/include/c++/4.2.1/utility
+String.o: /usr/include/c++/4.2.1/bits/stl_relops.h
+String.o: /usr/include/c++/4.2.1/bits/stl_iterator_base_types.h
+String.o: /usr/include/c++/4.2.1/bits/stl_iterator_base_funcs.h
+String.o: /usr/include/c++/4.2.1/bits/concept_check.h
+String.o: /usr/include/c++/4.2.1/bits/stl_iterator.h
+String.o: /usr/include/c++/4.2.1/debug/debug.h /usr/include/c++/4.2.1/memory
+String.o: /usr/include/c++/4.2.1/bits/allocator.h
+String.o: /usr/include/c++/4.2.1/bits/c++allocator.h
+String.o: /usr/include/c++/4.2.1/ext/new_allocator.h
+String.o: /usr/include/c++/4.2.1/new /usr/include/c++/4.2.1/exception
+String.o: /usr/include/c++/4.2.1/bits/stl_construct.h
+String.o: /usr/include/c++/4.2.1/bits/stl_uninitialized.h
+String.o: /usr/include/c++/4.2.1/bits/stl_raw_storage_iter.h
+String.o: /usr/include/c++/4.2.1/limits
+String.o: /usr/include/c++/4.2.1/bits/ostream_insert.h
+String.o: /usr/include/c++/4.2.1/bits/stl_function.h
+String.o: /usr/include/c++/4.2.1/bits/basic_string.h
+String.o: /usr/include/c++/4.2.1/ext/atomicity.h
+String.o: /usr/include/c++/4.2.1/bits/atomic_word.h
+String.o: /usr/include/c++/4.2.1/algorithm
+String.o: /usr/include/c++/4.2.1/bits/stl_algo.h
+String.o: /usr/include/c++/4.2.1/bits/stl_heap.h
+String.o: /usr/include/c++/4.2.1/bits/stl_tempbuf.h
+String.o: /usr/include/c++/4.2.1/bits/basic_string.tcc
+String.o: /usr/include/c++/4.2.1/locale
+String.o: /usr/include/c++/4.2.1/bits/localefwd.h
+String.o: /usr/include/c++/4.2.1/bits/locale_classes.h
+String.o: /usr/include/c++/4.2.1/bits/locale_facets.h
+String.o: /usr/include/c++/4.2.1/cwctype /usr/include/c++/4.2.1/tr1/wctype.h
+String.o: /usr/include/c++/4.2.1/tr1/cwctype
+String.o: /usr/include/c++/4.2.1/bits/ctype_base.h
+String.o: /usr/include/c++/4.2.1/bits/ios_base.h
+String.o: /usr/include/c++/4.2.1/streambuf
+String.o: /usr/include/c++/4.2.1/bits/streambuf.tcc
+String.o: /usr/include/c++/4.2.1/bits/ctype_inline.h
+String.o: /usr/include/c++/4.2.1/bits/codecvt.h
+String.o: /usr/include/c++/4.2.1/bits/time_members.h
+String.o: /usr/include/c++/4.2.1/bits/messages_members.h
+String.o: /usr/include/c++/4.2.1/bits/locale_facets.tcc
+String.o: /usr/include/c++/4.2.1/typeinfo
+String.o: /usr/include/c++/4.2.1/bits/streambuf_iterator.h
+String.o: /usr/include/c++/4.2.1/iostream /usr/include/c++/4.2.1/ostream
+String.o: /usr/include/c++/4.2.1/ios /usr/include/c++/4.2.1/bits/basic_ios.h
+String.o: /usr/include/c++/4.2.1/bits/basic_ios.tcc
+String.o: /usr/include/c++/4.2.1/bits/ostream.tcc
+String.o: /usr/include/c++/4.2.1/istream
+String.o: /usr/include/c++/4.2.1/bits/istream.tcc ../include/Config.h
+String.o: ../include/Utf.h ../include/Utf.inl ../include/String.inl

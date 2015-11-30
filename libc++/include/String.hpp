@@ -531,7 +531,7 @@ String operator + (const String& left, const String& right);
  * s += L'a';           // automatically converted from wide string
  *
  * cr::String s3("world");
- * std::cout << s << " " << s3 << std::endl;
+ * std::cout << s() << " " << s3 << std::endl;
  * \endcode
  *
  * Conversions involving ANSI strings use the default user locale. However

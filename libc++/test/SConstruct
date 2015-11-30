@@ -1,0 +1,4 @@
+Program( 'string_test.cpp',
+         LIBS = 'cr',
+         LIBPATH = '../lib',
+         CPPPATH = '../include' )

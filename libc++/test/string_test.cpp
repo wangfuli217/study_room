@@ -1,5 +1,6 @@
-#include "String.h"
+#include <String.hpp>
 #include <iostream>
+#include <string>
 
 int main()
 {
@@ -14,9 +15,10 @@ int main()
   s += L'a';
  
   cr::String s3("world");
-  std::cout << s << " " << s3 << std::endl;
+  std::cout << s.toAnsiString() << " " << s3.toAnsiString() << std::endl;
 
-  cr::String s4;
-  std::cin >> s4;
-  std::cout << s4;
+  std::string sss("sssssss");
+  std::cout  << sss << std::endl;
+
+  return 0;
 }
