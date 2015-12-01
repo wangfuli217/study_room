@@ -1,5 +1,5 @@
-#ifndef __CLOCK_IMPL_H__
-#define __CLOCK_IMPL_H__
+#ifndef __CRCR_CLOCK_IMPL_HPP__
+#define __CRCR_CLOCK_IMPL_HPP__
 
 #include <Config.hpp>
 #include <Time.hpp>
@@ -25,4 +25,4 @@ public:
 	
 }; // namespace cr
 
-#endif // __CLOCK_IMPL_H__
+#endif // __CRCR_CLOCK_IMPL_HPP__

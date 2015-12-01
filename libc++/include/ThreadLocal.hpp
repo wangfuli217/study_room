@@ -1,5 +1,5 @@
-#ifndef __THREAD_LOCAL_H__
-#define __THREAD_LOCAL_H__
+#ifndef __CRCR_THREAD_LOCAL_HPP__
+#define __CRCR_THREAD_LOCAL_HPP__
 
 #include <NonCopyable.hpp>
 #include <cstdlib>
@@ -58,4 +58,4 @@ private:
 
 } // namespace cr
 
-#endif // __THREAD_LOCAL_H__
+#endif // __CRCR_THREAD_LOCAL_HPP__

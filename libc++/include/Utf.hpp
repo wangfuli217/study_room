@@ -1,5 +1,5 @@
-#ifndef __UTF_H__
-#define __UTF_H__
+#ifndef __CRCR_UTF_HPP__
+#define __CRCR_UTF_HPP__
 
 #include <Config.hpp>
 #include <algorithm>
@@ -661,4 +661,4 @@ typedef Utf<32> Utf32;
 
 }; // namespace cr
 
-#endif // __UTF_H__
+#endif // __CRCR_UTF_HPP__

@@ -1,5 +1,5 @@
-#ifndef __THREAD_H__
-#define __THREAD_H__
+#ifndef __CRCR_THREAD_HPP__
+#define __CRCR_THREAD_HPP__
 
 #include <NonCopyable.hpp>
 #include <ThreadImpl.hpp>
@@ -164,7 +164,7 @@ private:
 } // namespace cr
 
 
-#endif // __THREAD_H__
+#endif // __CRCR_THREAD_HPP__
 
 /**
  * \brief How to use

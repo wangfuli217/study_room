@@ -1,5 +1,6 @@
-#include "String.h"
-#include "gtest/gtest.h"
+#include <String.hpp>
+#include <cstring>
+#include <gtest/gtest.h>
 
 TEST(String, ConstructorTest)
 {
@@ -8,5 +9,5 @@ TEST(String, ConstructorTest)
     const cr::String s1(ansiStr);
 
     EXPECT_EQ(0, s.getSize());
-    EXPECT_EQ(sizeof(ansiStr), s1.getSize());
+    EXPECT_EQ(strlen(ansiStr), s1.getSize());
 }

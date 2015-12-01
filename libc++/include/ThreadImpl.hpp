@@ -1,5 +1,5 @@
-#ifndef __THREAD_IMPL_H__
-#define __THREAD_IMPL_H__
+#ifndef __CRCR_THREAD_IMPL_HPP__
+#define __CRCR_THREAD_IMPL_HPP__
 
 #include <Config.hpp>
 #include <NonCopyable.hpp>
@@ -60,4 +60,4 @@ private:
 
 } // namespace cr
 
-#endif // __THREAD_IMPL_H__
+#endif // __CRCR_THREAD_IMPL_HPP__

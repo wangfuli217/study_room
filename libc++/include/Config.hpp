@@ -1,5 +1,5 @@
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef __CRCR_CONFIG_HPP__
+#define __CRCR_CONFIG_HPP__
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)
@@ -45,4 +45,4 @@ namespace cr
 
 } // namespace cr
 
-#endif // __CONFIG_H__
+#endif // __CRCR_CONFIG_HPP__

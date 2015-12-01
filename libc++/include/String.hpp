@@ -1,5 +1,5 @@
-#ifndef __STRING_H__
-#define __STRING_H__
+#ifndef __CRCR_STRING_HPP__
+#define __CRCR_STRING_HPP__
 
 #include <Utf.hpp>
 #include <locale>
@@ -512,7 +512,7 @@ String operator + (const String& left, const String& right);
 
 };  // namespace cr
 
-#endif // __STRING_H__
+#endif // __CRCR_STRING_HPP__
 
 
 

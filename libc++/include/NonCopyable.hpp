@@ -1,5 +1,5 @@
-#ifndef __NON_COPYABLE_H__
-#define __NON_COPYABLE_H__
+#ifndef __CRCR_NON_COPYABLE_HPP__
+#define __CRCR_NON_COPYABLE_HPP__
 
 /**
  * \brief namespace : cr(CloudRain21) (my private library)
@@ -33,7 +33,7 @@ private:
 	
 }; // namespace cr
 
-#endif // __NON_COPYABLE_H__
+#endif // __CRCR_NON_COPYABLE_HPP__
 
 
 /**

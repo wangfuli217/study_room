@@ -1,5 +1,5 @@
-#ifndef __TIME_H__
-#define __TIME_H__
+#ifndef __CRCR_TIME_HPP__
+#define __CRCR_TIME_HPP__
 
 #include <Config.hpp>
 
@@ -400,7 +400,7 @@ Time& operator %= (Time& left, Time right);
 	
 }; // namespace cr
 
-#endif // __TIME_H__
+#endif // __CRCR_TIME_HPP__
 
 
 /**
