@@ -1,4 +1,4 @@
 Program( 'string_test.cpp',
-         LIBS = 'cr',
+         LIBS = ['cr', 'pthread'],
          LIBPATH = '../lib',
          CPPPATH = '../include' )
