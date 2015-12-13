@@ -2,8 +2,13 @@
 env = Environment( CC = 'g++',
                    LIBS    = ['boost_thread-mt', 'boost_system-mt'],
                    CCFLAGS = '-g -Wall -O0 -std=c++11',
+                   BINPATH = 'bin',
                    LIBPATH = ['/usr/local/lib'],
                    CPPPATH = ['/user/local/include/boost'] )
 
-env.Program( 'thread1.cpp' );
-env.Program( 'scoped_thread1.cpp' );
+prog_list  = env.Program( 'thread1.cpp' );
+prog_list += env.Program( 'scoped_thread1.cpp' );
+prog_list += env.Program( 'thread_interrupt1.cpp' );
+
+for prog in prog_list:
+    env.Install( '$BINPATH', prog)
