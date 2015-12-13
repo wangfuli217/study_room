@@ -1,0 +1,9 @@
+
+env = Environment( CC = 'g++',
+                   LIBS    = ['boost_thread-mt', 'boost_system-mt'],
+                   CCFLAGS = '-g -Wall -O0 -std=c++11',
+                   LIBPATH = ['.', '/usr/local/lib'],
+                   CPPPATH = ['../include',
+                              '/user/local/include/boost'] )
+
+env.Program( 'Thread1.cpp' );
