@@ -2,7 +2,7 @@
 env = Environment( CC = 'g++',
                    LIBS    = ['boost_thread-mt', 'boost_system-mt'],
                    CCFLAGS = '-g -Wall -O0 -std=c++11',
-                   BINPATH = 'bin',
+                   BINPATH = './bin',
                    LIBPATH = ['/usr/local/lib'],
                    CPPPATH = ['/user/local/include/boost'] )
 
