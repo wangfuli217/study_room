@@ -6,9 +6,13 @@ env = Environment( CC = 'g++',
                    LIBPATH = ['/usr/local/lib'],
                    CPPPATH = ['/user/local/include/boost'] )
 
-prog_list  = env.Program( 'thread1.cpp' );
-prog_list += env.Program( 'scoped_thread1.cpp' );
-prog_list += env.Program( 'thread_interrupt1.cpp' );
+source_files = [ 'thread1.cpp',
+                 'scoped_thread1.cpp',
+                 'thread_interrupt1.cpp',
+                 'hardware_concurrency1.cpp' ]
 
-for prog in prog_list:
-    env.Install( '$BINPATH', prog)
+for src in source_files:
+    bin = env.Program( src )
+    env.Install( '$BINPATH', bin )
+
+env.Alias( 'install', '$BINPATH' )
