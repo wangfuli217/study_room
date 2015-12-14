@@ -2,7 +2,7 @@
 env = Environment( CC = 'g++',
                    LIBS    = ['boost_thread-mt', 'boost_system-mt'],
                    CCFLAGS = '-g -Wall -O0 -std=c++11',
-                   BINPATH = 'bin',
+                   BINPATH = './bin',
                    LIBPATH = ['/usr/local/lib'],
                    CPPPATH = ['/user/local/include/boost'] )
 
@@ -12,3 +12,5 @@ prog_list += env.Program( 'thread_interrupt1.cpp' );
 
 for prog in prog_list:
     env.Install( '$BINPATH', prog)
+
+env.Alias( 'install', '$BINPATH' )
