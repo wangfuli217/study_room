@@ -1,0 +1,26 @@
+<html>
+<head>
+</head>
+
+<body>
+
+<div id="wrap">
+    <p>content1</p>
+    <p>content2</p>
+    <p>content3</p>
+    <p>content4</p>
+</div>
+
+<script type="text/javascript">
+    document.getElementById("wrap").children[0].style.color = "red";
+    var p = document.getElementsByTagName("p")[1];
+    var nextObj = p.nextSibling;
+    while(nextObj.nodeType != 1)
+    {
+        nextObj = nextObj.nextSibling;
+    }
+    nextObj.style.backgroundColor = "yellow";
+</script>
+
+</body>
+</html>
