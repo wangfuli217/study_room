@@ -1,0 +1,30 @@
+<html>
+<head>
+</head>
+
+<body>
+
+<h1 id = "title">mouse out</h1>
+<a href="#" id="btn"><img src="images/juna.jpeg" alt="button" /></a>
+<p id="img_src"></p>
+
+<script type="text/javascript">
+    var theBtn = document.getElementById("btn");
+    var s = document.getElementById("img_src");
+
+    theBtn.onmouseover = function() {
+        document.getElementById("title").innerHTML="mouse in";
+
+        theBtn.firstChild.src="images/math_img_1.jpeg";
+        s.innerHTML=theBtn.firstChild.src;
+    }
+
+    theBtn.onmouseout  = function() {
+        document.getElementById("title").innerHTML = "mouse out";
+        theBtn.firstChild.src = "images/math_img_2.jpeg"
+        s.innerHTML=theBtn.firstChild.src;
+    }
+</script>
+
+</body>
+</html>
