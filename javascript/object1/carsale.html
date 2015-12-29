@@ -1,0 +1,70 @@
+<html>
+<head>
+
+<script type="text/javascript">
+    function car() {
+        var basic_car = Number(document.getElementById("total").defaultValue);
+
+        for(var i=1; i<=3; i++) {
+            var chkObj = document.getElementById("opt" + i);
+            if(chkObj.checked) basic_car += Number(chkObj.value);
+        }
+
+        document.getElementById("total").value = basic_car;
+    }
+
+</script>
+
+</head>
+
+<body>
+
+<h1>car estimate</h1>
+<div id="carZone">
+    <p><img src="images/car1.jpeg" alt="car" /></p>
+    <table id="estimate">
+        <colgroup>
+            <col width="200px" />
+            <col width="120px" />
+            <col width="*" />
+        </colgroup>
+        <thread>
+            <tr>
+                <th scope="row" style="background-color:#ccffcc">option</th>
+                <th scope="row" style="background-color:#ccffcc">additional price</th>
+                <th scope="row" style="background-color:#ccffcc">selection</th>
+            </tr>
+        </thread>
+        <tfoot>
+        <tr>
+            <th scope="col" style="background-color:#e0e0eb">(default) car price</th>
+            <td colspan="2" style="background-color:#e0e0eb">
+                <input type="text" name="total" id="total" value="13450000" readonly="readonly" />
+            </td>
+        </tr>
+        </tfoot>
+        <tbody>
+        <tr>
+            <td><label for="opt1">skin sheet</label></td><td>250000</td>
+            <td>
+                <input type="checkbox" name="opt1" id="opt1" value="250000" onclick="car();" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="opt2">navigation</label></td><td>250000</td>
+            <td>
+                <input type="checkbox" name="opt2" id="opt2" value="250000" onclick="car();" />
+            </td>
+        </tr>
+        <tr>
+            <td><label for="opt3">sunroof</label></td><td>440000</td>
+            <td>
+                <input type="checkbox" name="opt3" id="opt3" value="440000" onclick="car();" />
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

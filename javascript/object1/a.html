@@ -1,0 +1,31 @@
+<html>
+<head>
+</head>
+
+<body>
+
+<form method="post" action="#" name="log_f">
+    <fieldset>
+        <legend>client login</legend>
+        <p>
+            <label for="my_id">iddddd</label>
+            <input type="text" name="user_id" id="my_id" />
+            <label for="my_pw">pwdddd</label>
+            <input type="password" name="user_pw" id="my_pw" />
+        </p>
+        <input type="submit" value="login" />
+    </fieldset>
+</form>
+
+<script>
+    document.log_f.onsubmit=function() {
+        var id_v = document.log_f.user_id.value;
+        var pw_v = document.log_f.user_pw.value;
+
+        alert(id_v);
+        alert(pw_v);
+    }
+</script>
+
+</body>
+</html>
