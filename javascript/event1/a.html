@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript">
+        var color = ["white", "yellow", "aqua", "purple"];
+        var i = 0;
+        function colorBg() {
+            i++;
+            if(i>color.length) i = 0;
+            var bodyTag = document.getElementsByTagName("body")[0];
+            bodyTag.style.backgroundColor = color[i];
+        }
+
+        window.onload = function() {
+            var btn2 = document.getElementById("btn2");
+            btn2.onclick = function(){colorBg();}
+
+            var btn4 = document.getElementById("btn4");
+            btn4.onmouseover = function(){colorBg();}
+        }
+    </script>
+</head>
+<body>
+    <p><button onclick="colorBg();">button1</button></p>
+    <p><button id="btn2">button2</button></p>
+    <p><button onmouseover="colorBg();">button3</button></p>
+    <p><button id="btn4">button4</button></p>
+</body>
+</html>
