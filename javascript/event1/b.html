@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <script>
+        function chColor(obj,arg1) {
+            var myColor;
+
+            if(arg1 == "clickkk")
+            {
+                alert("clickkk.....");
+                myColor = "blue";
+            }
+            else if(arg1 == "over")
+            {
+                alert("over.....");
+                myColor = "red";
+            }
+            else
+            {
+                alert("out.....");
+                myColor = "purple";
+            }
+
+            obj.style.color = myColor;
+        }
+    </script>
+
+</head>
+<body>
+<button onclick="chColor(this,'clickkk')" onmouseover="chColor(this,'over')" onmouseout="chColor(this,'out')" >button1</button>
+</body>
+</html>
