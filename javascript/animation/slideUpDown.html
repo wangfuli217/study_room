@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#btn1").on("click",function() {
+                $("h1").slideUp(1000);
+            });
+            $("#btn2").on("click",function() {
+                $("h1").slideDown("slow");
+            });
+            $("#btn3").on("click",function() {
+                $("h1").slideToggle("fast");
+            });
+        });
+    </script>
+
+
+</head>
+<body>
+
+<button id="btn1">slideUp</button>
+<button id="btn2">slideDown</button>
+<button id="btn3">slideToggle</button>
+<h1>Contents</h1>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#btn1").on("click",function() {
+                $("h1").hide(1000,function() alert("Hide Complete"));
+            });
+            $("#btn2").on("click",function() {
+                $("h1").show("slow",function() alert("Show Complete"));
+            });
+        });
+    </script>
+
+
+</head>
+<body>
+
+<button id="btn1">Hide</button>
+<button id="btn2">Show</button>
+<h1>Contents</h1>
+
+</body>
+</html>

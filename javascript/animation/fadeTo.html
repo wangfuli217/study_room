@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#btn1").on("click",function() {
+                $("h1").fadeTo("slow",0.3);
+            });
+            $("#btn2").on("click",function() {
+                $("h1").fadeTo("slow");
+            });
+        });
+    </script>
+
+
+</head>
+<body>
+
+<button id="btn1">FadeTo(30%)</button>
+<button id="btn2">FadeTo(100%)</button>
+<h1>Contents</h1>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#btn1").on("click",function() {
+                $("h1").fadeIn(1000);
+            });
+            $("#btn2").on("click",function() {
+                $("h1").fadeOut("slow");
+            });
+            $("#btn3").on("click",function() {
+                $("h1").fadeToggle("fast");
+            });
+        });
+    </script>
+
+
+</head>
+<body>
+
+<button id="btn1">FadeIn</button>
+<button id="btn2">FadeOut</button>
+<button id="btn3">FadeToggle</button>
+<h1>Contents</h1>
+
+</body>
+</html>
