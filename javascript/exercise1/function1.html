@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<script>
+    var app = (function(){
+        var xx = 'sdkfsldf';
+        return {
+            myVar : xx
+        };
+    }());
+
+    alert(app.myVar);
+
+    var namedfunc = function(inputvar) {
+        alert(inputvar);
+    };
+    namedfunc("my name is dplee");
+
+    (function(carName) {
+        alert(carName);
+    }('this is car name'));
+
+</script>
+
+</body>
+</html>

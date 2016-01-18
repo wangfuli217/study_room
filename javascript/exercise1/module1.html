@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+
+<script>
+    var mycar = (function() {
+        var color = 'red';
+        var price = 1000;
+        var cc = 3000;
+
+        var getPrice = function() {
+            return price;
+        };
+        return {
+            color : color,
+            getPrice : getPrice
+        }
+    }());
+
+    alert(mycar.color);
+    alert(mycar.getPrice());
+
+    if( mycar.cc ) {
+        alert('mycar.cc definded');
+    }
+    else {
+        alert('mycar.cc undefinded');
+    }
+</script>
+
+</body>
+</html>

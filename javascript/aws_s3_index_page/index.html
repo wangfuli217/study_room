@@ -1,36 +1,20 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Example WebSocket</title>
+    <title>Example Socket.IO</title>
 </head>
 <body>
 
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://ec2-52-23-240-192.compute-1.amazonaws.com:8080/socket.io/socket.io.js"></script>
 <script type="text/javascript">
-    if ('WebSocket' in window) {
-        var ws = new WebSocket('ws://ec2-52-23-240-192.compute-1.amazonaws.com:8080', 'example-echo');
+    var socket = io.connect('http://ec2-52-23-240-192.compute-1.amazonaws.com:8080');
+    socket.on('example message 1', function (data) {
+        $('#messages').append($('<li>').text('Received message: ' + data.hello));
+    });
 
-        ws.onopen = function () {
-            $('#status').text('connected');
-
-            for (var i = 0; i < 10; i++) {
-                ws.send('Hello ' + i);
-            }
-        };
-
-        ws.onmessage = function (evt) {
-            $('#messages').append($('<li>').text('Received message: ' + evt.data));
-        };
-
-        ws.onclose = function () {
-            $('#status').text('connection is closed');
-        };
-    }
-    else
-        $('#status').text('WebSocket not supported.');
+    socket.emit('example message 2', { hello: 'world 2' });
 </script>
-
-Status: <span id="status"></span><br /><br />
 Messages: <ul id="messages"></ul>
 </body>
 </html>
