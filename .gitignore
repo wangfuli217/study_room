@@ -1,12 +1,15 @@
 # Ignore all
 *
-
-# Unignore all with extensions excluding object files, etc
+.*
+.*/
+*.class
 *.o
 *.a
+*.so
 a.out
 *.dSYM/
 
+!*/
 !*.c
 !*.cc
 !*.cpp
@@ -18,18 +21,6 @@ a.out
 !*.html
 !*.java
 !*.sh
-TODO
-README*
-
-# Unignore all dirs
-!*/
-
-# Ignore dirs/files starting with .
-.*
+!TODO
+!README*
 !/.gitignore
-
-### Above combination will ignore all files without extension ###
-
-# Ignore files with extension `.class` & `.sm`
-*.class
-*.sm
