@@ -1,0 +1,35 @@
+# Ignore all
+*
+
+# Unignore all with extensions excluding object files, etc
+*.o
+*.a
+a.out
+*.dSYM/
+
+!*.c
+!*.cc
+!*.cpp
+!*.h
+!*.py
+!*.hpp
+!*.inl
+!*.js
+!*.html
+!*.java
+!*.sh
+TODO
+README*
+
+# Unignore all dirs
+!*/
+
+# Ignore dirs/files starting with .
+.*
+!/.gitignore
+
+### Above combination will ignore all files without extension ###
+
+# Ignore files with extension `.class` & `.sm`
+*.class
+*.sm
