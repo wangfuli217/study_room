@@ -21,6 +21,9 @@ a.out
 !*.html
 !*.java
 !*.sh
+!*.jpeg
+!*.jpg
+!*.png
 !TODO
 !README*
 !/.gitignore
