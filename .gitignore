@@ -24,6 +24,8 @@ a.out
 !*.jpeg
 !*.jpg
 !*.png
+!*.ico
+!*.txt
 !TODO
 !README*
 !/.gitignore
