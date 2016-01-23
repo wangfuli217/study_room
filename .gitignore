@@ -8,7 +8,6 @@
 *.so
 a.out
 *.dSYM/
-node_modules/
 
 !*/
 !*.c
@@ -27,6 +26,10 @@ node_modules/
 !*.png
 !*.ico
 !*.txt
+!*.handlebars
+!*.hbs
 !TODO
 !README*
 !/.gitignore
+
+node_modules/
