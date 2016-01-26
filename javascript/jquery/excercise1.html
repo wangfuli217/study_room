@@ -1,0 +1,69 @@
+<html>
+<head>
+    <script type="text/javascript">
+        function addEvent(target, eventType,eventHandler, useCapture) {
+            if (target.addEventListener) { // W3C DOM
+                target.addEventListener(eventType,eventHandler,useCapture?useCapture:false);
+            } else if (target.attachEvent) {  // IE DOM
+                var r = target.attachEvent("on"+eventType, eventHandler);
+            }
+        }
+
+        function clickHandler(event) {
+            if(event.type == 'click') {
+                console.log('event type is click');
+            } else {
+                console.log('event type is not click');
+            }
+
+            var nav = document.getElementById('navigation');
+            for(var i=0; i<nav.childNodes.length; i++) {
+                var child = nav.childNodes[i];
+                if(child.nodeType == 3)
+                    continue;
+                child.className = '';
+                if(event.target == child) {
+                    child.className = 'selected';
+                }
+            }
+        }
+
+        addEvent(window, 'load', function(eventObj) {
+            var nav = document.getElementById('navigation');
+            for(var i=0; i<nav.childNodes.length; i++) {
+                var child = nav.childNodes[i];
+                if(child.nodeType == 3)
+                    continue;
+                addEvent(child, 'click', clickHandler);
+            }
+        })
+    </script>
+
+    <style type="text/css">
+        #navigation li {
+            list-style: none;
+            color: skyblue;
+            float: left;
+            padding: 5px;
+        }
+        #navigation {
+            cursor: pointer;
+        }
+        #navigation .selected {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <ul id="navigation">
+        <li>AA</li>
+        <li>BB</li>
+        <li class="selected">CC</li>
+        <li>DD</li>
+        <li>EE</li>
+    </ul>
+</body>
+
+</html>

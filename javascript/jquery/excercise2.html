@@ -1,0 +1,41 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        $('#navigation li').live('click', function() {
+            $('#navigation li').removeClass('selected');
+            $(this).addClass('selected');
+            console.log($(this));
+            console.log($(this).context.nodeName + ", " + $(this).context.nodeType);
+        })
+
+    </script>
+
+    <style type="text/css">
+        #navigation li {
+            list-style: none;
+            color: skyblue;
+            float: left;
+            padding: 5px;
+        }
+        #navigation {
+            cursor: pointer;
+        }
+        #navigation .selected {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <ul id="navigation">
+        <li>AA</li>
+        <li>BB</li>
+        <li class="selected">CC</li>
+        <li>DD</li>
+        <li>EE</li>
+    </ul>
+</body>
+
+</html>
