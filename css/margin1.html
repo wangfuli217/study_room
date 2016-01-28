@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <title>margin test</title>
+    <style type="text/css">
+        body {
+            font-size: 12px;
+        }
+        #a {
+            width: 150px;
+            color: red;
+            margin: 50px;
+            border-width: 2px;
+            border-color: red;
+            background-color: yellow;
+        }
+        #b {
+            width: 150px;
+            color: blue;
+            margin: 50px;
+            border-width: 2px;
+            border-color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="a">
+        This is siblings margin test.
+    </div>
+    <div></div>    <!-- no content sibling -->
+    <div id="b">
+        This is second sibling.
+    </div>
+</body>
+</html>
