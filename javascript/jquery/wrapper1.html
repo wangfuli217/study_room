@@ -1,0 +1,28 @@
+<html>
+<head>
+</head>
+<body>
+    <ul>
+        <li>This is list</li>
+    </ul>
+    <ul class="named">
+        <li>This is named list</li>
+    </ul>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript">
+    (function($) {
+        $("ul").click(function() {
+            $("ul li").css('background-color', 'white');
+            $("ul li").removeClass('named');
+            $("li", this).className = 'named';
+            $("li", this).css("background-color", "red");
+        })
+    })(jQuery);
+
+    (function(arg1) {
+        console.log(arg1);
+    })('This is lambda function test');
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <style type="text/css">
+        h1{ width: 90px;
+            height: 20px;
+            background-color: red;
+            font-size: 100%; }
+        h2{ width: 90px;
+            height: 20px;
+            background-color: orange;
+            font-size: 100%; }
+        h3{ width: 90px;
+            height: 20px;
+            background-color: aqua;
+            font-size: 100%; }
+    </style>
+
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("h1").animate({
+                marginLeft:"250px"
+            },5000,function() { alert("arrival complete")});
+
+            $("h2").animate({
+                marginLeft:"250px",
+                opacity:0.3,
+                width:"150px"
+            },5000);
+
+            $("h3").animate({ marginLeft:"250px"},3000)
+                    .animate({marginLeft:"100px"},2000);
+        });
+    </script>
+
+</head>
+<body>
+
+<h1>Contents1</h1>
+<h2>Contents2</h2>
+<h3>Contents3</h3>
+
+</body>
+</html>
