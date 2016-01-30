@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <title></title>
+    <link rel="stylesheet" href="/Users/dplee/work/study_room/bower/bower_components/octicons/octicons/octicons.css">
+    <style type="text/css">
+        .other, .parent {
+            width: 200px;
+            border: 2px solid green;
+            margin: 5px;
+        }
+        .other2 {
+            width: 200px;
+            border: 2px solid green;
+            margin: 5px;
+            height: 1000px;
+        }
+        .me {
+            border-radius: 10px;
+            border: red solid 2px;
+            color: red;
+            font-size: 14px;
+            position: fixed;
+            left: 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="other">
+        Other
+    </div>
+    <div class="parent">
+        Parent
+        <div class="me">
+            <span class="octicon octicon-microscope"></span>
+            <a href="http://www.google.com">me</a>
+        </div>
+    </div>
+    <div class="other2">
+        Other2
+    </div>
+</body>
+</html>
