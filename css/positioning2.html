@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <title></title>
+    <style type="text/css">
+        .before {
+            border: 2px solid red;
+        }
+        .parent {
+            border: 2px solid red;
+        }
+        .me {
+            background-color: green;
+            width: 50px;
+            /*position: static;*/
+            /*position: absolute;*/
+            position: fixed;
+            /*position: relative;*/
+            left: 50px;
+            right: 50px;
+        }
+        .after {
+            height: 1000px;
+            border: 2px solid red;
+        }ß
+    </style>
+</head>
+
+<body>
+    <div class="before">
+        before
+    </div>
+    <div class="parent">
+        Parent
+        <div class="me">
+            ME
+        </div>
+    </div>
+    <div class="after">
+        after
+    </div>
+</body>
+</html>
