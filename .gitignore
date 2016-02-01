@@ -25,6 +25,7 @@ a.out
 !*.jpeg
 !*.jpg
 !*.png
+!*.gif
 !*.ico
 !*.txt
 !*.handlebars

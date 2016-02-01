@@ -1,40 +1,83 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <title></title>
     <style type="text/css">
+        body {
+            border: 1px solid black;
+        }
+        ul {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        li {
+            list-style: none;
+        }
         .wrapper {
             width: 400px;
         }
         .navigation {
+            width: 80px;
             float: left;
-            background-color: red;
-            width: 100px;
-            color: white;
+            border: 2px solid red;
+            border-radius: 5px;
         }
-        .content {
-            float: right;
-            background-color: green;
+        .description {
             width: 300px;
-            color: white;
+            height: 200px;
+            overflow: scroll;
+            text-align: left;
+            float: right;
+            border: 2px solid green;
+            border-radius: 5px;
+            position: relative;
+            left: 0px;
+        }
+        .image_file {
+            float: right;
+            border: 2px solid red;
+            border-radius: 5px;
+            width: 50px;
+            height: 50px;
         }
         .footer {
             clear: both;
-            background-color: blue;
-            color: white;
+            border: 2px solid skyblue;
+            border-radius: 5px;
         }
     </style>
 </head>
+
 <body>
     <div class="wrapper">
         <div class="navigation">
-            example2.html - float를 이용해서 레이아웃을 만드는 예제. nav에 float:left, content에 float:right를 줘서 화면을 분활한 후에 footer에 clear:both를 부여해서 float를 해제하고 있다. (jsfiddle, github)
+            <ul>
+                <li>
+                    List1
+                </li>
+                <li>
+                    List2
+                </li>
+                <li>
+                    List3
+                </li>
+                <li>
+                    List4
+                </li>
+                <li>
+                    List5
+                </li>
+            </ul>
         </div>
-        <div class="content">
-            한 때 이 땅위에는 컴퓨터학원이 국영수학원 만큼 있었다. 지금은 이 수요가 대학이나 직업학원으로 단일화 되었다. 옛날에는 취미인인 꼬꼬마들도 하던 프로그래밍이 이제는 직업인의 영역으로 퉁쳐진 것이다. 그런데 생각해보면 컴퓨터학원이 우후죽순 생겨나던 시절에 프로그래밍을 배워봐야 할 수 있는게 많지 않았다. 지금은 어떤가? 구글의 지도 API는 직전까진 삼엄한 군사정보였고, 제발 나 좀 공짜로 써달라고 애걸하는 오픈소스는 또 얼마나 많은가? 그런데 이제는 취미인들을 위한 컴퓨터학원이 없다. 몸에 좋은 개똥은 귀한 법인가? 그래서 시작한 개똥 같은 캠페인이 생활코딩이다. 장담하건데 프로그래밍의 시대가 다시온다. 직업인들은 이미 이 사실을 감지하고 있는데 이를 암시하는 인상적인 풍경이 아이폰이다. 아이폰이 등장하면서 수 많은 개발자들이 직장을 박차거나, 주경야코하며 자기만의 프로그램을 개발하고 있다. 이들이 직장의 힘을 빌리지 않고 자영업 개발자가 될 수 있었던 것은 더 이상 개인이 고립되지 않았다는 것을 암시한다. 이것은 모바일 열풍 못지 않게 중요한 행간이다.
+        <div class="description">
+            <img src="img.jpg" class="image_file"></a>
+            이 사진은 우리가 라오스에 갔을 때 호텔에서 산책하다가 만난 툭툭이를 찍은 사진이다. 툭툭은 덜컹덜컹 시끄럽고 몸이 많이 흔들리지만 그보다 더 재미있을 수가 없다.
+            이 사진은 우리가 라오스에 갔을 때 호텔에서 산책하다가 만난 툭툭이를 찍은 사진이다. 툭툭은 덜컹덜컹 시끄럽고 몸이 많이 흔들리지만 그보다 더 재미있을 수가 없다.
+            이 사진은 우리가 라오스에 갔을 때 호텔에서 산책하다가 만난 툭툭이를 찍은 사진이다. 툭툭은 덜컹덜컹 시끄럽고 몸이 많이 흔들리지만 그보다 더 재미있을 수가 없다.
         </div>
         <div class="footer">
-            This is footer !!!
+            This is footer...
         </div>
     </div>
 </body>
