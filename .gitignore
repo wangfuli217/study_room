@@ -6,6 +6,7 @@
 *.o
 *.a
 *.so
+*.mp4
 a.out
 *.dSYM/
 .DS_Store
