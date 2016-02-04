@@ -137,6 +137,18 @@ check_group_created()
     ret=0
 }
 
+init_cluster()
+{
+    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/cluster/DictionarySchema.sql
+    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/InformationSchema.sql
+    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/PerformanceViewSchema.sql
+
+    gsql --as sysdba --dsn=$1 << EOF
+        GRANT ALL PRIVILEGES ON DATABASE TO TEST WITH GRANT OPTION;
+        COMMIT;
+EOF
+}
+
 if [ $1 = 'drive' ]; then
     #export SUNDB_DATA=$PRODUCT_HOME/Gliese/home/"$1""_home"
 
@@ -185,5 +197,5 @@ EOF
         \quit
 EOF
 
-    cinit.sh
+    init_cluster $drive_node
 fi
