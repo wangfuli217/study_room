@@ -5,7 +5,7 @@ export PRODUCT_HOME=/home/dplee/work/sundb_trunk
 export SUNDB_HOME=$PRODUCT_HOME/Gliese/home
 export PATH=$SUNDB_HOME/bin:$PATH
 
-if [ $1 = 'init' ]; then
+if [ $1 = 'clean' ]; then
     cleandb.sh
     find $SUNDB_HOME -name "*.dbf" -exec rm {} \;
     find $SUNDB_HOME -name "*.log" -exec rm {} \;
