@@ -1,5 +1,8 @@
-### Group G1 : member g1n1, g1n2
-### Group G2 : member g2n1
+### 1. ctest.sh clean
+### 2. ctest.sh g1n1
+### 3. ctest.sh g1n2
+### 4. ...
+### 5. ctest.sh drive
 
 export PRODUCT_HOME=/home/dplee/work/sundb_trunk
 export SUNDB_HOME=$PRODUCT_HOME/Gliese/home
@@ -14,13 +17,13 @@ if [ $1 = 'clean' ]; then
 fi
 
 if [ $# -lt 1 ]; then
-    echo "ctest.sh node11/node12/node21/node22/drive"
+    echo "ctest.sh g1n1/g1n2/g2n1/g2n2/drive"
     exit
 fi
 
 mount_global()
 {
-    gsql --as sysdba --dsn=CLUSTER << EOF
+    gsql --as sysdba --dsn=$1 << EOF
         \cstartup local open;
         alter system mount global database;
         \quit;
@@ -31,39 +34,39 @@ EOF
 ##################################
 ### (1) cluster non-drive node ###
 ##################################
-if [ $1 = 'node11' ]; then
+if [ $1 = 'g1n1' ]; then
     export SUNDB_DATA=$PRODUCT_HOME/Gliese/home/g1n1_home
 
     # create db and global mount
     gcreatedb --cluster --db_name=SUNDB --home=$SUNDB_DATA --member=g1n1 --host=127.0.0.1 --port=10101
-    mount_global
+    mount_global $1
 ##################################
 ### (2) cluster non-drive node ###
 ##################################
-elif [ $1 = 'node12' ]; then
+elif [ $1 = 'g1n2' ]; then
     export SUNDB_DATA=$PRODUCT_HOME/Gliese/home/g1n2_home
 
     # create db and global mount
     gcreatedb --cluster --db_name=SUNDB --home=$SUNDB_DATA --member=g1n2 --host=127.0.0.1 --port=10102
-    mount_global
+    mount_global $1
 ##################################
 ### (3) cluster non-drive node ###
 ##################################
-elif [ $1 = 'node21' ]; then
+elif [ $1 = 'g2n1' ]; then
     export SUNDB_DATA=$PRODUCT_HOME/Gliese/home/g2n1_home
 
     # create db and global mount
     gcreatedb --cluster --db_name=SUNDB --home=$SUNDB_DATA --member=g2n1 --host=127.0.0.1 --port=10201
-    mount_global
+    mount_global $1
 ##################################
 ### (4) cluster non-drive node ###
 ##################################
-elif [ $1 = 'node22' ]; then
+elif [ $1 = 'g2n2' ]; then
     export SUNDB_DATA=$PRODUCT_HOME/Gliese/home/g2n2_home
 
     # create db and global mount
     gcreatedb --cluster --db_name=SUNDB --home=$SUNDB_DATA --member=g2n2 --host=127.0.0.1 --port=10202
-    mount_global
+    mount_global $1
 fi
 
 ##################################
