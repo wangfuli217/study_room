@@ -1,0 +1,110 @@
+* {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+body {
+    font: 11px/15px georgia, serif;
+    color: #fff;
+    background: #748A9B;
+    max-width: 700px;
+    text-align: justify;
+    /*border: 1px solid red;*/
+}
+
+.intro {
+    position: relative;
+    display: inline;
+}
+
+#header_part {
+    border: 2px solid black;
+    background: transparent url(dplee.jpg) repeat;
+    background-size: contain;
+    overflow: auto;  /* dplee: This makes #header_part wrap header and summary */
+}
+
+header {
+    text-align: left;
+    float: left;
+    width: 40%;
+    color: yellow;
+    border: 1px solid blue;
+}
+
+header>h1:hover {
+    color: blue;
+    cursor: pointer;
+}
+
+.summary {
+    float: right;
+    width: 60%;
+    border: 1px solid blue;
+}
+
+.preamble {
+    clear: both;
+    border: 1px solid skyblue;
+}
+
+.sidebar {
+    float: left;
+    width: 35%;
+    padding-right: 10px;
+    border: 1px solid red;
+}
+
+.trip_image {
+    float: left;
+    width: 35%;
+    height: 100px;
+    background: url(laos.jpg);
+    background-size: contain;
+}
+
+.trip_image:hover {
+    background-size: cover;
+}
+
+.main {
+    float: right;
+    margin-right: 0px;
+    width: 65%;
+    border: 1px solid black;
+}
+
+@media (max-width: 600px) {
+    .summary {
+        width: 100%;
+    }
+    .main {
+        width: 100%;
+    }
+    .sidebar {
+        width: 100%;
+    }
+}
+
+/*.big_image_area {
+    clear: both;
+    height: 100px;
+    width: 100%;
+    background: gray;
+}*/
+
+.big_image_area {
+    clear: both;
+    width: 100%;
+    height: 400px;
+    background-color: gray;
+}
+
+.footer {
+    clear: both;
+    height: 20px;
+    width: 100%;
+    text-align: center;
+    background-color: yellow;
+}
