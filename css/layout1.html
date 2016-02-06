@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <title></title>
+    <style type="text/css">
+        * {
+            -webkit-box-sizing: border-box;
+               -moz-box-sizing: border-box;
+                    box-sizing: border-box;
+        }
+
+        .header {
+            background-color: yellow;
+            border: 1px solid red;
+        }
+
+        .main {
+            overflow: auto;
+            border: 2px solid purple;
+        }
+
+        .content {
+            float: left;
+            border: 1px solid blue;
+            width: 60%;
+            text-align: justify;
+        }
+
+        .cont {
+            border: 1px solid red;
+        }
+
+        .cont:nth-child(3) {
+            background-color: orange;
+        }
+
+        span {
+            color: red;
+            font-weight: bold;
+        }
+
+        .index {
+            float: right;
+            width: 40%;
+            border: 1px solid blue;
+            margin-top: 0;
+        }
+
+        ul>li.color {
+            background-color: yellow;
+        }
+
+        ul>li>p {
+            margin: 0;
+            background-color: pink;
+        }
+
+        @media (max-width: 400px) {
+            .content {
+                width: 100%;
+            }
+            .index {
+                position: relative;
+                width: 100%;
+            }
+        }
+
+        .footer {
+            clear: both;
+            border: 1px solid purple;
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <span>HEADER</span> I would like to make it so that when a user hovers the mouse over an image, the image becomes 10% bigger and then returns to its original size when the user moves the mouse away.
+    </div>
+    <div class="main">
+        <div class="content">
+            <section class="cont">
+                <span>CONTENT1</span> I would like to make it so that when a user hovers the mouse over an image, the image becomes 10% bigger and then returns to its original size when the user moves the mouse away.
+            </section>
+            <section class="cont">
+                <span>CONTENT2</span> I would like to make it so that when a user hovers the mouse over an image, the image becomes 10% bigger and then returns to its original size when the user moves the mouse away.
+            </section>
+            <section class="cont">
+                <span>CONTENT3</span> I would like to make it so that when a user hovers the mouse over an image, the image becomes 10% bigger and then returns to its original size when the user moves the mouse away. This is main3. I would like to make it so that when a user hovers the mouse over an image, the image becomes 10% bigger and then returns to its original size when the user moves the mouse away.
+            </section>
+        </div>
+
+        <nav class="index">
+            <ul>
+                <span>INDEX</span>
+                <li class="color">
+                    This is Index1;
+                    <p>
+                        This is Index1 - child.
+                    </p>
+                </li>
+                <li>
+                    This is Index2;
+                </li>
+                <li class="color">
+                    This is Index3;
+                </li>
+                <li>
+                    This is Index4;
+                </li>
+                <li>
+                    This is Index5;
+                </li>
+                <li>
+                    This is Index6;
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="footer">
+        <span>FOOTER</span> I would like to make it so that when a user hovers the mouse over an image, the image becomes 10% bigger and then returns to its original size when the user moves the mouse away.
+    </div>
+</body>
+</html>
