@@ -1,0 +1,372 @@
+<!-- My total excercise for layout -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='http://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="code.css" />
+    <title></title>
+    <style type="text/css">
+        /*
+         * Common configuration
+         */
+        * {
+            -webkit-box-sizing: border-box;
+               -moz-box-sizing: border-box;
+                    box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        /*
+         * Header area configuration
+         */
+        .header {
+            background-color: rgba(232,233,232,0.9);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 120px;
+            /*border: 1px solid red;*/
+            overflow: auto;
+        }
+
+        .heading {
+            display: inline-block;
+            width: 49%;
+            height: 120px;
+            /*border: 1px solid green;*/
+        }
+
+        .heading>h1 {
+            font-family: "Bree Serif";
+            font-size: 30px;
+            font-weight: normal;
+            position: absolute;
+            top: 0;
+        }
+
+        /*
+         * pencil image
+         */
+        .heading>img {
+            position: absolute;
+            left: 33%;
+        }
+
+        /*
+         * container for transforming elements
+         */
+        .transform {
+            color: rgba(143,143,143,0.9);
+            margin-top: -240px;
+            margin-left: -220px;
+            margin-bottom: 60px;
+            padding-bottom: 0;
+            width: 400px;
+            height: 300px;
+            background-color: rgb(242,242,242);
+            font-size: 1em;
+            font-weight: normal;
+            -ms-transform: rotate(-35deg); /* IE 9 */
+            -webkit-transform: rotate(-35deg); /* Chrome, Safari, Opera */
+        }
+
+        /*
+         * In order to put empty area above trans1 and trans2
+         */
+        .transform>p.empty {
+            margin-bottom: 0;
+            padding-top: 230px;
+        }
+
+        .trans1 {
+            font-family: Arial;
+            background-color: rgb(242,242,242);
+            text-align: center;
+            cursor: auto;
+            padding: 6px;
+            padding-right: 40px;
+            margin-bottom: 0;
+            position: relative;
+        }
+
+        .trans1:hover, .trans2:hover {
+            background-color: rgb(222, 227, 211);
+        }
+
+        .trans2 {
+            font-family: Arial;
+            background-color: rgb(242,242,242);
+            padding: 6px;
+            cursor: auto;
+            margin-top: 0;
+            margin-bottom: 0;
+            text-align: center;
+        }
+
+        /*
+         * description content above the code
+         */
+        .description>h2 {
+            font-family: "Bree Serif";
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .description>p {
+            font-family: Arial;
+            font-size: 16px;
+            line-height: 24px;
+            margin: 20px auto 20px auto;
+            max-width: 600px;
+            /*min-width: 300px;*/
+        }
+
+        .description>.subject {
+            font-family: "Bree Serif";
+            font-size: 22px;
+            margin: 20px auto 20px auto;
+            max-width: 600px;
+            font-weight: normal;
+        }
+
+        /*
+         * For code area - See code.css
+         */
+        .highlight {
+            font-weight: bold;
+            font-family: monospace;
+            margin: auto;
+            margin-top: 30px;
+            max-width: 600px;
+            /*min-width: 300px;*/
+            background-color: black;
+            border: 2px solid gray;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 400px) {
+            .main .container {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        }
+
+        /*
+         * Previous, Next button in footer area
+         */
+        footer>div.previous, footer>div.next {
+            width: 20%;
+            height: 20px;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            background-color: rgba(204,35,100,0.9);
+            border: 1px solid rgba(204,35,100,0.9);
+            border-radius: 4px;
+        }
+
+        .elem {
+            position: relative;
+            font-family: Arial;
+            font-size: 16px;
+            margin: 20px;
+            border: 3px solid rgb(87,188,156);
+        }
+
+        .elem p code {
+            font-size: 12px;
+            background-color: rgb(231,231,231);
+        }
+
+        .elem>.label {
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: rgb(87,188,156);
+            padding: 1px 0 1px 0;
+        }
+
+        .elem p {
+            display: block;
+            line-height: 1.5em;
+            padding: 0 20px 0 20px;
+        }
+
+        .elem>.endlabel {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            background-color: rgb(87,188,156);
+            padding: 1px 0 1px 0;
+        }
+
+        .elem2 {
+            position: relative;
+            border: 3px solid rgb(87,188,156);
+            margin: 20px;
+            font-family: Arial;
+            font-size: 16px;
+        }
+
+        .elem2 p {
+            display: block;
+            padding: 0 20px 0 20px;
+        }
+
+        .elem2 code {
+            background-color: rgb(241, 242, 236);
+            font-size: 12px;
+        }
+
+        .elem2 .label, .elem2 .endlabel {
+            position: absolute;
+            background-color: rgb(87,188,156);
+        }
+
+        .elem2 .label {
+            top: 0;
+            left: 0;
+        }
+
+        .elem2 .endlabel {
+            bottom: 0;
+            right: 0;
+        }
+
+        .elem3 {
+            position: relative;
+            border: 3px solid rgb(199,27,95);
+            /*margin: 20px;*/
+            font-family: Arial;
+            font-size: 16px;
+            top: -40px;
+            left: 40px;
+            width: 500px;
+            display: block;
+        }
+
+        .elem3 .label, .elem3 .endlabel {
+            position: absolute;
+            background-color: rgb(199,27,95);
+        }
+
+        .elem3 p {
+            margin: 20px;
+        }
+
+        .elem3 .endlabel {
+            bottom: 0;
+            right: 0;
+        }
+
+        footer>div.previous {
+            float: left;
+            margin-left: 29%;
+        }
+
+        footer>div.next {
+            float: right;
+            margin-right: 29%;
+        }
+
+        footer>div.previous:hover, footer>div.next:hover {
+            color: yellow;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="heading">
+            <img src="pencil.png" alt="pencil" />
+        </div>
+        <div class="heading">
+            <h1 >Learn CSS Layout</h1>
+        </div>
+    </div>
+
+    <div class="transform">
+        <p class="empty"></p>
+        <p class="trans1">Home </p>
+        <p class="trans2">Table of Contents </p>
+    </div>
+
+    <div class="main">
+        <div class="description">
+            <h2>Position</h2>
+            <p>
+                "Responsive Design" is the strategy of making a site that "responds" to the browser and device that it is being shown on... by looking awesome no matter what.
+            </p>
+            <p>
+                Media queries are the most powerful tool for doing this. Let's take our layout that uses percent widths and have it display in one column when the browser is too small to fit the menu in the sidebar:
+            </p>
+            <div class="subject">
+                Static
+            </div>
+        </div>
+
+        <figure class="highlight">
+            <pre>
+<code class="language-css" data-lang="css">
+    <span class="k">@media</span> <span class="n">screen</span> <span class="n">and</span> <span class="p">(</span><span class="n">min-width</span><span class="p">:</span><span class="m">600px</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nt">nav</span> <span class="p">{</span>
+            <span class="nl">float</span><span class="p">:</span> <span class="nb">left</span><span class="p">;</span>
+            <span class="nl">width</span><span class="p">:</span> <span class="m">25%</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nt">section</span> <span class="p">{</span>
+            <span class="nl">margin-left</span><span class="p">:</span> <span class="m">25%</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">@media</span> <span class="n">screen</span> <span class="n">and</span> <span class="p">(</span><span class="n">max-width</span><span class="p">:</span><span class="m">599px</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nt">nav</span> <span class="nt">li</span> <span class="p">{</span>
+            <span class="nl">display</span><span class="p">:</span> <span class="nb">inline</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</code>
+            </pre>
+        </figure>
+    </div>
+
+    <div class="elem">
+        <span class="label">&lt;div class="static"></span>
+        <p>
+            <code>static</code> is the default value. An element with <code>position: static;</code> is not positioned in any special way. A static element is said to be <em>not positioned</em> and an element with its position set to anything else is said to be <em>positioned</em>.
+        </p>
+        <span class="endlabel">&lt;/div></span>
+    </div>
+
+    <div class="elem2">
+        <span class=label>&lt;div class="relative1"></span>
+        <p>
+            <code>relative</code> behaves the same as <code>static</code> unless you add some extra properties.
+        </p>
+        <span class="endlabel">&lt;/div></span>
+    </div>
+
+    <div class="elem3">
+        <span class=label>&lt;div class="relative2"></span>
+        <p>
+            <code>relative</code> behaves the same as <code>static</code> unless you add some extra properties.
+        </p>
+        <span class="endlabel">&lt;/div></span>
+    </div>
+
+    <footer>
+        <div class="previous">
+            Previous
+        </div>
+        <div class="next">
+            Next
+        </div>
+    </footer>
+</body>
+</html>
