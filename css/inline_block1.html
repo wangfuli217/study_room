@@ -2,34 +2,64 @@
 <html>
 <head>
 <style>
+
+.container {
+    width: 100%;
+}
+
 .floating-box {
-    float: left;
+    /*display: inline;*/
+    display: block;
     width: 150px;
     height: 75px;
     margin: 10px;
+    line-height: 2em;
     border: 3px solid #73AD21;
 }
 
+div:nth-child(7) {
+    overflow: auto;
+    height: auto;
+    width: auto;
+}
+
+.sub {
+    display: inline;
+    /*display: block;*/
+    border: 2px solid red;
+    margin: 5px;
+}
+
 .after-box {
-    clear: left;
+    /*display: inline;*/
     border: 3px solid red;
 }
 </style>
 </head>
 <body>
 
-<h2>The Old Way - using float</h2>
+<h2>The New Way - using inline-block</h2>
 
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
-<div class="floating-box">Floating box</div>
+<div class="container">
+    <div class="floating-box">Floating box 111</div>
+    <div class="floating-box">Floating box 222</div>
+    <div class="floating-box">Floating box 333</div>
+    <div class="floating-box">Floating box 444</div>
+    <div class="floating-box">Floating box 555</div>
+    <div class="floating-box">Floating box 666</div>
+    <div class="floating-box">
+        different type
+        <div class="sub"> sub1 </div>
+        <div class="sub"> sub2 </div>
+        <div class="sub"> sub3 </div>
+        <div class="sub"> sub4 </div>
+        <div class="sub"> sub5 </div>
+    </div>
+    <div class="floating-box">Floating box 888</div>
+</div>
 
 <div class="after-box">Another box, after the floating boxes...</div>
+<div class="after-box">Another box2, after the floating boxes...</div>
 
 </body>
 </html>

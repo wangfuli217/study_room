@@ -4,38 +4,100 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <title></title>
     <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
         .before {
+            display: inline;
             border: 2px solid red;
         }
+
         .parent {
             border: 2px solid red;
         }
+        .parent2 {
+            border: 2px solid green;
+        }
+
         .me {
+            display: block;
+            /*display: inline;*/
+        }
+        .me2 {
+            display: inline-block;
+        }
+
+        #aaa {
+            background-color: yellow;
+            width: 50px;
+            /*position: static;*/
+            /*position: absolute;*/
+            /*position: fixed;*/
+            /*position: relative;*/
+            /*left: 50px;
+            top: 50px;*/
+        }
+
+        #bbb {
             background-color: green;
+            width: 50px;
+            /*position: static;*/
+            /*position: absolute;*/
+            /*position: fixed;*/
+            position: relative;
+            left: 50px;
+            top: 150px;
+        }
+
+        #ccc {
+            background-color: pink;
             width: 50px;
             /*position: static;*/
             /*position: absolute;*/
             position: fixed;
             /*position: relative;*/
-            left: 50px;
-            right: 50px;
+            left: 100px;
+            top: 250px;
         }
+
+        #aaa2 {
+            background-color: skyblue;
+        }
+        #bbb2 {
+            background-color: darkgray;
+            position: relative;
+            top: 50px;
+            left: 50px;
+        }
+        #ccc2 {
+            background-color: lightgray;
+            position: relative;
+            top: 50px;
+            left: 50px;
+        }
+
         .after {
+            width: 100%;
             height: 1000px;
             border: 2px solid red;
-        }ß
+        }
     </style>
 </head>
 
 <body>
-    <div class="before">
-        before
-    </div>
+    <div class="before"> before1 </div>
+    <div class="before"> before2 </div>
     <div class="parent">
-        Parent
-        <div class="me">
-            ME
-        </div>
+        parent
+        <div class="me" id="aaa">ME1 </div>
+        <div class="me" id="bbb">ME2 </div>
+        <div class="me" id="ccc">ME3 </div>
+    </div>
+    <div class="parent2">
+        parent2
+        <div class="me2" id="aaa2">ME1_2 </div>
+        <div class="me2" id="bbb2">ME2_2 </div>
+        <div class="me2" id="ccc2">ME3_2 </div>
     </div>
     <div class="after">
         after
