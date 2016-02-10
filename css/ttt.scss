@@ -1,0 +1,22 @@
+@mixin build-skin($color, $name) {
+	&.#{$name} {
+		.floor {
+			box-shadow:
+				0 -0.2em 1em rgba(0,0,0,.15),
+				0 0.2em 0.1em -5px rgba(0,0,0,.3),
+				0 -0.75em 1.75em rgba($white,.6);
+		}
+		.left {
+			background-color: rgba($color, .5);
+		}
+		.percentage:before {
+			background-color: rgba($color, .5);
+			box-shadow: 0 1.6em 3em rgba($color,.25);
+		}
+
+	}
+}
+.bar {
+	// -> The SCSS from before
+	@include build-skin(#57caf4, 'cyan');
+}

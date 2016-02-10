@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+        button:hover {
+            background-color: skyblue;
+            border: 0;
+            color: white;
+            border-radius: 4px;
+        }
+    </style>
+    <script type="text/javascript">
+        function show(str) {
+            document.write(str+"<br />");
+        }
+        function showcon(str) {
+            console.log(str+"<br />");
+        }
+
+        var tv = new Object();
+        tv.name = "family tv";
+        tv.width = "50cm";
+        tv.height = "30cm";
+        tv.off = function() {
+            show("tv off");
+        }
+        tv.on = function() {
+            show("tv on");
+        }
+
+        show(tv.name);
+        show(tv.width);
+        show(tv.height);
+        tv.off();
+        tv.on();
+
+        var d = new Date();
+        show(d.getFullYear());
+        show(d.getMonth()+1);
+        show(d.getDate());
+        show(d.toGMTString());
+
+        var x = Math.ceil(1.234);
+        show(x);
+        x = Math.ceil(1.534);
+        show(x);
+        x = Math.floor(1.234);
+        show(x);
+        x = Math.floor(1.534);
+        show(x);
+        show(x.toFixed(2));
+
+        var x = new Number(1.534);
+        show(x.toFixed(2));
+        show(x.toString());
+
+        var arr = new Array();
+        arr[0] = "aaa";
+        arr[1] = 11;
+        arr[2] = Number("12");
+        show(arr);
+
+        var arr1 = ["aaa", 11, Number("12")];
+        show(arr1);
+        show(arr1.sort());
+        show(arr1.reverse());
+        show(arr1.join("-join-"));
+        show(arr1.length);
+
+        // window.open("http://www.google.com", "pop1", "width=400,height=400");
+
+        // var i = 0;
+        // var auto = setInterval("showcon(i++);", 1000);
+
+        show(screen.width);
+        show(screen.height);
+        show(screen.colorDepth);
+
+        show(location.href);
+        show(location.hostname);
+        show(location.host);
+        show(location.port);
+        // show(location.reload());
+        show(location.search);
+
+        show(history.length);
+        // show(history.back());
+
+        show(navigator.appCodeName);
+        show(navigator.appName);
+        show(navigator.appVersion);
+
+        var os = navigator.userAgent.toLowerCase();
+        show(os);
+
+    </script>
+</head>
+
+<body>
+    <button onclick="clearInterval(auto)">stop</button>
+    <div id="selector1">
+        This is js selector test.
+    </div>
+    <div id="class1">
+        <ul>
+            <li> List1 </li>
+            <li> List2 </li>
+            <li> List3 </li>
+            <li> List4 </li>
+            <li> List5 </li>
+        </ul>
+    </div>
+
+
+    <script type="text/javascript">
+        function show(str) {
+            document.write(str+"<br />");
+        }
+        function showcon(str) {
+            console.log(str+"<br />");
+        }
+        show("This is after loading tags.");
+
+        document.getElementById("selector1").style.color = "red";
+        document.getElementById("selector1").style.backgroundColor = "yellow";
+        document.getElementById("selector1").style.maxWidth = "300px";
+        document.getElementById("selector1").style.borderWidth = "2px";
+        document.getElementById("selector1").style.borderColor = "green";
+        document.getElementById("selector1").style.borderStyle = "solid";
+        document.getElementById("selector1").style.borderRadius = "4px";
+
+        document.getElementById("class1").children[0].children[1].style.backgroundColor = "green";
+        document.getElementById("class1").children[0].children[1].style.maxWidth = "300px";
+        document.getElementById("class1").children[0].children[1].style.color = "white";
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+    </style>
+</head>
+
+<body id="bodyid">
+    <button onclick="changeColor();">Change BackgroundColor</button>
+    <p id="text">
+        This is text color test.
+    </p>
+    <script type="text/javascript">
+        var color = ["red", "yellow", "black", "green", "blue", "gray"];
+        var txtcolor = ["white", "red", "white", "pink", "yellow", "black"];
+        var i = 0;
+
+        function func1(color,txtcolor) {
+            document.getElementById("bodyid").style.backgroundColor = color;
+            document.getElementById("text").style.color = txtcolor;
+        }
+
+        function changeColor() {
+            i = (++i) % color.length;
+            console.log(i);
+            func1(color[i],txtcolor[i]);
+        }
+
+        function func2(a,b) {
+            console.log("arg : " + a + ", arg : " + b);
+        }("first_arg", "second_arg");
+    </script>
+</body>
+</html>

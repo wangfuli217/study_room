@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+    </style>
+</head>
+
+<body id="bodyid">
+    <button id="btn">Button1</button>
+    <p id="text">
+    </p>
+
+    <form action="#" method="get" name="f1">
+        <input type="text" name="key" id="key" />
+    </form>
+
+    <form action="#" method="get" name="f2">
+        <input type="text" name="posX" id="posX" />
+        <input type="text" name="posY" id="posY" /><br />
+        <input type="text" name="screenX" id="screenX" />
+        <input type="text" name="screenY" id="screenY" />
+    </form>
+
+    <script type="text/javascript">
+        var count = 0;
+        var elem = document.getElementById("btn");
+
+        elem.onclick = function() {
+            if( ++count % 2 == 0 ) {
+                document.getElementById("text").innerHTML = "Clicked : " + this.tagName;
+            } else {
+                document.getElementById("text").innerHTML = "Cleaned : " + this.tagName;
+            }
+        }
+
+        elem.addEventListener("focus", elem.onclick, false);
+
+        var form1 = document.f1;
+        document.onkeydown = function(e) {
+            form1.key.value = e.keyCode;
+        }
+
+        var form2 = document.f2;
+        document.onmousemove = function(e) {
+            form2.posX.value = e.clientX;
+            form2.posY.value = e.clientY;
+            form2.screenX.value = e.screenX;
+            form2.screenY.value = e.screenY;
+            // document.write(e.clientX);
+            // location.reload();
+        }
+    </script>
+</body>
+</html>

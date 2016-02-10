@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+        .part {
+            display: inline-block;
+        }
+
+        .img {
+            display: block;
+            border: 1px solid green;
+            max-width: 300px;
+            margin: 10px 0 10px 0;
+        }
+
+        /*.img:hover {
+            border: 1px solid red;
+            border-radius: 10px;
+        }*/
+
+        #enlarge {
+            position: absolute;
+            width: 400px;
+            height: 300px;
+            margin: 10px 10px;
+            border: 1px solid green;
+        }
+
+        .part p {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            margin: 0;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container1">
+        <div class="part" id="small">
+            <img class="img" src="car1.jpeg" id="car1" />
+            <img class="img" src="car1.jpeg" id="car2" />
+            <img class="img" src="car1.jpeg" id="car3" />
+        </div>
+        <div class="part" id="enlarge">
+            <img id="enlarge_img" src="" alt="car11" />
+            <p>This is enlarge image.</p>
+        </div>
+    </div>
+    <div class="button">
+        <form method="post" action="#" name="log_f">
+            <p>
+                <label for="my_id">ID</label>
+                <input type="text" name="user_id" id="my_id" />
+                <label for="my_pw">PW</label>
+                <input type="text" name="user_pw" id="my_pw" />
+            </p>
+            <input type="submit" value="login" />
+        </form>
+    </div>
+    <script type="text/javascript">
+        var car1 = document.getElementById("car1");
+        var car2 = document.getElementById("car2");
+        var car3 = document.getElementById("car3");
+        var eimg = document.getElementById("enlarge_img");
+
+        var over =  function() {
+            eimg.src = "car1.jpeg";
+            eimg.style.width = "400px";
+            eimg.style.height = "300px";
+        }
+
+        var out = function() {
+            eimg.src = "";
+        }
+
+        car1.onmouseover = over;
+        car2.onmouseover = over;
+        car3.onmouseover = over;
+
+        car1.onmouseout = out;
+        car2.onmouseout = out;
+        car3.onmouseout = out;
+
+        document.log_f.onsubmit = function() {
+            console.log(document.log_f.user_id.value);
+        }
+    </script>
+</body>
+</html>

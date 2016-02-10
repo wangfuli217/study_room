@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style type="text/css">
+    </style>
+    <script type="text/javascript">
+        function show(str) {
+            document.write(str+"<br />");
+        }
+
+        var a = 0;
+        if( a === undefined ) {
+            document.write("a is undefined.<br />");
+        } else {
+            document.write("a is not undefined.<br />");
+        }
+
+        var s = "aaa";
+        if( s === "aaa" ) {
+            document.write("s equals aaa.<br />");
+        } else {
+            document.write("s not equals aaa.<br />");
+        }
+
+        var n1 = 100;
+        var s1 = "100";
+        var n2 = Number(s1);
+        if( n1 === n2 ) {
+            document.write("n1 equals Number(s1).<br />");
+        } else {
+            document.write("n1 not equal Number(s1).<br />");
+        }
+
+        var b1 = true;
+        var b2 = 1;
+        var b3 = 10>1;
+        var b4 = Boolean(b2);
+
+        if( b1 == b2 ) {
+            document.write("b1 == b2 <br />")
+        } else {
+            document.write("b1 != b2 <br />")
+        }
+        if( b1 === b2 ) {
+            document.write("b1 === b2 <br />")
+        } else {
+            document.write("b1 !== b2 <br />")
+        }
+        if( b2 === b3 ) {
+            document.write("b2 === b3 <br />")
+        } else {
+            document.write("b2 !== b3 <br />")
+        }
+        if( b1 === b4 ) {
+            document.write("b1 === b4 <br />")
+        } else {
+            document.write("b1 !== b4 <br />")
+        }
+
+        var c1 = null;
+        var c2 = false;
+        var c3;
+        if( Boolean(c1) == c2 ) {
+            document.write("c1 === c2<br />");
+        } else {
+            document.write("c1 !== c2<br />");
+        }
+        if( c1 === c3 ) {
+            document.write("c1 === c3<br />");
+        } else {
+            document.write("c1 !== c3<br />");
+        }
+
+        var d1 = null;
+        var d2 = 10;
+        var d3 = "aaa";
+        var d4;
+        var d5 = false;
+        show(typeof d1);
+        show(typeof d2);
+        show(typeof d3);
+        show(typeof d4);
+        show(typeof d5);
+
+        var e1 = 10;
+        var e2 = "10";
+        show(e1 == e2);
+        show(e1 >= e2);
+        show(e1 === e2);
+
+        var f1 = 1;
+        var f2 = "2";
+        var f3 = null;
+        var f4;
+        show(f1 > f3);
+        show(f1 > f4);
+        show(f1 > f2);
+        show(f2 > f3);
+        show(f3 > f4);
+        show(f1 || f4);
+        show(f1 && f4);
+        show(Boolean(f3 && f4));
+
+        var g1 = "";
+        var g2 = 0;
+        var g3 = null;
+        var g4 = undefined;
+        var g5 = 1;
+        show(Boolean(g1 || g2 || g3 || g4));
+        show(Boolean(g1 || g2 || g3 || g4 || g5));
+
+        switch(g4) {
+            case "": show("\"\""); break;
+            case 0: show("0"); break;
+            case null: show("null"); break;
+            case undefined: show("undefined"); break;
+            case 1: show("1"); break;
+            default: show("default"); break;
+        }
+    </script>
+</head>
+
+<body>
+
+</body>
+</html>
