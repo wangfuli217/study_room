@@ -1,0 +1,51 @@
+
+div.border_test {
+    $green_color: green;
+    $red_color: red;
+    $red_lighten: 40%;
+
+    color: white;
+    background: {
+        color: black;
+    }
+    border: {
+        style:   solid;
+        top: {
+            width: 8px;
+            color: $green_color;
+        }
+        left: {
+            width: 8px;
+            color: $red_color;
+        }
+        right: {
+            width: 8px;
+            color: $green_color;
+        }
+        bottom: {
+            width: 8px;
+            color: $red_color;
+        }
+    }
+
+    &:hover {
+        color: black;
+        background-color: white;
+        border-color: lighten($red_color, $red_lighten)
+    }
+}
+
+@mixin my_border_style($color:skyblue, $width:4px, $style:solid, $side:bottom) {
+    border: $width $style $color;
+    border-#{$side}-color: black;
+}
+
+div.aaa {
+    // @include my_border_style(red, 4px, dotted, bottom);
+    @include my_border_style(red, 4px, solid, bottom);
+    margin: 10px;
+}
+
+#xxx p {
+    background-color: yellow;
+}
