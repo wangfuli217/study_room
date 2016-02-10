@@ -1,0 +1,26 @@
+div.border_test {
+  color: white;
+  background-color: black;
+  border-style: solid;
+  border-top-width: 8px;
+  border-top-color: green;
+  border-left-width: 8px;
+  border-left-color: red;
+  border-right-width: 8px;
+  border-right-color: green;
+  border-bottom-width: 8px;
+  border-bottom-color: red; }
+  div.border_test:hover {
+    color: black;
+    background-color: white;
+    border-color: #ffcccc; }
+
+div.aaa {
+  border: 4px solid red;
+  border-bottom-color: black;
+  margin: 10px; }
+
+#xxx p {
+  background-color: yellow; }
+
+/*# sourceMappingURL=sass_test1.css.map */
