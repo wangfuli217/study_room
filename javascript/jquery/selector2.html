@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#welcome").css("background-color", "yellow");
+            $("#welcome").css("border", "2px solid green");
+        })
+    </script>
+</head>
+<body>
+    <div id="welcome">Welcome to jquery !!</div>
+    <div class="container">
+        <div id="inner1">
+            Inner1
+        </div>
+        <div id="inner2">
+            <ul id="inner2">
+                <li> List1 </li>
+                <li id="second_list"> List2 </li>
+                <li> List3 </li>
+                <li> List4 </li>
+                <li> List5 </li>
+            </ul>
+        </div>
+        <div id="inner3">
+            Inner3
+        </div>
+        <div id="output">
+        </div>
+        <div id="output2">
+        </div>
+        <div id="output3">
+        </div>
+        <div id="output4">
+        </div>
+        <div id="ooo">
+        </div>
+        <p>
+            <input type="text" name="source" id="source" value="cloudrain21" />
+            =>
+            <input type="text" name="target" id="target" />
+        </p>
+    </div>
+
+    <script type="text/javascript">
+        $("#welcome").css("color", "red");
+        $("*").css("color", "green");
+        $("#inner1").css("border", "1px solid red").css("width", "200px");
+        $("ul li").css("font-weight", "bold").css("background-color", "pink");
+        $(".container #inner3").css("color", "red").css("margin", "0 10px 0 10px");
+        $("li:nth-child(2)").css("color", "yellow");
+        $("li:eq(3)").css("color", "black");
+        $("li:contains('List')").css("border", "1px solid red").css("width", "300px");
+        var x = $("#second_list").is("li:nth-child(2)");
+        console.log(x); // true
+        $("li").each(function(arg1, arg2) {
+            console.log(arg1);
+            var elem = arg2;
+            $(elem).css("border", "2px solid yellow");
+            $(elem).text($(elem).text() + ": " + arg1);
+        })
+
+        // manipulate
+        $("#inner3").html("<em>Inner3</em> Manipulate");
+        $("#output").html($("#inner2").html());
+        $("#output").css("border", "1px solid blue");
+        console.log($("#inner2").html());
+        $("#output2").css("border", "1px solid purple").css("margin", "4px 0").text($("#welcome").css("background-color"));
+        $("#output3").css("border", "1px solid purple").html($("#source").val());
+        $("#target").val($("#source").val());
+
+        var i = 0;
+        function show(arg) {
+            ++i;
+            var add = "\<div id=\"#xxx" + i + "\"\>" + i + " : " + arg + "\<\/div\>";
+            // console.log(add);
+            $("#ooo").html($("#ooo").html() + add);
+        }
+        show(10);
+        show(20);
+        show(30);
+        show($("#welcome").height());
+        show($("#welcome").css("height"));
+        show($("#welcome").css("color"));
+        show($("#welcome").css("border"));
+    </script>
+</body>
+</html>

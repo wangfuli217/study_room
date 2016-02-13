@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+    </script>
+    <style type="text/css">
+    </style>
+</head>
+<body>
+    <select id="rel_site">
+        <option value="">
+            Select Site
+        </option>
+        <option value="www.naver.com">
+            Naver
+        </option>
+        <option value="www.daum.net">
+            Daum
+        </option>
+        <option value="www.google.com">
+            Google
+        </option>
+    </select>
+    <ul id="list">
+        <li> List1 </li>
+        <li> List2 </li>
+        <li> List3 </li>
+        <li> List4 </li>
+    </ul>
+    <p id="txt"> </p>
+    <script type="text/javascript">
+        ( function($) {
+            $("#rel_site").change( function() {
+                $("#txt").text($(this).val());
+            })
+
+            $("li").css("color", "red");
+            $("li").on({
+                "mouseover":function() {
+                    $(this).css("background-color", "yellow");
+                    $(this).css("color", "red");
+                },
+                "mouseout": function() {
+                    $(this).css("background-color", "green");
+                    $(this).css("color", "white");
+                }
+            })
+            var num=$("ul li").length;
+            console.log(num);
+            ++num;
+            $("li:last").append("<li> List"+num+"</li>");
+        }(jQuery))
+    </script>
+</body>
+</html>

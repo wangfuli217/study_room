@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript">
+    </script>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #t1, #t2 {
+            width: 50px;
+            height: 20px;
+            background-color: yellow;
+        }
+
+        #wrap {
+            width: 300px;
+            height: 200px;
+            background-color: gray;
+            position:relative;
+            top: 50px;
+            margin: 0 auto;
+        }
+
+        #box {
+            width: 50px;
+            height: 50px;
+            background-color: skyblue;
+            position: absolute;
+            top: 70px;
+            left: 100px;
+        }
+
+        div#exercise {
+            margin: 0;
+            position: relative;
+            top: 100px;
+            border: 1px solid cyan;
+        }
+
+        div .test1 {
+            color: red;
+        }
+
+        iframe {
+            position: relative;
+            top: 100px;
+            overflow: visible;
+        }
+    </style>
+</head>
+<body>
+    <p id="t1"> </p>
+    <p id="t2"> </p>
+    <div id="wrap">
+        <div id="box">
+            Box1
+        </div>
+    </div>
+    <input type="text" name="user_id" id="user_id" />
+    <p id="txt"> </p>
+    <div id="exercise">
+        Exercise
+        <div class="test1">
+            Test1
+        </div>
+    </div>
+    <div id="append">
+        append
+    </div>
+    <iframe src="http://www.stackcanary.com" frameborder="0" width="600" height="1000px"></iframe>
+    <script type="text/javascript">
+        (function($) {
+            var wrap_top = $("#wrap").css("top");
+            $("#t1").text(wrap_top);
+            var wrap_left = $("#wrap").offset().left;
+            $("#t2").text(wrap_left);
+
+            $("#exercise").append($("#append"));
+            $("#exercise").append("<p> New element </p>");
+            $("#exercise").append("<p> New element </p>");
+            $("#exercise").append("<p id=\"aax\"> New element </p>");
+
+            $("#exercise p:eq(2)").css("color", "red");
+
+            $(document).ready( function() {
+                $("#exercise").append("<p id=\"load_complete\"></p>");
+                $("#load_complete").text("Loading is complete... Wow !!!")
+            })
+
+            $("iframe").load( function() {
+                $("#exercise").append("<p id=\"iframe_load_complete\"></p>");
+                $("#iframe_load_complete").text("Loading iframe is complete... Wow !!!")
+            })
+
+            $("#box").mouseover( function() {
+                $(this).css("width", "200");
+                $(this).css("height", "200");
+            })
+            $("#box").mouseout( function() {
+                $(this).css("width", "50");
+                $(this).css("height", "50");
+            })
+
+            $("#user_id").keydown( function(e) {
+                // $(this).css("background-color", "purple");
+                $("#txt").text(e.keyCode);
+            })
+        }(jQuery));
+
+        var elem = document.getElementById("aax");
+        elem.onmouseover = function() {
+            document.getElementById("aax").style.fontSize = "30px";
+            // alert("over");
+        };
+        elem.onmouseout = function() {
+            document.getElementById("aax").style.fontSize = "16px";
+        };
+
+    </script>
+</body>
+</html>
