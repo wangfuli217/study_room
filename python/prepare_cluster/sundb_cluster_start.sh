@@ -139,9 +139,10 @@ check_group_created()
 
 init_cluster()
 {
+    # dictionary creation for cluster (must use files in standalone dir for standalone)
     gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/cluster/DictionarySchema.sql
-    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/InformationSchema.sql
-    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/PerformanceViewSchema.sql
+    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/cluster/InformationSchema.sql
+    gsql --as sysdba --silent --dsn=$1 --import $SUNDB_HOME/admin/cluster/PerformanceViewSchema.sql
 
     gsql --as sysdba --dsn=$1 << EOF
         GRANT ALL PRIVILEGES ON DATABASE TO TEST WITH GRANT OPTION;
