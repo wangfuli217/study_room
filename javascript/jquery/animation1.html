@@ -9,11 +9,29 @@
             background-color: yellow;
             border: 1px solid green;
         }
+
+        #anim {
+            background-color: yellow;
+            border: 1px solid green;
+            width: 200px;
+        }
     </style>
 </head>
 <body>
     <div class="test1">
         This is animation test1.
+    </div>
+    <div class="button">
+        <button id="btn1">Hide</button>
+        <button id="btn2">Show</button>
+        <h1 id="header">Header</h1>
+        <p id="txt"> </p>
+    </div>
+    <div id="anim">
+        This is for animation.
+    </div>
+    <div id="anim2">
+        This is for animation 2.
     </div>
     <script type="text/javascript">
         (function($) {
@@ -25,6 +43,32 @@
             $(document).on("keydown", function() {
                 $(".test1").delay("slow").slideToggle();
             })
+
+            $("#btn1").on("click", function() {
+                $("#header").hide(500, function() {
+                    $("#txt").text("Hide complete !");
+                })
+            })
+
+            $("#btn2").on("click", function() {
+                $("#header").show(500, function() {
+                    $("#txt").text("Show complete !");
+                })
+            })
+
+            $("#anim").animate( {
+                width: "600px",
+                opacity: 0,
+                display: "none"
+            }, 3000, function() {
+                $("#txt").text("animation complete !");
+            })
+
+            $("#anim2").slideUp("fast").slideDown("fast");
+            $("#anim2").queue(function() {
+                $("#txt").text("Queueueueueue......");
+            })
+            $("#anim2").fadeOut("fast");
         }(jQuery))
     </script>
 </body>

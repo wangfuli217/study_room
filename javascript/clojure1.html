@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="jquery/jquery-1.11.3.min.js"></script>
+    <!-- <script type="text/javascript" src="jquery/js/jquery-ui.min.js"></script> -->
+    <title></title>
+    <style type="text/css">
+    </style>
+</head>
+
+<body>
+    <div id="txt"> </div>
+
+    <script type="text/javascript">
+    (function($) {
+        function myappend(arg) {
+            $("#txt").append("<p>" + arg + "</p>");
+        }
+
+        function outer() {
+            var ovar = "outer_variable";
+            function inner() {
+                myappend(ovar);
+            }
+            inner();
+        }
+        outer();
+
+        function outer1() {
+            var title = "This is clojure test.";
+            return function() {
+                myappend(title);
+            }
+        }
+        var inner1 = outer1();
+        inner1();
+
+        // Private variable
+        function myclass(classname) {
+            return {
+                get_name: function() {
+                    return classname;
+                },
+                set_name: function(newname) {
+                    classname = newname;
+                }
+            }
+        }
+        xx = myclass("classname_1");
+        yy = myclass("classname_2");
+        myappend(xx.get_name());
+        myappend(yy.get_name());
+        xx.set_name("changename_1");
+        yy.set_name("changename_2");
+        myappend(xx.get_name());
+        myappend(yy.get_name());
+
+
+        var arr = [];
+        for(var i=0; i<5; ++i) {
+            arr[i] = function(arg) {
+                return function() {
+                    return arg;
+                }
+            }(i);
+        }
+
+        for (var index in arr) {
+            // console.log(typeof arr[index]);
+            console.log(arr[index]());
+        }
+    }(jQuery));
+    </script>
+</body>
+</html>

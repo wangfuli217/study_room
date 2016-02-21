@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="../jquery/jquery-1.11.3.min.js"></script>
+    <!-- <script type="text/javascript" src="../jquery/js/jquery-ui.min.js"></script> -->
+    <title></title>
+    <style type="text/css">
+    </style>
+</head>
+
+<body>
+    <div class="txt">
+        <p id="txt1"> </p>
+        <p id="txt2"> </p>
+        <p id="txt3"> </p>
+        <p id="ret"> </p>
+    </div>
+    <script type="text/javascript">
+    (function($) {
+        function fin(timer) {
+            $(".txt").fadeIn(timer);
+        }
+        function fout(timer) {
+            $(".txt").fadeOut(timer);
+        }
+
+        // First way to create object
+        var obj1 = {
+            aaa: "val_aaa",
+            bbb: "val_bbb",
+            ccc: "val_ccc",
+            func: function() { return this.ccc; }
+        };
+
+        $("#txt1").text(obj1.aaa);
+        $("#txt2").text(obj1.bbb);
+        $("#txt3").text(obj1.func());
+
+        // for (x in obj1) {
+        //     $("#ret").queue( function(arg) {
+        //         console.log(arg);
+        //         $(this).dequeue();
+        //     }(x)).animate({}, 3000);
+        // }
+
+        // ????? setTimeout with for loop ?
+        // http://stackoverflow.com/questions/951021/what-do-i-do-if-i-want-a-javascript-version-of-sleep
+        function show_sleep(index) {
+            setTimeout(function() {
+                console.log(index);
+            }, 3000);
+        }
+        for (x in obj1) {
+            show_sleep(x);
+        }
+    }(jQuery));
+    </script>
+</body>
+</html>
