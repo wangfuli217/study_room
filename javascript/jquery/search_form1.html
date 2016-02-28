@@ -12,16 +12,57 @@
             padding: 0;
             box-sizing: border-box;
         }
+
+        #search_word {
+            width: 250px;
+            height: 30px;
+            background: url("search_background.png") no-repeat;
+            background-size: 200px 30px;
+            background-position: 0 0;
+        }
+
+        #search_btn {
+            height: 30px;
+        }
     </style>
 </head>
 
 <body>
-    <div id="main">
-    </div>
+
+    <form action = "#" accept-charset="utf-8" name = "test_form" method = "get">
+        <fieldset>
+            <legend>form test</legend>
+               <input type="text" name="search_word" id="search_word"/>
+               <input type="button" name="search_btn" id="search_btn" value="Search" />
+        </fieldset>
+    </form>
+    <p id="result"> </p>
 
     <script type="text/javascript">
         (function($) {
+            $("#search_word").on("click focus", function() {
+                $(this).css("background-position", "0px -500px");
+                return false;
+            })
+
+            $("#search_word").on("blur", function() {
+                $(this).css("background-position", "0 0");
+                return false;
+            })
+
+            $("#search_btn").on("click", function() {
+                // var val = $('input:text[name="search_word"]').val();
+                var val = $("#search_word").val();
+
+                if(val != "") {
+                    $("#search_word").css("background-position", "0px -500px");
+                }
+
+                $("#result").text(val);
+                return false;
+            })
         }(jQuery));
+
     </script>
 </body>
 </html>

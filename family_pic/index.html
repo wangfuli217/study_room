@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <title></title>
+    <style type="text/css">
+        img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            box-shadow: 8px 8px 10px #aaa;
+        }
+
+        li {
+            list-style: none;
+            display: inline-block;
+            margin: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="image_preview">
+        <h2>Family Preview</h2>
+        <ul id="image_lists">
+            <!-- <li><img src="images/1.jpg" /></li> -->
+        </ul>
+    </div>
+
+    <input type="file" id="files" name="files[]" multiple />
+    <output id="list"></output>
+
+    <p id="result"> </p>
+
+    <script type="text/javascript">
+        (function($) {
+            if( window.File && window.FileList && window.FileReader && window.Blob ) {
+            } else {
+                alert("File control is not supported.");
+            }
+
+            function showFiles(evt) {
+                var files = evt.target.files; // FileList Object
+                var file;
+
+                for(var i=0; i<files.length; i++) {
+                    file = files[i];
+
+                    $("#image_lists").append("<li> <img src=\"images/" + file.name + "\"/></li>")
+                    // $("#image_lists").append("<li><img src= </li>")
+                }
+            }
+
+            $("#files").on("change", function(evt) {
+                showFiles(evt);
+            });
+        }(jQuery));
+    </script>
+</body>
+</html>
