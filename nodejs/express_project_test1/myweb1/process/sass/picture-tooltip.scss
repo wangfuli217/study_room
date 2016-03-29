@@ -1,0 +1,86 @@
+@import "normalize";
+
+@mixin clearfix {
+  &:before,
+  &:after {
+    content: '';
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+@mixin imageSquareGrid($count, $margin) {
+    $wth: (100% - ($count - 1) * $margin) / $count;
+    width: $wth;
+
+    &:nth-child(n) {
+        margin-right: $margin;
+        margin-bottom: $margin;
+    }
+    &:nth-child(#{$count}n) {
+        margin-right: 0;
+    }
+}
+
+$roundness: 10px 0 5px 0;
+
+#typography {
+    margin-top: 50px;
+
+    .grid {
+        @include clearfix;
+
+        .item {
+            float: left;
+            border-radius: nth($roundness,1);
+
+            @include imageSquareGrid(15, 1%);
+            overflow: hidden;
+
+            .port {
+                width: 100%;
+                margin-top: -40%;
+                margin-bottom: -40%;
+            }
+
+            .land {
+                width: 145%;
+                margin-top: -12%;
+                margin-bottom: -12%;
+            }
+        }
+    }
+}
+
+.qtip-wikiki {
+    max-width: 485px;
+}
+
+.qtip-wikiki img {
+    max-height: 80vh;
+    max-width: 80vw;
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+
+// .qtip-wiki p{
+//     margin: 0;
+// }
+
+// .qtip-wiki h1 {
+//     font-size: 20px;
+//     line-height: 1.1;
+//     margin: 0 0 5px;
+// }
+
+
+// .qtip-wiki .info{
+//     overflow: hidden;
+// }
+
+// .qtip-wiki p.note{
+//     font-weight: 700;
+// }

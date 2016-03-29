@@ -1,0 +1,29 @@
+.background {
+    margin: 0;
+    padding: 0;
+    display: table;
+
+    .container {
+        display: table-cell;
+        vertical-align: bottom;
+        padding-bottom: 40px;
+
+        h1 {
+            font-family: Merriweather;
+            font-size: 5rem;
+            color: $yellow;
+            margin: 0 0 0 10%;
+        }
+
+        p {
+            margin: 0 10%;
+            color: $offwhite;
+            font-size: 1.8rem;
+        }
+    }
+
+}
+
+.jumbotron {
+    @include backImage('../img/water.jpg', 600px);
+}

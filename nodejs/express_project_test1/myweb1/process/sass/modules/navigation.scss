@@ -1,0 +1,49 @@
+nav {
+    header & {
+        background-color: darken($blue,15%);
+    }
+
+    .branding {
+        float: left;
+        display: none;
+        @include break(1000px) {
+            display: block;
+            margin: 0;
+        }
+    }
+
+    .branding h1 {
+        overflow: hidden;
+        font-size: 2.75rem;
+        color: $yellow;
+        margin: 0;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        @include clearfix;
+
+        li {
+            padding: 5px 0;
+            margin: auto;
+            &:hover {
+                background-color: $darkblue;
+                a {
+                    color: $yellow;
+                }
+            }
+            @include break($medium) {
+                // display: inline;
+                float: right;
+                padding: 10px 10px;
+            }
+        }
+    }
+
+    ul li a {
+        color: $offwhite;
+        text-decoration: none;
+    }
+}
