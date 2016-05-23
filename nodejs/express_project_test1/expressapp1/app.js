@@ -7,7 +7,10 @@ var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+<<<<<<< HEAD
 var test1 = require('./routes/test1');
+=======
+>>>>>>> c18e9215088a4b29d236995c58cf237cacfe241c
 
 var app = express();
 
@@ -31,7 +34,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
+<<<<<<< HEAD
 app.use('/test1', test1);
+=======
+>>>>>>> c18e9215088a4b29d236995c58cf237cacfe241c
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -74,7 +80,11 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
+<<<<<<< HEAD
 var port = normalizePort(process.env.PORT || '8000');
+=======
+var port = normalizePort(process.env.PORT || '3000');
+>>>>>>> c18e9215088a4b29d236995c58cf237cacfe241c
 app.set('port', port);
 
 /**

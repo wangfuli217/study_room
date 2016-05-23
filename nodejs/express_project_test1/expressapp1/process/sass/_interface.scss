@@ -1,5 +1,9 @@
 $color-btn-text: $color-backgrounds;
+<<<<<<< HEAD
 $roundness: 10px 0 5px 0;
+=======
+$roundness: 20px 0 20px 0;
+>>>>>>> c18e9215088a4b29d236995c58cf237cacfe241c
 
 %btn {
 	display: inline-block;
@@ -33,7 +37,11 @@ $color-btns: (
 	@include clearfix;
 	.item {
 		float: left;
+<<<<<<< HEAD
 		@include imagegrid(5, 1%);
+=======
+		@include imagegrid(3, 2%);
+>>>>>>> c18e9215088a4b29d236995c58cf237cacfe241c
 	}
 	img {
 		display: block;
