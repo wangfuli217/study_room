@@ -1,0 +1,25 @@
+$roundness: 10px 0 5px 0;
+
+.grid {
+    @include clearfix;
+
+    .item {
+        float: left;
+        border-radius: nth($roundness,1);
+
+        @include imageSquareGrid(12, 1%);
+        overflow: hidden;
+
+        .port {
+            width: 100%;
+            margin-top: -40%;
+            margin-bottom: -40%;
+        }
+
+        .land {
+            width: 145%;
+            margin-top: -12%;
+            margin-bottom: -12%;
+        }
+    }
+}

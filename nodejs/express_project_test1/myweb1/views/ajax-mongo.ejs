@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sass Essentials</title>
+    <link type="text/css" rel="stylesheet" href="ext/css/jquery.qtip.css" />
+    <link type="text/css" rel="stylesheet" href="css/ajax-picture.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+
+<section id="buttons">
+    <div class="container">
+        <form>
+            <button type="button" class="btn-cool picture-list" alt="mongo" value="ff">목록가져오기</button>            
+            <button type="button" class="btn-hot download-selected-list" alt="mongo">Download</button>
+            <input type="file" id="fileElem" multiple accept="image/*" style="display:none">
+            <button type="button" class="btn-hot" id="fileSelect">Upload</button>
+            <output id="list"></output>
+        </form>
+    </div><!-- container -->
+</section>
+
+
+<section id="typography">
+    <div class="container">
+        <div class="grid">
+        </div>
+    </div>
+</section>
+
+<!-- <div class="magnify">
+    <div class="large" style="background: url('img/laos1/20160105_103622.jpg') no-repeat;"></div>
+    <img class="small" src="img/laos1/thumbnail/20160105_103622.jpg">
+</div>
+ -->
+
+<!-- <a href="img/icons/tooltip.png" download><img src="img/icons/download.png"></a> -->
+
+<script type="text/javascript" src="ext/js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="ext/js/jquery.qtip.js"></script>
+<script type="text/javascript" src="ext/js/imagesloaded.pkg.min.js"></script>
+<script type="text/javascript" src="ext/js/magnify.js"></script>
+
+<script src="js/ajax-picture.js"></script>
+<script src="ext/js/socket.io-client/socket.io.js"></script>
+
+</body>
+</html>

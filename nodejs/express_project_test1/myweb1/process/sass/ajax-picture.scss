@@ -1,0 +1,232 @@
+@import "normalize";
+
+
+$offwhite:    #EEE8D6;
+$darkblue:    #022933;
+$yellow:      #FFBA00;
+$blue:        #0076A3;
+$green:       #548C27;
+$orange:      #F39856;
+$red:         #D14348;
+$purple:      #6D73C2;
+
+
+$color-main: $darkblue;
+$color-backgrounds: $offwhite;
+$color-headlines: $red;
+
+ 
+$font-main: Merriweather, Helvetica, sans-serif;
+$font-highlight: 'Bree Serif', Helvetica, sans-serif;
+
+//breakpoints
+
+$small:     450px;
+$medium:    760px;
+$large:     1200px;
+
+
+@mixin clearfix {
+  &:before,
+  &:after {
+    content: '';
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+}
+
+@mixin imageSquareGrid($count, $margin) {
+    $wth: (100% - ($count - 1) * $margin) / $count;
+    width: $wth;
+
+    &:nth-child(n) {
+        margin-right: $margin;
+        margin-bottom: $margin;
+    }
+    &:nth-child(#{$count}n) {
+        margin-right: 0;
+    }
+}
+
+$roundness: 5px 0 5px 0;
+$thumbnail_width: 60px;
+$thumbnail_height: 60px;
+
+#typography {
+    margin-top: 50px;
+
+    .grid {
+        @include clearfix;
+
+        .item .is_selected {
+            border: rgb(11,120,215) solid 3px;
+        }
+
+        .item {
+            float: left;
+            // border-radius: nth($roundness,1);
+
+            height: $thumbnail_width;
+            width: $thumbnail_height;
+            background-position: top left;
+            background-repeat: no-repeat;
+            -webkit-background-size: cover;            
+            background-size: cover; 
+            margin: 2px; 
+            position: relative;
+            border-radius: 3px;
+
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+
+            -webkit-transition: width 0.5s, height 0.5s, -webkit-transform 0.5s;
+            transition: width 0.5s, height 0.5s, transform 0.5s;
+
+            .overlay {
+                opacity: .0;
+                background-color: black;
+                position: absolute;
+                left: 0; top: 0; 
+                height: 100%; 
+                width: 100%;
+            }
+
+            .download_img {
+                width: 15px;
+                height: 15px;
+                cursor: Pointer;
+                opacity: 0.9; 
+                position: absolute;
+                left: 3px;
+                bottom: 3px;  
+            }       
+
+            .check_img {
+                width: 20px;
+                height: 20px;
+                opacity: 1.0; 
+                position: absolute;
+                left: 20px;
+                bottom: 20px;
+                visibility: hidden; 
+            }       
+
+            // @include imageSquareGrid(15, 1%);
+            // overflow: hidden;
+
+            // .port {
+            //     width: 100%;
+            //     margin-top: -40%;
+            //     margin-bottom: -40%;
+            // }
+
+            // .land {
+            //     width: 145%;
+            //     margin-top: -12%;
+            //     margin-bottom: -12%;
+            // }
+        }
+    }
+}
+
+.qtip-wiki {
+    width: 60vw;
+}
+
+.qtip-wiki img {
+    width: 100%;
+    height: auto;
+    float: left;
+    margin: 0;
+    padding: 0;
+}
+
+.qtip-wiki p{
+    margin: 0 0 6px;
+}
+
+.qtip-wiki h1{
+    font-size: 20px;
+    line-height: 1.1;
+    margin: 0 0 5px;
+}
+
+.qtip-wiki .info{
+    overflow: hidden;
+}
+
+.qtip-wiki p.note{
+    font-weight: 700;
+}
+
+
+/* Buttons */
+$color-btn-text: $color-backgrounds;
+$roundness: 10px 0 5px 0;
+
+%btn {
+    display: inline-block;
+    padding: 6px 12px;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-family: $font-highlight;
+    user-select: none;
+    color: $color-btn-text;
+}
+
+$color-btns: (
+    default: $color-main,
+    hot: $red,
+    cool: $blue,
+    awesome: $purple
+);
+
+@each $key, $value in $color-btns {
+    .btn-#{$key} {
+        @extend %btn;
+        background-color: $value;
+    }
+}
+
+#upload_div {
+    width: 80px;
+    height: 50px;
+
+    #fileSelect {
+        background-image: url('../img/icons/upload.png');
+        background-size: cover;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+}
+
+.thumb {
+    height: 75px;
+    border: 1px solid #000;
+    margin: 10px 5px 0 0;
+}
+
+.magnify {position: relative;}
+
+.large {
+    width: 175px;
+    height: 175px;
+    position: absolute;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    -webkit-box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.85),  0 0 7px 7px rgba(0, 0, 0, 0.25),  inset 0 0 40px 2px rgba(0, 0, 0, 0.25);
+    -moz-box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.85),  0 0 7px 7px rgba(0, 0, 0, 0.25),  inset 0 0 40px 2px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.85),  0 0 7px 7px rgba(0, 0, 0, 0.25),  inset 0 0 40px 2px rgba(0, 0, 0, 0.25);
+    display: none;
+}
+
+.small {display: block;}

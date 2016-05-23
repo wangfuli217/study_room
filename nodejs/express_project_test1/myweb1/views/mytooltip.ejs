@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>My site</title>
+
+<!-- CSS file -->
+<link type="text/css" rel="stylesheet" href="css/modules/mytooltip.css" />
+<link type="text/css" rel="stylesheet" href="ext/css/jquery.qtip.css" />
+</head>
+<body>
+
+<div id="box"></div>
+
+<!-- jQuery FIRST i.e. before qTip (and all other scripts too usually) -->
+<script type="text/javascript" src="ext/js/jquery-1.11.3.min.js"></script>
+
+<!-- Include either the minifed or production version, NOT both!! -->
+<script type="text/javascript" src="ext/js/jquery.qtip.js"></script>
+
+<!-- Optional: imagesLoaded script to better support images inside your tooltips -->
+<script type="text/javascript" src="ext/js/jquery.imagesloaded.pkg.min.js"></script>
+
+<script>
+    $(document).ready(function()
+    {
+        $('#box').qtip({
+            content: 'Mouse tracking!',
+            position: {
+                target: 'mouse', // Track the mouse as the positioning target
+                adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
+            }
+        });
+    });
+</script>
+</body>
+</html>

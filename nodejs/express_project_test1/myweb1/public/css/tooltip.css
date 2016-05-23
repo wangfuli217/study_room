@@ -1,0 +1,34 @@
+body {
+  padding: 50px;
+}
+
+.qtip-wiki {
+  max-width: 385px;
+}
+
+.qtip-wiki p {
+  margin: 0 0 6px;
+}
+
+.qtip-wiki h1 {
+  font-size: 20px;
+  line-height: 1.1;
+  margin: 0 0 5px;
+}
+
+.qtip-wiki img {
+  float: left;
+  margin: 10px 10px 10px 0;
+}
+
+.qtip-wiki .info {
+  overflow: hidden;
+}
+
+.qtip-wiki p.note {
+  font-weight: 700;
+}
+
+
+
+/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBQUEsSUFBSTtFQUNBLE9BQU8sRUFBRSxJQUFJOzs7QUFHakIsVUFBVTtFQUNOLFNBQVMsRUFBRSxLQUFLOzs7QUFHcEIsWUFBWTtFQUNSLE1BQU0sRUFBRSxPQUFPOzs7QUFHbkIsYUFBYTtFQUNULFNBQVMsRUFBRSxJQUFJO0VBQ2YsV0FBVyxFQUFFLEdBQUc7RUFDaEIsTUFBTSxFQUFFLE9BQU87OztBQUduQixjQUFjO0VBQ1YsS0FBSyxFQUFFLElBQUk7RUFDWCxNQUFNLEVBQUUsZ0JBQWdCOzs7QUFHNUIsZ0JBQWdCO0VBQ1osUUFBUSxFQUFFLE1BQU07OztBQUdwQixpQkFBaUI7RUFDYixXQUFXLEVBQUUsR0FBRyIsInNvdXJjZXMiOlsidG9vbHRpcC5zY3NzIl0sIm5hbWVzIjpbXSwiZmlsZSI6InRvb2x0aXAuY3NzIiwic291cmNlUm9vdCI6Ii9zb3VyY2UvIiwic291cmNlc0NvbnRlbnQiOlsiYm9keXtcbiAgICBwYWRkaW5nOiA1MHB4O1xufVxuXG4ucXRpcC13aWtpe1xuICAgIG1heC13aWR0aDogMzg1cHg7XG59XG5cbi5xdGlwLXdpa2kgcHtcbiAgICBtYXJnaW46IDAgMCA2cHg7XG59XG5cbi5xdGlwLXdpa2kgaDF7XG4gICAgZm9udC1zaXplOiAyMHB4O1xuICAgIGxpbmUtaGVpZ2h0OiAxLjE7XG4gICAgbWFyZ2luOiAwIDAgNXB4O1xufVxuXG4ucXRpcC13aWtpIGltZ3tcbiAgICBmbG9hdDogbGVmdDtcbiAgICBtYXJnaW46IDEwcHggMTBweCAxMHB4IDA7XG59XG5cbi5xdGlwLXdpa2kgLmluZm97XG4gICAgb3ZlcmZsb3c6IGhpZGRlbjtcbn1cblxuLnF0aXAtd2lraSBwLm5vdGV7XG4gICAgZm9udC13ZWlnaHQ6IDcwMDtcbn0iXX0= */
