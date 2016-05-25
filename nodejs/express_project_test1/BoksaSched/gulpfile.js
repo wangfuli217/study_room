@@ -11,7 +11,7 @@ var gulp = require('gulp'),
     server = require('gulp-express');
 
 gulp.task('sass', function () {
-    return sass('process/sass/**/*.scss', {
+    return sass('process/sass/*.scss', {
       sourcemap: true,
       style: 'expanded'
     })
@@ -23,7 +23,7 @@ gulp.task('sass', function () {
 });
 
 gulp.task('watch', function() {
-    gulp.watch(['process/sass/**/*'], ['sass']);
+    gulp.watch(['process/sass/*'], ['sass']);
     gulp.watch(['routes/**/*'], ['server','sass']);
     gulp.watch(['views/**/*'], ['server','sass']);
     gulp.watch(['public/js/*'], ['server','sass']);

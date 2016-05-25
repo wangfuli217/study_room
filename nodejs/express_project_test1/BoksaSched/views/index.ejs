@@ -1,11 +1,36 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+
+<head>
+    <meta charset="utf-8">
+    <link href='http://fonts.googleapis.com/css?family=PT+Sans:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow:400,700' rel='stylesheet' type='text/css'>
+    <link rel='stylesheet' href='/css/style.css' />
+</head>
+
+<body>
+
+    <section id="memberListSection">
+        <div>
+            <ol id="memberList">
+                <!-- show member list here -->
+            </ol>
+        </div>
+
+        <!-- add boksa member -->
+        <form id="addNameText">
+            <button type="button" class="add-member-btn">복사멤버추가</button>            
+            <input type="text" class="add-member-name-text" name="nameText">
+            <div class="errArea"></div>
+        </form>
+    </section>
+
+    <section id="scheduleCalendar">
+    </section>
+
+</body>
+
+<script type="text/javascript" src="ext/js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/member.js"></script>
+
 </html>
