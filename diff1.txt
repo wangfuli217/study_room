@@ -1,0 +1,3933 @@
+Index: layer/Cluster/dev/include/cll.h
+===================================================================
+--- layer/Cluster/dev/include/cll.h	(리비전 19371)
++++ layer/Cluster/dev/include/cll.h	(작업 사본)
+@@ -29,6 +29,7 @@
+ #include <cllLocation.h>
+ #include <cllGlobalSequence.h>
+ #include <cllQueue.h>
++#include <cllGlobalTxLogfile.h>
+ 
+ /** @} */
+ 
+Index: layer/Cluster/dev/include/cllDef.h
+===================================================================
+--- layer/Cluster/dev/include/cllDef.h	(리비전 19371)
++++ layer/Cluster/dev/include/cllDef.h	(작업 사본)
+@@ -122,7 +122,13 @@
+     CLL_COMMAND_PING,
+ 
+     CLL_COMMAND_CLUSTER_RECOVER_TEST,
+-    
++    CLL_COMMAND_CONNECT_GLOBAL_RECOVERY_MEMBER,
++    CLL_COMMAND_CHECK_RECOVERED_NODE,
++    CLL_COMMAND_GET_MAX_SCN,
++    CLL_COMMAND_RECOVER_INDOUBT_GLOBAL_TX,
++    CLL_COMMAND_QUERY_ADVICE_INDOUBT_GTX,
++    CLL_COMMAND_INVALIDATE_SHARD_TARGET,
++
+     CLL_COMMAND_MAX
+ } cllCommandType;
+ 
+@@ -787,6 +793,42 @@
+ /** @} */
+ 
+ /**
++ * @addtogroup clg
++ * @{
++ */
++
++/**
++ * @brief Global Transaction State
++ */
++#define CLL_STATE_ACTIVE             1   /**< Active 상태 */
++#define CLL_STATE_BLOCK              2   /**< Block된 상태 */
++#define CLL_STATE_PREPARE            3   /**< Prepare된 상태 */
++#define CLL_STATE_COMMIT             4   /**< Commit된 상태 */
++#define CLL_STATE_ROLLBACK           5   /**< Rollback된 상태 */
++#define CLL_STATE_IDLE               6   /**< 유휴상태 */
++#define CLL_STATE_PRECOMMIT          7   /**< In-Memory Commit */
++
++/**
++ * @brief Global Transaction Attribute
++ */
++#define CLL_GTX_STATE_MASK          0x00000001
++#define CLL_GTX_STATE_YES           0x00000001
++#define CLL_GTX_STATE_NO            0x00000000
++
++#define CLL_GTX_ADVICE_MASK         0x00000002
++#define CLL_GTX_ADVICE_YES          0x00000002
++#define CLL_GTX_ADVICE_NO           0x00000000
++
++typedef struct cllGlobalTxAttr
++{
++    stlUInt32   mValidFlags;   /**< 멤버중 유효한 변수 */
++    stlInt16    mState;        /**< global transaction state */
++    stlInt16    mAdvice;       /**< global indoubt transaction advice */
++} cllGlobalTxAttr;
++
++/** @} */
++
++/**
+  * @addtogroup cllProperty
+  * @{
+  */
+@@ -906,8 +948,21 @@
+ #define CLL_ERRCODE_MODIFY_NUMA_PROPERTY                \
+     STL_MAKE_ERRCODE( STL_ERROR_MODULE_CLUSTER, 11 )
+ 
+-#define CLL_MAX_ERROR     12
++/**
++ * @brief cluster recovery connection information mismatch; %s ( recved: %d, local: %d )
++ */
++#define CLL_ERRCODE_RECOVERY_CONNECT_MISMATCH_MEMBER_POS \
++    STL_MAKE_ERRCODE( STL_ERROR_MODULE_CLUSTER, 12 )
+ 
++/**
++ * @brief cluster recovery connection information is invalid; %s ( recved: %d, max: %d )
++ */
++#define CLL_ERRCODE_RECOVERY_CONNECT_MEMBER_POS_RANGE_ERROR \
++    STL_MAKE_ERRCODE( STL_ERROR_MODULE_CLUSTER, 13 )
++
++
++#define CLL_MAX_ERROR     14
++
+ /** @} */
+ 
+ #endif /* _CLLDEF_H_ */
+Index: layer/Cluster/dev/include/cllGlobalTxLogfile.h
+===================================================================
+--- layer/Cluster/dev/include/cllGlobalTxLogfile.h	(리비전 0)
++++ layer/Cluster/dev/include/cllGlobalTxLogfile.h	(작업 사본)
+@@ -0,0 +1,45 @@
++/*******************************************************************************
++ * cllGlobalTxLogfile.h
++ *
++ * Copyright (c) 2011, SUNJESOFT Inc.
++ *
++ *
++ * IDENTIFICATION & REVISION
++ *        $Id:$
++ *
++ * NOTES
++ *    
++ *
++ ******************************************************************************/
++
++#ifndef _CLLGLOBALTXLOGFILE_H_
++#define _CLLGLOBALTXLOGFILE_H_ 1
++
++/**
++ * @file cllGlobalTxLogfile.h
++ * @brief Cluster Routines for Global Transaction Logfile
++ */
++
++/**
++ * @defgroup cllGlobalTransLogfile GlobalTransLogfile
++ * @ingroup clExternal
++ * @{
++ */
++stlStatus cllCreateGlobalTxLogfile( stlChar   * aLogFileName,
++                                    cllEnv    * aEnv );
++
++stlBool cllIsPreparedTrans( smlGlobalTransId     aGlobalTxId,
++                            cllEnv             * aEnv );
++
++stlStatus cllAllocGlobalTxLogSlot( smlGlobalTransId    aGlobalTxId,
++                                   stlInt32            aState,
++                                   cllEnv            * aEnv );
++
++stlStatus cllUpdateGlobalTrans( smlGlobalTransId    aGlobalTxId,
++                                cllGlobalTxAttr   * aAttr,
++                                cllEnv            * aEnv );
++
++
++/** @} */
++
++#endif /* _CLLGLOBALTXLOGFILE_H_ */
+Index: layer/Cluster/dev/include/cllTransaction.h
+===================================================================
+--- layer/Cluster/dev/include/cllTransaction.h	(리비전 19371)
++++ layer/Cluster/dev/include/cllTransaction.h	(작업 사본)
+@@ -146,6 +146,9 @@
+                               stlInt32          aLockMode,
+                               cllEnv          * aEnv );
+ 
++stlBool cllNeedGlobalCommit( smlTransId   aTransId,
++                             cllEnv     * aEnv );
++
+ /** @} */
+ 
+ #endif /* _CLLTRANSACTION_H_ */
+Index: layer/Cluster/dev/src/clg/clgGlobalTxLogfile.c
+===================================================================
+--- layer/Cluster/dev/src/clg/clgGlobalTxLogfile.c	(리비전 0)
++++ layer/Cluster/dev/src/clg/clgGlobalTxLogfile.c	(작업 사본)
+@@ -0,0 +1,715 @@
++/*******************************************************************************
++ * clgGlobalTxLogfile.c
++ *
++ * Copyright (c) 2011, SUNJESOFT Inc.
++ *
++ *
++ * IDENTIFICATION & REVISION
++ *        $Id$
++ *
++ * NOTES
++ *    
++ *
++ ******************************************************************************/
++
++#include <cll.h>
++#include <clDef.h>
++
++extern clgWarmupEntry * gClgWarmupEntry;
++
++/**
++ * @file clgGlobalTxLogfile.c
++ * @brief Cluster Layer Global Transaction Logfile Internal Routines
++ */
++
++/**
++ * @addtogroup clg
++ * @{
++ */
++
++/**
++ * @brief Global Transaction Logfile 을 생성한다. 
++ * @param[in] aLogFileName  Global Transaction Logfile Name
++ * @param[in] aEnv          Environment 포인터
++ * @remarks
++ *     Global Tx Log Slot 의 크기는 원래 MaxMemberCount x MaxTxTableSize 로
++ *     해야 하지만, 각 노드 별로 동시에 진행가능한 Tx 수는 MaxTxTableSize 이므로
++ *     이 크기로 만든다.
++ */
++stlStatus clgCreateGlobalTxLogfile( stlChar  * aLogFileName,
++                                    cllEnv   * aEnv )
++{
++    stlInt32         i;
++    stlFile          sFile;
++    stlUInt32        sState = 0;
++    stlBool          sFileExist = STL_FALSE;
++    stlInt32         sFlag = 0;
++    stlInt32         sAllocSize;
++    knlRegionMark    sMemMark;
++    stlChar        * sLogBlock;
++    stlChar        * sAlignedLogBlock;
++    clgGlobalTxLogfileHdr * sLogHdr;
++    clgGlobalTxLogInfo    * sLogSlot;
++
++    /**
++     * File Open
++     */
++
++    STL_TRY( stlExistFile( aLogFileName,
++                           &sFileExist,
++                           KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    STL_TRY_THROW( sFileExist == STL_FALSE, RAMP_ERR_EXISTS_FILE );
++
++    sFlag = (STL_FOPEN_CREATE | STL_FOPEN_WRITE | STL_FOPEN_DIRECT);
++
++    STL_TRY( stlOpenFile( &sFile,
++                          aLogFileName,
++                          sFlag,
++                          STL_FPERM_OS_DEFAULT,
++                          KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++    sState = 1;
++
++    /**
++     * Alloc buffer for writing.
++     * Bulk 로 Write 하기 위한 크기로 할당한다.
++     */
++
++    KNL_INIT_REGION_MARK( &sMemMark );
++
++    STL_TRY( knlMarkRegionMem( &aEnv->mOperationHeapMem,
++                               &sMemMark,
++                               (knlEnv*)aEnv )
++             == STL_SUCCESS );
++
++    sAllocSize = CLG_GTX_LOGFILE_SIZE;
++
++    STL_TRY( knlAllocRegionMem( &aEnv->mOperationHeapMem,
++                                sAllocSize,
++                                (void**)&sLogBlock,
++                                KNL_ENV( aEnv ) )
++             == STL_SUCCESS );
++    sState = 2;
++
++    stlMemset( sLogBlock, 0x00, sAllocSize );
++
++    sAlignedLogBlock = (stlChar*)STL_ALIGN( (stlInt64)sLogBlock,
++                                            CLG_BLOCK_SIZE );
++
++    /**
++     * Write GTL file header
++     */
++
++    sLogHdr = (clgGlobalTxLogfileHdr *) sAlignedLogBlock;
++
++    STL_TRY( knlInitLatch( & sLogHdr->mLatch,
++                           STL_FALSE,
++                           KNL_ENV(aEnv) )
++             == STL_SUCCESS );
++
++    sLogHdr->mMaxTxTableSize = CLG_MAX_TX_TABLE_SIZE;
++    sLogHdr->mLogCountPerBlock = 1;
++
++    STL_TRY( stlWriteFile( &sFile,
++                           (void *)sLogHdr,
++                           CLG_BLOCK_SIZE,
++                           NULL,
++                           KNL_ERROR_STACK( aEnv ) ) == STL_SUCCESS );
++
++    /**
++     * 모든 Transaction Logfile Slot 초기화
++     */
++
++    stlMemset( sAlignedLogBlock, 0x00, CLG_BLOCK_SIZE );
++
++    for( i = 0; i < CLG_MAX_TX_TABLE_SIZE; i++ )
++    {
++        sLogSlot = (clgGlobalTxLogInfo *)(sAlignedLogBlock + (CLG_BLOCK_SIZE * i));
++
++        STL_TRY( knlInitLatch( & sLogSlot->mLatch,
++                               STL_FALSE,
++                               KNL_ENV(aEnv) )
++                 == STL_SUCCESS );
++
++        CLG_INIT_GTX_LOG_SLOT( sLogSlot, i );
++    }
++
++    STL_TRY( stlWriteFile( &sFile,
++                           (void *)sAlignedLogBlock,
++                           CLG_BLOCK_SIZE * CLG_MAX_TX_TABLE_SIZE,
++                           NULL,
++                           KNL_ERROR_STACK( aEnv ) ) == STL_SUCCESS );
++
++#ifdef STL_DEBUG
++    stlFileInfo      sFileInfo;
++    STL_TRY( stlGetFileStatByName( &sFileInfo,
++                                   aLogFileName,
++                                   STL_FINFO_SIZE,
++                                   KNL_ERROR_STACK(aEnv) )
++             == STL_SUCCESS );
++
++    STL_DASSERT( sFileInfo.mSize == CLG_GTX_LOGFILE_SIZE ); 
++#endif
++
++    sState = 1;
++    STL_TRY( knlFreeUnmarkedRegionMem( &aEnv->mOperationHeapMem,
++                                       &sMemMark,
++                                       STL_TRUE, /* aFreeChunk */
++                                       (knlEnv*)aEnv ) == STL_SUCCESS );
++
++    sState = 0;
++    STL_TRY( stlCloseFile( &sFile,
++                           KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    return STL_SUCCESS;
++
++    STL_CATCH( RAMP_ERR_EXISTS_FILE )
++    {
++        stlPushError( STL_ERROR_LEVEL_ABORT,
++                      SML_ERRCODE_ALREADY_EXIST_FILE,
++                      NULL,
++                      KNL_ERROR_STACK( aEnv ),
++                      aLogFileName );
++    }
++ 
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 2 :
++            (void)knlFreeUnmarkedRegionMem( &aEnv->mOperationHeapMem,
++                                            &sMemMark,
++                                            STL_TRUE, /* aFreeChunk */
++                                            (knlEnv*)aEnv );
++        case 1 :
++            (void) stlCloseFile( &sFile, KNL_ERROR_STACK( aEnv ) );
++        default:
++            break;
++    }
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Global Transaction Logfile 을 Memory 로 Load 한다.
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus clgLoadGlobalTransLogFile( cllEnv * aEnv )
++{
++    stlUInt32          sState = 0;
++    stlInt32           sFlag;
++    stlFile            sFile;
++    stlBool            sIsTimedOut;
++    stlChar            sLogDir[KNL_PROPERTY_STRING_MAX_LENGTH];
++    stlSize            sReadBytes;
++    clgGlobalTxLogfileHdr * sLogHdr;
++
++    sLogHdr = (clgGlobalTxLogfileHdr *)gClgWarmupEntry->mGlobalTransLog;
++
++    STL_TRY( knlAcquireLatch( &sLogHdr->mLatch,
++                              KNL_LATCH_MODE_EXCLUSIVE,
++                              KNL_LATCH_PRIORITY_NORMAL,
++                              STL_INFINITE_TIME,
++                              &sIsTimedOut,
++                              KNL_WE_ID_LATCH_CLUSTER_LOCATION,
++                              (knlEnv*)aEnv ) == STL_SUCCESS );
++    sState = 1;
++
++    sFlag = STL_FOPEN_READ | STL_FOPEN_DIRECT;
++
++    STL_TRY( knlGetPropertyValueByID( KNL_PROPERTY_LOG_DIR,
++                                      sLogDir,
++                                      KNL_ENV( aEnv ) )
++             == STL_SUCCESS );
++
++    stlSnprintf( gClgWarmupEntry->mGtxFileName,
++                 STL_MAX_FILE_PATH_LENGTH,
++                 "%s" STL_PATH_SEPARATOR "globaltx.log",
++                 sLogDir );
++    
++    STL_TRY( stlOpenFile( &sFile,
++                          gClgWarmupEntry->mGtxFileName,
++                          sFlag,
++                          STL_FPERM_OS_DEFAULT,
++                          KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++    sState = 2;
++
++    STL_TRY( stlReadFile( &sFile,
++                          (void*)sLogHdr,
++                          CLG_GTX_LOGFILE_SIZE,
++                          &sReadBytes,
++                          KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    STL_DASSERT( sReadBytes == CLG_GTX_LOGFILE_SIZE );
++    STL_DASSERT( sLogHdr->mMaxTxTableSize == CLG_MAX_TX_TABLE_SIZE );
++
++    sState = 1;
++    STL_TRY( stlCloseFile( &sFile,
++                           KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++    
++    sState = 0;
++    STL_TRY( knlReleaseLatch( &sLogHdr->mLatch,
++                              KNL_ENV(aEnv) )
++             == STL_SUCCESS );
++    
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 2:
++            (void) stlCloseFile( &sFile, KNL_ERROR_STACK( aEnv ) );
++        case 1:
++            (void) knlReleaseLatch( &sLogHdr->mLatch, KNL_ENV(aEnv) );
++        default:
++            break;
++    }
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Global Transaction Log 의 상태를 변경한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aAttr         Global Transaction Attribute for Update
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus clgUpdateGlobalTrans( smlGlobalTransId    aGlobalTxId,
++                                cllGlobalTxAttr   * aAttr,
++                                cllEnv            * aEnv )
++{
++    stlInt32         i;
++    stlFile          sFile;
++    stlUInt32        sState = 0;
++    stlInt32         sFlag = 0;
++    stlOffset        sOffset;
++    stlBool          sIsTimedOut;
++    clgGlobalTxLogInfo    * sLogSlot;
++
++    /**
++     * Find matching global tx logfile slot
++     * @todo hashing
++     */
++    for( i = 0; i < CLG_MAX_TX_TABLE_SIZE; i++ )
++    {
++        sLogSlot = CLG_NEXT_LOG_SLOT( i );
++
++        if( SML_IS_EQUAL_GLOBAL_TRANSID_BY_ID( &aGlobalTxId, &sLogSlot->mGlobalTxId ) )
++        {
++            break;
++        }
++    }
++
++    STL_DASSERT( i < CLG_MAX_TX_TABLE_SIZE );
++
++    STL_TRY( knlAcquireLatch( &sLogSlot->mLatch,
++                              KNL_LATCH_MODE_EXCLUSIVE,
++                              KNL_LATCH_PRIORITY_NORMAL,
++                              STL_INFINITE_TIME,
++                              &sIsTimedOut,
++                              KNL_WE_ID_LATCH_CLUSTER_LOCATION,
++                              (knlEnv*)aEnv ) == STL_SUCCESS );
++    sState = 1;
++
++    if( (aAttr->mValidFlags & CLL_GTX_STATE_MASK) == CLL_GTX_STATE_YES )
++    {
++        sLogSlot->mState = aAttr->mState;
++    }
++
++    if( (aAttr->mValidFlags & CLL_GTX_ADVICE_MASK) == CLL_GTX_ADVICE_YES )
++    {
++        sLogSlot->mAdvice = aAttr->mAdvice;
++    }
++
++    /**
++     * File Open
++     */
++
++    sFlag = (STL_FOPEN_WRITE | STL_FOPEN_DIRECT);
++
++    STL_TRY( stlOpenFile( &sFile,
++                          gClgWarmupEntry->mGtxFileName,
++                          sFlag,
++                          STL_FPERM_OS_DEFAULT,
++                          KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++    sState = 2;
++
++    /**
++     * Write into Log Info Slot
++     */
++
++    sOffset = (i + 1) * CLG_BLOCK_SIZE;
++
++    STL_TRY( stlSeekFile( &sFile,
++                          STL_FSEEK_SET,
++                          &sOffset,
++                          KNL_ERROR_STACK(aEnv) )
++             == STL_SUCCESS );
++
++    STL_TRY( stlWriteFile( &sFile,
++                           (void *)sLogSlot,
++                           CLG_BLOCK_SIZE,
++                           NULL,
++                           KNL_ERROR_STACK( aEnv ) ) == STL_SUCCESS );
++
++    sState = 1;
++    STL_TRY( stlCloseFile( &sFile,
++                           KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    sState = 0;
++    STL_TRY( knlReleaseLatch( &sLogSlot->mLatch,
++                              KNL_ENV(aEnv) )
++             == STL_SUCCESS );
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 2 :
++            (void) stlCloseFile( &sFile, KNL_ERROR_STACK( aEnv ) );
++        case 1 :
++            (void) knlReleaseLatch( &sLogSlot->mLatch, KNL_ENV(aEnv) );
++        default:
++            break;
++    }
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Global Transaction Log Slot 을 할당한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aState        할당 시 설정할 State
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus clgAllocGlobalTxLogSlot( smlGlobalTransId    aGlobalTxId,
++                                   stlInt32            aState,
++                                   cllEnv            * aEnv )
++{
++    stlInt32         i;
++    stlFile          sFile;
++    stlUInt32        sState = 0;
++    stlInt32         sFlag = 0;
++    stlOffset        sOffset;
++    stlBool          sIsSuccess;
++    clgGlobalTxLogInfo    * sLogSlot;
++
++    /**
++     * Find Idle global tx logfile slot
++     */
++
++    while( 1 )
++    {
++    
++        for( i = 0; i < CLG_MAX_TX_TABLE_SIZE; i++ )
++        {
++            sLogSlot = CLG_NEXT_LOG_SLOT( i );
++
++            if( (sLogSlot->mState != CLL_STATE_IDLE )   ||
++                (sLogSlot->mState != CLL_STATE_COMMIT ) ||
++                (sLogSlot->mState != CLL_STATE_ROLLBACK) )
++            {
++                continue;
++            }
++
++            STL_TRY( knlTryLatch( &sLogSlot->mLatch,
++                                  KNL_LATCH_MODE_EXCLUSIVE,
++                                  &sIsSuccess,
++                                  KNL_WE_ID_LATCH_ALLOC_TRANS,
++                                  KNL_ENV(aEnv) )
++                     == STL_SUCCESS );
++
++            if( sIsSuccess == STL_FALSE )
++            {
++                continue;
++            }
++
++            sState = 1;
++
++            if( sLogSlot->mState == CLL_STATE_IDLE )
++            {
++                sLogSlot->mGlobalTxId = aGlobalTxId;
++                sLogSlot->mState = aState;
++                sLogSlot->mAdvice = 0;
++                sLogSlot->mGlobalTxId = aGlobalTxId;
++
++                /**
++                 * File Open
++                 */
++
++                sFlag = (STL_FOPEN_WRITE | STL_FOPEN_DIRECT);
++
++                STL_TRY( stlOpenFile( &sFile,
++                                      gClgWarmupEntry->mGtxFileName,
++                                      sFlag,
++                                      STL_FPERM_OS_DEFAULT,
++                                      KNL_ERROR_STACK( aEnv ) )
++                         == STL_SUCCESS );
++                sState = 2;
++
++                /**
++                 * Write into Log Info Slot
++                 */
++
++                sOffset = (i + 1) * CLG_BLOCK_SIZE;
++
++                STL_TRY( stlSeekFile( &sFile,
++                                      STL_FSEEK_SET,
++                                      &sOffset,
++                                      KNL_ERROR_STACK(aEnv) )
++                         == STL_SUCCESS );
++
++                STL_TRY( stlWriteFile( &sFile,
++                                       (void *)sLogSlot,
++                                       CLG_BLOCK_SIZE,
++                                       NULL,
++                                       KNL_ERROR_STACK( aEnv ) ) == STL_SUCCESS );
++                sState = 1;
++
++                STL_TRY( stlCloseFile( &sFile,
++                                       KNL_ERROR_STACK( aEnv ) )
++                         == STL_SUCCESS );
++            }
++
++            sState = 0;
++            STL_TRY( knlReleaseLatch( &sLogSlot->mLatch,
++                                      KNL_ENV(aEnv) )
++                     == STL_SUCCESS );
++        }
++
++        stlSleep( 1 );
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 2 :
++            (void) stlCloseFile( &sFile, KNL_ERROR_STACK( aEnv ) );
++        case 1 :
++            (void) knlReleaseLatch( &sLogSlot->mLatch, KNL_ENV(aEnv) );
++        default:
++            break;
++    }
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Global Transaction Log Slog 이 존재하는지, 어떤 상태인지 검사한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aFound        Transaction Found
++ * @param[in] aState        Current Transaction State
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus clgFindGlobalTxSlot( smlGlobalTransId    aGlobalTxId,
++                               stlBool           * aFound,
++                               stlInt16          * aState,
++                               cllEnv            * aEnv )
++{
++    stlInt32         i;
++    stlUInt32        sState = 0;
++    stlBool          sIsTimedOut;
++    clgGlobalTxLogInfo    * sLogSlot;
++
++    STL_DASSERT( gClgWarmupEntry->mGlobalTransLog != NULL );
++
++    /**
++     * Find matching global tx logfile slot
++     * @todo hashing
++     */
++    for( i = 0; i < CLG_MAX_TX_TABLE_SIZE; i++ )
++    {
++        sLogSlot = CLG_NEXT_LOG_SLOT( i );
++
++        STL_TRY( knlAcquireLatch( &sLogSlot->mLatch,
++                                  KNL_LATCH_MODE_SHARED,
++                                  KNL_LATCH_PRIORITY_NORMAL,
++                                  STL_INFINITE_TIME,
++                                  &sIsTimedOut,
++                                  KNL_WE_ID_LATCH_CLUSTER_LOCATION,
++                                  (knlEnv*)aEnv ) == STL_SUCCESS );
++        sState = 1;
++
++        if( SML_IS_EQUAL_GLOBAL_TRANSID_BY_ID( &aGlobalTxId, &sLogSlot->mGlobalTxId ) )
++        {
++            break;
++        }
++
++        STL_TRY( knlReleaseLatch( &sLogSlot->mLatch,
++                                  KNL_ENV(aEnv) )
++                 == STL_SUCCESS );
++        sState = 0;
++    }
++
++    if( i < CLG_MAX_TX_TABLE_SIZE )
++    {
++        *aFound = STL_TRUE;
++        *aState = sLogSlot->mState;
++    }
++    else
++    {
++        *aFound = STL_FALSE;
++        *aState = -1;
++    }
++
++    sState = 0;
++    STL_TRY( knlReleaseLatch( &sLogSlot->mLatch,
++                              KNL_ENV(aEnv) )
++             == STL_SUCCESS );
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 1 :
++            (void) knlReleaseLatch( &sLogSlot->mLatch, KNL_ENV(aEnv) );
++        default:
++            break;
++    }
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Global Transaction 이 최소한 Prepared 된 상태인지 검사한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aEnv          Environment 포인터
++ */
++stlBool clgIsPreparedTrans( smlGlobalTransId     aGlobalTxId,
++                            cllEnv             * aEnv )
++{
++    stlBool    sFound = STL_FALSE;
++    stlInt16   sState;
++    stlBool    sRet = STL_FALSE;
++
++    if( clgFindGlobalTxSlot( aGlobalTxId,
++                             & sFound,
++                             & sState,
++                             aEnv ) == STL_TRUE )
++    {
++        if( (sFound == STL_TRUE) && (sState == CLL_STATE_PREPARE) )
++        {
++            sRet = STL_TRUE;
++        }
++        else
++        {
++            sRet = STL_FALSE;
++        }
++    }
++    else
++    {
++        sRet = STL_FALSE;
++    }
++
++    return sRet;
++}
++
++stlStatus clgFetchFirstPreparedGlobalTrans( smlGlobalTransId  * aGlobalTxId,
++                                            stlInt32          * aSlotId,
++                                            cllEnv            * aEnv )
++{
++    stlInt32             i;
++    clgGlobalTxLogInfo * sLogSlot;
++
++    STL_PARAM_VALIDATE( aGlobalTxId != NULL, KNL_ERROR_STACK(aEnv) );
++    STL_PARAM_VALIDATE( aSlotId != NULL, KNL_ERROR_STACK(aEnv) );
++
++    STL_DASSERT( gClgWarmupEntry->mGlobalTransLog != NULL );
++
++    for( i = 0; i < CLG_MAX_TX_TABLE_SIZE; i++ )
++    {
++        sLogSlot = CLG_NEXT_LOG_SLOT(i);
++
++        if( CLG_IS_PREPARED_GTX( sLogSlot ) )
++        {
++            *aSlotId = i;
++            break;
++        }
++    }
++
++    if( i > CLG_MAX_TX_TABLE_SIZE )
++    {
++        SML_INIT_GLOBAL_TRANSID( aGlobalTxId );
++        *aSlotId = -1;
++    }
++    else
++    {
++        *aGlobalTxId = sLogSlot->mGlobalTxId;
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++stlStatus clgFetchNextPreparedGlobalTrans( smlGlobalTransId  * aGlobalTxId,
++                                           stlInt32          * aSlotId,
++                                           cllEnv            * aEnv )
++{
++    stlInt32             i;
++    stlInt32             sNextSlotId;
++    clgGlobalTxLogInfo * sLogSlot;
++
++    STL_PARAM_VALIDATE( aGlobalTxId != NULL, KNL_ERROR_STACK(aEnv) );
++    STL_PARAM_VALIDATE( aSlotId != NULL, KNL_ERROR_STACK(aEnv) );
++
++    STL_DASSERT( gClgWarmupEntry->mGlobalTransLog != NULL );
++
++    sNextSlotId = (*aSlotId) + 1;
++
++    if( sNextSlotId > CLG_MAX_TX_TABLE_SIZE )
++    {
++        SML_INIT_GLOBAL_TRANSID( aGlobalTxId );
++        *aSlotId = -1;
++    }
++    else
++    {
++        for( i = sNextSlotId; i < CLG_MAX_TX_TABLE_SIZE; i++ )
++        {
++            sLogSlot = CLG_NEXT_LOG_SLOT( i );
++
++            if( CLG_IS_PREPARED_GTX( sLogSlot ) )
++            {
++                *aSlotId = i;
++                break;
++            }
++        }
++
++        if( i > CLG_MAX_TX_TABLE_SIZE )
++        {
++            SML_INIT_GLOBAL_TRANSID( aGlobalTxId );
++            *aSlotId = -1;
++        }
++        else
++        {
++            *aGlobalTxId = sLogSlot->mGlobalTxId;
++        }
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++
++/** @} */
+Index: layer/Cluster/dev/src/clg/clgStartup.c
+===================================================================
+--- layer/Cluster/dev/src/clg/clgStartup.c	(리비전 19371)
++++ layer/Cluster/dev/src/clg/clgStartup.c	(작업 사본)
+@@ -20,6 +20,7 @@
+ #include <cll.h>
+ #include <clDef.h>
+ #include <clgStartup.h>
++#include <clgGlobalTxLogfile.h>
+ #include <clgPendOp.h>
+ #include <clo.h>
+ #include <clx.h>
+@@ -62,6 +63,11 @@
+     stlInt32              sQueueId;
+     stlInt32              sAllocatorId;
+     clgDispatcherStream * sDispatcherStream;
++    void                * sGlobalTransLog;
++    stlSize               sIoBlockSize;
++    stlSize               sMaxTxTableSize;
++    stlSize               sAllocSize;
++    clgGlobalTxLogInfo  * sLogSlot;
+ 
+     STL_TRY( knlGetEntryPoint( STL_LAYER_CLUSTER,
+                                (void**)&sWarmupEntry,
+@@ -445,6 +451,35 @@
+      */
+ 
+     smlRegisterChasingEdgeCallback( cllFireChasingEdge );
++
++    /**
++     * Global Transaction Logfile 기록 관리를 위한 Memory 할당
++     * (Logfile Header + Log Slot)
++     */
++    sIoBlockSize = STL_DIRECT_IO_DEFAULT_BLOCKSIZE;
++    sMaxTxTableSize = KNL_PROPERTY_MAX( KNL_PROPERTY_TRANSACTION_TABLE_SIZE );
++
++    sAllocSize = (sMaxTxTableSize + 1) * sIoBlockSize;
++
++    STL_TRY( knlCacheAlignedAllocFixedStaticArea( sAllocSize,
++                                                  (void**)&sGlobalTransLog,
++                                                  (knlEnv*)aEnv ) == STL_SUCCESS );
++
++    stlMemset( sGlobalTransLog, 0x00, sAllocSize );
++
++    for( i = 0; i < sMaxTxTableSize; i++ )
++    {
++        sLogSlot = (clgGlobalTxLogInfo *)(sGlobalTransLog + (sIoBlockSize * i));
++
++        STL_TRY( knlInitLatch( & sLogSlot->mLatch,
++                               STL_TRUE,
++                               KNL_ENV(aEnv) )
++                 == STL_SUCCESS );
++
++        CLG_INIT_GTX_LOG_SLOT( sLogSlot, i );
++    }
++
++    gClgWarmupEntry->mGlobalTransLog = sGlobalTransLog;
+     
+     *sWarmupEntry = gClgWarmupEntry;
+ 
+@@ -478,6 +513,12 @@
+      */
+     STL_TRY( cloLoadFile( CLL_ENV(aEnv ) ) == STL_SUCCESS );
+ 
++    /**
++     * load global transaction log
++     */
++    STL_TRY( clgLoadGlobalTransLogFile( CLL_ENV(aEnv ) ) == STL_SUCCESS );
++
++
+     STL_RAMP( RAMP_FINISH );
+     
+     return STL_SUCCESS;
+@@ -496,8 +537,8 @@
+ stlStatus clgStartupPreOpen( knlStartupInfo * aStartupInfo,
+                              void           * aEnv )
+ {
+-    stlInt32     sState = 0;
+-    smlTransId   sInDoubtTransId = SML_INVALID_TRANSID;
++    stlInt32           sState = 0;
++    smlTransId         sInDoubtTransId = SML_INVALID_TRANSID;
+ 
+     STL_TRY( smlFetchPreparedTransaction( &sInDoubtTransId,
+                                           STL_FALSE, /* aRecoverLock */
+@@ -516,6 +557,35 @@
+                  == STL_SUCCESS );
+     }
+ 
++#if 0
++    smlGlobalTransId   sInDoubtGTxId;
++    stlInt32           sSlotId = -1;
++    /**
++     * Global Transaction Log 로부터 Prepared List 를 Fetch 하여
++     * Max SCN Node 에게 Advice 를 질의한다.
++     * (Cluster Connection 이 연결되어 있어야 함)
++     */
++
++    STL_TRY( clgFetchFirstPreparedGlobalTrans( & sInDoubtGTxId,
++                                               & sSlotId,
++                                               CLL_ENV( aEnv ) )
++             == STL_SUCCESS );
++
++    STL_TRY_THROW( sSlotId != -1, RAMP_DONE );
++
++    while( sSlotId != -1 )
++    {
++        STL_TRY( clgFetchNextPreparedGlobalTrans( & sInDoubtGTxId,
++                                                  & sSlotId,
++                                                  CLL_ENV( aEnv ) )
++                 == STL_SUCCESS );
++
++        STL_TRY_THROW( sSlotId != -1, RAMP_DONE );
++    }
++
++    STL_RAMP( RAMP_DONE );
++#endif
++
+     return STL_SUCCESS;
+ 
+     STL_FINISH;
+Index: layer/Cluster/dev/src/cll/cllGlobalTxLogfile.c
+===================================================================
+--- layer/Cluster/dev/src/cll/cllGlobalTxLogfile.c	(리비전 0)
++++ layer/Cluster/dev/src/cll/cllGlobalTxLogfile.c	(작업 사본)
+@@ -0,0 +1,87 @@
++/** @} cllGlobalTxLogfile */
++/*******************************************************************************
++ * cllGlobalTxLogfile.c
++ *
++ * Copyright (c) 2011, SUNJESOFT Inc.
++ *
++ *
++ * IDENTIFICATION & REVISION
++ *        $Id$
++ *
++ * NOTES
++ *    
++ *
++ ******************************************************************************/
++
++#include <ell.h>
++#include <cll.h>
++#include <cllDef.h>
++#include <clDef.h>
++
++#include <clgGlobalTxLogfile.h>
++
++/**
++ * @file cllGlobalTxLogfile.c
++ * @brief Global Transaction Logfile Routines
++ */
++
++/**
++ * @addtogroup cllGlobalTxLogfile
++ * @{
++ */
++
++/**
++ * @brief Global Transaction Logfile 을 생성한다. 
++ * @param[in] aLogFileName  Global Transaction Logfile Name
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus cllCreateGlobalTxLogfile( stlChar  * aLogFileName,
++                                    cllEnv   * aEnv )
++{
++    return clgCreateGlobalTxLogfile( aLogFileName, aEnv );
++}
++
++/**
++ * @brief Global Transaction 이 최소한 Prepared 된 상태인지 검사한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aEnv          Environment 포인터
++ */
++stlBool cllIsPreparedTrans( smlGlobalTransId     aGlobalTxId,
++                            cllEnv             * aEnv )
++{
++    return clgIsPreparedTrans( aGlobalTxId,
++                               aEnv );
++}
++
++/**
++ * @brief Global Transaction Log Slot 을 할당한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aState        할당 시 설정할 State
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus cllAllocGlobalTxLogSlot( smlGlobalTransId    aGlobalTxId,
++                                   stlInt32            aState,
++                                   cllEnv            * aEnv )
++{
++    return clgAllocGlobalTxLogSlot( aGlobalTxId,
++                                    aState,
++                                    aEnv );
++}
++
++/**
++ * @brief Global Transaction Log 의 상태를 변경한다.
++ * @param[in] aGlobalTxId   Global Transaction ID
++ * @param[in] aAttr         Global Transaction Attribute for Update
++ * @param[in] aEnv          Environment 포인터
++ */
++stlStatus cllUpdateGlobalTrans( smlGlobalTransId    aGlobalTxId,
++                                cllGlobalTxAttr   * aAttr,
++                                cllEnv            * aEnv )
++{
++    return clgUpdateGlobalTrans( aGlobalTxId,
++                                 aAttr,
++                                 aEnv );
++}
++
++
++/** @} cllGlobalTxLogfile */
+Index: layer/Cluster/dev/src/cll/cllTransaction.c
+===================================================================
+--- layer/Cluster/dev/src/cll/cllTransaction.c	(리비전 19371)
++++ layer/Cluster/dev/src/cll/cllTransaction.c	(작업 사본)
+@@ -22,6 +22,7 @@
+ #include <clgCommitContext.h>
+ #include <clgCommittedTransTable.h>
+ #include <clgTransFailover.h>
++#include <clgGlobalTxLogfile.h>
+ #include <clx.h>
+ 
+ extern clgWarmupEntry * gClgWarmupEntry;
+@@ -57,7 +58,7 @@
+     stlInt8           sCommitPhase;
+ 
+     SML_INIT_SCN( &sCommitScn );
+-                
++
+     if( KNL_IS_CLUSTER_SESSION( sSessEnv ) == STL_FALSE )
+     {
+         if( aTransId != SML_INVALID_TRANSID )
+@@ -841,6 +842,7 @@
+     cllExecutor    * sExecutor = CLL_TRANSACTION_EXECUTOR( CLL_SESS_ENV(aEnv) );
+     cllCommandArgs   sCommandArgs;
+     stlInt32         sDriverMemberId;
++    smlGlobalTransId sGlobalTransId;
+ 
+     cllSetTransaction4InternalExecutor( sExecutor, aTransId );
+     
+@@ -894,6 +896,18 @@
+                                  SML_TRANSACTION_CWM_WAIT,
+                                  SML_ENV(aEnv) )
+                      == STL_SUCCESS );
++
++            /**
++             * Global Transaction Log 의 상태를 Prepare 로 변경한다.
++             */
++
++            smlGetGlobalTransId( aTransId,
++                                 & sGlobalTransId );
++
++            STL_TRY( cllAllocGlobalTxLogSlot( sGlobalTransId,
++                                              (stlInt32) CLL_STATE_PREPARE,
++                                              CLL_ENV( aEnv ) )
++                     == STL_SUCCESS );
+             
+             gClgWarmupEntry->mGlobalCommitCount += 1;
+         }
+@@ -1639,5 +1653,16 @@
+     return STL_FAILURE;
+ }
+ 
++/**
++ * @brief Transaction 이 Global Commit 이 필요한 Transaction 인지 검사한다.
++ * @param[in] aTransId        Transaction ID
++ * @param[in] aEnv            Environment
++ */
++stlBool cllNeedGlobalCommit( smlTransId   aTransId,
++                             cllEnv     * aEnv )
++{
++    return clgNeedGlobalCommit( aTransId,
++                                aEnv );
++}
+ 
+ /** @} */
+Index: layer/Cluster/dev/src/clp/clpDesc.c
+===================================================================
+--- layer/Cluster/dev/src/clp/clpDesc.c	(리비전 19371)
++++ layer/Cluster/dev/src/clp/clpDesc.c	(작업 사본)
+@@ -93,7 +93,7 @@
+      * CLL_COMMAND_NON_SELECT
+      */
+     {
+-        CLL_COMMAND_SELECT,
++        CLL_COMMAND_NON_SELECT,
+         "NON_SELECT",
+         CLL_ITEM_TYPE_REQUEST,
+         CLL_CHECK_CONNECTION_LOGICAL,
+@@ -2167,6 +2167,33 @@
+         clpUnmarshallResultNothing,
+         "ping test"
+     },
++
++    /*
++     * CLL_COMMAND_CLUSTER_RECOVER_TEST
++     */
++    {
++        CLL_COMMAND_CLUSTER_RECOVER_TEST,
++        "CLUSTER_RECOVER_TEST",
++        CLL_ITEM_TYPE_REQUEST,
++        CLL_CHECK_CONNECTION_NONE,
++        KNL_CLUSTER_SERVER_TYPE_NONE,
++        CLG_USE_MAP_BIND,
++        CLG_REQUEST_UNICAST,
++        CLG_VALIDATE_REMOTE_ERROR_SESSION_FATAL,
++        STL_FALSE,           /* need login protocol */
++        STL_FALSE,           /* need transaction */
++        STL_FALSE,           /* check query timeout */
++        STL_FALSE,           /* error defering for aync message */
++        STL_FALSE,           /* need view scn */
++        STL_TRUE,            /* has response */
++        STL_FALSE,           /* need session */
++        NULL,                /* result callback fuction */
++        clpMarshallCommandRecoverTest,
++        clpUnmarshallCommandRecoverTest,
++        clpMarshallResultNothing,
++        clpUnmarshallResultNothing,
++        "ping test"
++    },
+     
+ 
+     /*
+Index: layer/Cluster/dev/src/clp/clpMarshallCommand.c
+===================================================================
+--- layer/Cluster/dev/src/clp/clpMarshallCommand.c	(리비전 19371)
++++ layer/Cluster/dev/src/clp/clpMarshallCommand.c	(작업 사본)
+@@ -2407,5 +2407,14 @@
+     return STL_FAILURE;
+ }
+ 
++stlStatus clpMarshallCommandRecoverTest( cllCursor       * aCursor,
++                                         cllExecutor     * aExecutor,
++                                         cllCommandArgs  * aCommandArgs,
++                                         cllTargetInfo   * aTargetInfo,
++                                         cllEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
+ 
++
+ /** @} */
+Index: layer/Cluster/dev/src/clp/clpUnmarshallCommand.c
+===================================================================
+--- layer/Cluster/dev/src/clp/clpUnmarshallCommand.c	(리비전 19371)
++++ layer/Cluster/dev/src/clp/clpUnmarshallCommand.c	(작업 사본)
+@@ -1926,5 +1926,12 @@
+     return STL_FAILURE;
+ }
+ 
++stlStatus clpUnmarshallCommandRecoverTest( cllCursor       * aCursor,
++                                           cllCommandArgs  * aCommandArgs,
++                                           cllEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
+ 
++
+ /** @} */
+Index: layer/Cluster/dev/src/include/clDef.h
+===================================================================
+--- layer/Cluster/dev/src/include/clDef.h	(리비전 19371)
++++ layer/Cluster/dev/src/include/clDef.h	(작업 사본)
+@@ -364,6 +364,12 @@
+     stlInt64              mLocationBlockCount;
+ 
+     knlDynamicMem         mDynamicMem;
++
++    /**
++     * global transaction log
++     */
++    stlChar               mGtxFileName[KNL_PROPERTY_STRING_MAX_LENGTH];
++    void                * mGlobalTransLog;             /**< memory for global transaction log */
+ } clgWarmupEntry;
+ 
+ /**
+@@ -390,6 +396,61 @@
+ #define CLG_ASYNC_RES_RESULT_SESSION( aSessionId )                                                  \
+     ( &(gClgWarmupEntry->mAsyncResResult[(aSessionId) % gClgWarmupEntry->mSyncWayInQueueCount][(aSessionId)]) )
+ 
++
++/**
++ * @brief Global Transaction Logfile Header
++ */
++typedef struct clgGlobalTxLogfileHdr
++{
++    stlInt32            mMaxTxTableSize;
++    //stlInt32            mBlockSize;
++    stlInt32            mLogCountPerBlock;
++    knlLatch            mLatch;           /**< latch for global latch for gtx log */
++} clgGlobalTxLogfileHdr;
++
++/**
++ * @brief Global Transaction Log Information
++ */
++typedef struct clgGlobalTxLogInfo
++{
++    knlLatch            mLatch;           /**< latch for update gtx log slot */
++    stlInt32            mSlotId;          /**< Log slot Idx */
++    stlInt16            mState;           /**< global transaction state */
++    stlInt16            mAdvice;          /**< advice for indoubt transaction (0:commit, 1:rollback) */
++    smlGlobalTransId    mGlobalTxId;      /**< global transaction id */
++} clgGlobalTxLogInfo;
++
++#define CLG_INIT_GTX_LOG_SLOT(aLog, aIdx)                   \
++    {                                                       \
++        (aLog)->mSlotId = aIdx;                             \
++        (aLog)->mState = CLL_STATE_IDLE;                    \
++        (aLog)->mAdvice = 0;                                \
++        (aLog)->mGlobalTxId.mMemberPos = -1;                \
++        (aLog)->mGlobalTxId.mMemberId = -1;                 \
++        (aLog)->mGlobalTxId.mTransId = SML_INVALID_TRANSID; \
++    }
++
++#define CLG_MAX_TX_TABLE_SIZE  ( KNL_PROPERTY_MAX( KNL_PROPERTY_TRANSACTION_TABLE_SIZE ) )
++#define CLG_BLOCK_SIZE         STL_DIRECT_IO_DEFAULT_BLOCKSIZE
++#define CLG_LOG_START          ( gClgWarmupEntry->mGlobalTransLog + CLG_BLOCK_SIZE )
++
++#define CLG_IS_EQUAL_GTXID( aGtxId1, aGtxId2 )                          \
++    ( ((aGtxId1.mMemberID == aGtxId2.mMemberId) &&                      \
++       (aGtxId1.mTransId  == aGtxId2.mTransId)) ? STL_TRUE : STL_FALSE )
++
++#define CLG_IS_PREPARED_GTX( aLogSlot )                                 \
++    ( ((aLogSlot->mGlobalTxId.mTransId != SML_INVALID_TRANSID) &&       \
++       (aLogSlot->mState == CLL_STATE_PREPARE)) ? STL_TRUE : STL_FALSE )
++
++#define CLG_GET_NEXT_GTX_SLOT( aSlotId, aMaxSlot ) \
++    (  ( (aSlotId + 1) > aMaxSlot ) ? 0 : (aSlotId + 1) )
++
++#define CLG_NEXT_LOG_SLOT( aIdx )                                       \
++    ( (clgGlobalTxLogInfo *)(CLG_LOG_START + (CLG_BLOCK_SIZE * aIdx)) )
++
++#define CLG_GTX_LOGFILE_SIZE ( (CLG_MAX_TX_TABLE_SIZE + 1) * CLG_BLOCK_SIZE )
++
++
+ /** @} */
+ 
+ /**
+Index: layer/Cluster/dev/src/include/clgGlobalTxLogfile.h
+===================================================================
+--- layer/Cluster/dev/src/include/clgGlobalTxLogfile.h	(리비전 0)
++++ layer/Cluster/dev/src/include/clgGlobalTxLogfile.h	(작업 사본)
+@@ -0,0 +1,61 @@
++/*******************************************************************************
++ * clgGlobalTxLogfile.h
++ *
++ * Copyright (c) 2011, SUNJESOFT Inc.
++ *
++ *
++ * IDENTIFICATION & REVISION
++ *        $Id$
++ *
++ * NOTES
++ *    
++ *
++ ******************************************************************************/
++
++
++#ifndef _CLG_GLOBALTXLOGFILE_H_
++#define _CLG_GLOBALTXLOGFILE_H_ 1
++
++/**
++ * @file clgGlobalTxLogfile.h
++ * @brief Cluster Layer Global Transaction Logfile Internal Routines
++ */
++
++/**
++ * @defgroup clgGlobalTransLogfile Cluter Transaction Failover
++ * @ingroup clg
++ * @{
++ */
++
++stlStatus clgCreateGlobalTxLogfile( stlChar  * aLogFileName,
++                                    cllEnv   * aEnv );
++
++stlStatus clgLoadGlobalTransLogFile( cllEnv * aEnv );
++
++stlStatus clgUpdateGlobalTrans( smlGlobalTransId    aGlobalTxId,
++                                cllGlobalTxAttr   * aAttr,
++                                cllEnv            * aEnv );
++
++stlStatus clgAllocGlobalTxLogSlot( smlGlobalTransId    aGlobalTxId,
++                                   stlInt32            aState,
++                                   cllEnv            * aEnv );
++
++stlStatus clgFindGlobalTxSlot( smlGlobalTransId    aGlobalTxId,
++                               stlBool           * aFound,
++                               stlInt16          * aState,
++                               cllEnv            * aEnv );
++
++stlBool clgIsPreparedTrans( smlGlobalTransId     aGlobalTxId,
++                            cllEnv             * aEnv );
++
++stlStatus clgFetchFirstPreparedGlobalTrans( smlGlobalTransId  * aGlobalTxId,
++                                            stlInt32          * aSlotId,
++                                            cllEnv            * aEnv );
++
++stlStatus clgFetchNextPreparedGlobalTrans( smlGlobalTransId  * aGlobalTxId,
++                                           stlInt32          * aSlotId,
++                                           cllEnv            * aEnv );
++
++/** @} */
++    
++#endif /* _CLG_GLOBALTXLOGFILE_H_ */
+Index: layer/Cluster/dev/src/include/clpMarshallCommand.h
+===================================================================
+--- layer/Cluster/dev/src/include/clpMarshallCommand.h	(리비전 19371)
++++ layer/Cluster/dev/src/include/clpMarshallCommand.h	(작업 사본)
+@@ -367,6 +367,12 @@
+                                   cllTargetInfo   * aTargetInfo,
+                                   cllEnv          * aEnv );
+ 
++stlStatus clpMarshallCommandRecoverTest( cllCursor       * aCursor,
++                                         cllExecutor     * aExecutor,
++                                         cllCommandArgs  * aCommandArgs,
++                                         cllTargetInfo   * aTargetInfo,
++                                         cllEnv          * aEnv );
++
+ /** @} */
+     
+ #endif /* _CLPMARSHALLCOMMAND_H_ */
+Index: layer/Cluster/dev/src/include/clpUnmarshallCommand.h
+===================================================================
+--- layer/Cluster/dev/src/include/clpUnmarshallCommand.h	(리비전 19371)
++++ layer/Cluster/dev/src/include/clpUnmarshallCommand.h	(작업 사본)
+@@ -230,6 +230,10 @@
+                                     cllCommandArgs  * aCommandArgs,
+                                     cllEnv          * aEnv );
+ 
++stlStatus clpUnmarshallCommandRecoverTest( cllCursor       * aCursor,
++                                           cllCommandArgs  * aCommandArgs,
++                                           cllEnv          * aEnv );
++
+ /** @} */
+     
+ #endif /* _CLPUNMARSHALLCOMMAND_H_ */
+Index: layer/GlieseTool/cdispatcher/dev/src/ztt/zttCDispatcher.c
+===================================================================
+--- layer/GlieseTool/cdispatcher/dev/src/ztt/zttCDispatcher.c	(리비전 19371)
++++ layer/GlieseTool/cdispatcher/dev/src/ztt/zttCDispatcher.c	(작업 사본)
+@@ -498,64 +498,6 @@
+ }
+ 
+ 
+-stlStatus zttReceiveBlocked( sllEnv     * aEnv,
+-                             stlChar    * aBuf,
+-                             stlInt32     aSize,
+-                             stlInt32     aTimeout,
+-                             stlContext * aContext )
+-{
+-    stlInt32        sRecvedSize = 0;
+-    stlSize         sSize = aSize;
+-    stlErrorStack * sErrorStack = KNL_ERROR_STACK( aEnv );
+-    stlInt32        sSigFdNum;
+-
+-    STL_TRY( STL_IS_INVALID_CONTEXT( *aContext ) == STL_FALSE );
+-
+-    while( sRecvedSize < aSize )
+-    {
+-        STL_TRY( stlPoll( &aContext->mPollFd,
+-                          aContext->mUseRDMASocket,
+-                          1,
+-                          &sSigFdNum,
+-                          aTimeout,
+-                          NULL,
+-                          sErrorStack )
+-                 == STL_SUCCESS );
+-
+-        STL_DASSERT( sSigFdNum == 1 );
+-
+-        if( stlRecv( STL_SOCKET_IN_CONTEXT( *aContext ),
+-                     aContext->mUseRDMASocket,
+-                     aBuf + sRecvedSize,
+-                     &sSize,
+-                     NULL,  /* aNeedAgain */
+-                     sErrorStack )
+-            != STL_SUCCESS )
+-        {
+-            if( ( stlGetLastErrorCode( sErrorStack ) == STL_ERRCODE_AGAIN ) ||
+-                ( stlGetLastErrorCode( sErrorStack ) == STL_ERRCODE_EOF ) )
+-            {
+-                (void)stlPopError( sErrorStack );
+-
+-                continue;
+-            }
+-            else
+-            {
+-                STL_TRY( 0 );
+-            }
+-        }
+-
+-        sRecvedSize += sSize;
+-        sSize = aSize - sRecvedSize;
+-    }
+-
+-    return STL_SUCCESS;
+-
+-    STL_FINISH;
+-
+-    return STL_FAILURE;
+-}
+-
+ stlStatus zttAcceptPeer( sllEnv          * aEnv,
+                          zttReceiverEnv  * aRecvEnv,
+                          stlErrorStack   * aErrorStack )
+@@ -616,11 +558,11 @@
+                                    KNL_PROPERTY_CLUSTER_CONNECTION_TIMEOUT_SEC, KNL_ENV(aEnv) ) );
+ 
+     /* accept한 context로부터 접속해온 맴버의 아이디를 얻는다. */
+-    STL_TRY( zttReceiveBlocked( aEnv,
+-                                &sTemp[0],
+-                                ZTT_CONNECT_MESSAGE_LEN,
+-                                sTimeout, /* default timeout: 5 sec */
+-                                &sAcceptContext )
++    STL_TRY( stlRecvBlocked( & sAcceptContext,
++                             & sTemp[0],
++                             ZTT_CONNECT_MESSAGE_LEN,
++                             sTimeout, /* default timeout: 5 sec */
++                             KNL_ERROR_STACK( aEnv ) )
+              == STL_SUCCESS );
+ 
+     sPos = 0;
+Index: layer/GlieseTool/cdispatcher/dev/src/ztt/zttSender.c
+===================================================================
+--- layer/GlieseTool/cdispatcher/dev/src/ztt/zttSender.c	(리비전 19371)
++++ layer/GlieseTool/cdispatcher/dev/src/ztt/zttSender.c	(작업 사본)
+@@ -107,115 +107,7 @@
+     return STL_FAILURE;
+ }
+ 
+-static stlStatus zttSend( sllEnv         * aEnv,
+-                          const stlChar  * aMessage,
+-                          stlInt32         aSize,
+-                          stlInt32       * aRemains,
+-                          stlInt32         aIdx,
+-                          stlContext     * aContext )
+-{
+-    stlSize         sSize;
+-    stlSize         sSentSize;
+-    stlErrorStack * sErrorStack = KNL_ERROR_STACK( aEnv );
+-    knlWeInfo       sWeInfo = KNL_WE_INITIALIZE;
+-    stlBool         sNeedAgain;
+ 
+-    STL_TRY( STL_IS_INVALID_CONTEXT( *aContext ) == STL_FALSE );
+-
+-    knlBeginWaitEvent( &sWeInfo,
+-                       KNL_WE_ID_SEND_CDISPATCHER,
+-                       KNL_WE_NO_PARAM,
+-                       KNL_ENV(aEnv) );
+-
+-    sSentSize = 0;
+-    while( sSentSize < aSize )
+-    {
+-        sNeedAgain = STL_FALSE;
+-        
+-        sSize = aSize - sSentSize;
+-
+-        STL_TRY( stlSend( STL_SOCKET_IN_CONTEXT( *aContext ),
+-                          aContext->mUseRDMASocket,
+-                          (const stlChar *)(aMessage + sSentSize),
+-                          &sSize,
+-                          &sNeedAgain,
+-                          sErrorStack )
+-                 == STL_SUCCESS );
+-
+-        if( sNeedAgain == STL_TRUE )
+-        {
+-            knlEndWaitEvent( &sWeInfo, KNL_WE_RESULT_TIMEOUT, KNL_ENV(aEnv) );
+-            (void)stlPopError( sErrorStack );
+-            break;
+-        }
+-
+-        if( sSize == 0 )
+-        {
+-            break;
+-        }
+-
+-        sSentSize += sSize;
+-    }
+-    knlEndWaitEvent( &sWeInfo, KNL_WE_RESULT_SUCCESS, KNL_ENV(aEnv) );
+-
+-    *aRemains = aSize - sSentSize;
+-
+-    return STL_SUCCESS;
+-
+-    STL_FINISH;
+-
+-    knlEndWaitEvent( &sWeInfo, KNL_WE_RESULT_FAILURE, KNL_ENV(aEnv) );
+-
+-    return STL_FAILURE;
+-}
+-
+-static stlStatus zttSendBlocked( const stlChar  * aMessage,
+-                                 stlInt32         aSize,
+-                                 stlContext     * aContext,
+-                                 stlErrorStack  * aErrorStack )
+-{
+-    stlSize         sSize;
+-    stlSize         sSentSize;
+-    stlBool         sNeedAgain;
+-
+-    STL_TRY( STL_IS_INVALID_CONTEXT( *aContext ) == STL_FALSE );
+-
+-    sSentSize = 0;
+-    while( sSentSize < aSize )
+-    {
+-        sNeedAgain = STL_FALSE;
+-        
+-        sSize = aSize - sSentSize;
+-
+-        STL_TRY( stlSend( STL_SOCKET_IN_CONTEXT( *aContext ),
+-                          aContext->mUseRDMASocket,
+-                          (const stlChar *)(aMessage + sSentSize),
+-                          &sSize,
+-                          &sNeedAgain,
+-                          aErrorStack )
+-                 == STL_SUCCESS );
+-
+-        if( sNeedAgain == STL_TRUE )
+-        {
+-            stlSleep( STL_SET_MSEC_TIME(ZTT_BLOCKED_IO_WAIT_TIME) );
+-            continue;
+-        }
+-
+-        if( sSize == 0 )
+-        {
+-            stlSleep( STL_SET_MSEC_TIME(ZTT_BLOCKED_IO_WAIT_TIME) );
+-        }
+-
+-        sSentSize += sSize;
+-    }
+-
+-    return STL_SUCCESS;
+-
+-    STL_FINISH;
+-
+-    return STL_FAILURE;
+-}
+-
+ static void zttClearSendBuffer( zttSenderPeerContext * aPeerContext,
+                                 sllEnv               * aEnv )
+ {
+@@ -499,12 +391,11 @@
+     {
+         sSendSize = aContext->mCurSend->mWritePos - aContext->mSendPos;
+         
+-        STL_TRY_THROW( zttSend( aEnv,
+-                                &(aContext->mCurSend->mBuf[aContext->mSendPos]),
+-                                sSendSize,
+-                                &sRemains,
+-                                aIdx,
+-                                aContext->mStlContext ) == STL_SUCCESS,
++        STL_TRY_THROW( stlSendNonBlocked( aContext->mStlContext,
++                                          &(aContext->mCurSend->mBuf[aContext->mSendPos]),
++                                          sSendSize,
++                                          &sRemains,
++                                          KNL_ERROR_STACK( aEnv ) ) == STL_SUCCESS,
+                        RAMP_ERR_SEND_FAILURE );
+ 
+         aSendEnv->mDispatcher->mBytes += ( sSendSize - sRemains );
+@@ -1654,9 +1545,9 @@
+ 
+     STL_DASSERT( sPos == ZTT_CONNECT_MESSAGE_LEN );
+ 
+-    STL_TRY( zttSendBlocked( sBuf,
++    STL_TRY( stlSendBlocked( sStlContext,
++                             sBuf,
+                              sPos,
+-                             sStlContext,
+                              KNL_ERROR_STACK( aEnv ) )
+              == STL_SUCCESS );
+ 
+Index: layer/GlieseTool/gcreatedb/dev/src/gcreatedb.c
+===================================================================
+--- layer/GlieseTool/gcreatedb/dev/src/gcreatedb.c	(리비전 19371)
++++ layer/GlieseTool/gcreatedb/dev/src/gcreatedb.c	(작업 사본)
+@@ -719,6 +719,8 @@
+     stlBool                     sTimeZoneWithInfo = STL_FALSE;
+     cllLocationAttr             sLocationAttr;
+     stlChar                   * sMemberName;
++    stlChar                     sLogDir[KNL_PROPERTY_STRING_MAX_LENGTH];
++    stlChar                     sGtxFile[KNL_PROPERTY_STRING_MAX_LENGTH];
+     
+     STL_TRY( qllInitialize() == STL_SUCCESS );
+ 
+@@ -948,6 +950,20 @@
+         STL_TRY( cllCreateLocationFile( &sLocationAttr,
+                                         CLL_ENV(sEnv) )
+                  == STL_SUCCESS );
++
++        STL_TRY( knlGetPropertyValueByID( KNL_PROPERTY_LOG_DIR,
++                                          sLogDir,
++                                          KNL_ENV( sEnv ) )
++                 == STL_SUCCESS );
++
++        stlSnprintf( sGtxFile,
++                     STL_MAX_FILE_PATH_LENGTH,
++                     "%s" STL_PATH_SEPARATOR "globaltx.log",
++                     sLogDir );
++
++        STL_TRY( cllCreateGlobalTxLogfile( sGtxFile,
++                                           CLL_ENV( sEnv ) )
++                 == STL_SUCCESS );
+     }
+ 
+     STL_TRY( ztbStartup( KNL_STARTUP_PHASE_LOCAL_MOUNT,
+Index: layer/GlieseTool/gmaster/dev/src/include/ztmDef.h
+===================================================================
+--- layer/GlieseTool/gmaster/dev/src/include/ztmDef.h	(리비전 19371)
++++ layer/GlieseTool/gmaster/dev/src/include/ztmDef.h	(작업 사본)
+@@ -78,6 +78,7 @@
+ typedef struct ztmEnv
+ {
+     sslEnv                  mEnv;               /**< Session Environment */
++    knlDynamicMem           mOperationDynamicMem;
+ } ztmEnv;
+ 
+ typedef struct ztmSessionEnv
+@@ -155,6 +156,98 @@
+ #define ZTM_THREAD_NAME_PROCESS_MONITOR     "monitor"
+ #define ZTM_THREAD_NAME_FAILOVER            "failover"
+ 
++
++/**
++ * @brief Peer GRT(Global Recovery Thread)와의 Socket 통신 관리
++ */
++
++#define ZTMT_BUF_LEN                       ( 32 * 1024 )
++#define ZTMT_MAX_HEADER_LEN                ( 64 )
++#define ZTMT_CONNECT_MSG_LEN               ( 8 )
++#define ZTMT_DEFAULT_DEQUEUE_TIMEOUT_USEC  ( 100 )  /**< 100 us */
++#define ZTMT_INVALID_MEMBER_POS            ( -1 )
++
++typedef struct ztmtContext
++{
++    stlInt32            mMemberPos;   /**< Peer member position */
++    stlContext          mStlContext;  /**< Socket Context */
++    cllQueueItem        mItem;        /**< Peer 로부터 수신한 data 를 Queue Item 으로 Marshalling */
++
++    stlChar             mBuf[ZTMT_BUF_LEN];
++    stlInt32            mPos;         /**< Position for read / write */ 
++} ztmtContext;
++
++typedef struct ztmtContextEnv
++{
++    stlBool             mConnected;   /**< Connected or Not */
++    ztmtContext       * mCnxt;        /**< Ptr to Peer Context */
++} ztmtContextEnv;
++
++/**
++ * @brief Local 에서 Remote 로 Connect 하면 Active Context,
++ *        Remote 에서 Local 방향으로 Connect 하면 Passive Context.
++ */
++typedef struct ztmtNetworkEnv
++{
++    ztmtContextEnv   * mActiveCnxtEnv;  /**< Ptr to Active Context Env Array */
++    ztmtContextEnv   * mPassiveCnxtEnv; /**< Ptr to Passive Context Env Array */
++} ztmtNetworkEnv;
++
++
++#define ZTMT_ACTIVE_CNXT_ENV( aMemberPos )         ( gZtmtNetworkEnv.mActiveCnxtEnv[aMemberPos] )
++#define ZTMT_PASSIVE_CNXT_ENV( aMemberPos )        ( gZtmtNetworkEnv.mPassiveCnxtEnv[aMemberPos] )
++
++#define ZTMT_ACTIVE_CNXT( aMemberPos )             ( ZTMT_ACTIVE_CNXT_ENV(aMemberPos).mCnxt )
++#define ZTMT_PASSIVE_CNXT( aMemberPos )            ( ZTMT_PASSIVE_CNXT_ENV(aMemberPos).mCnxt )
++
++#define ZTMT_ADD_ACTIVE_CNXT( aMemberPos, aCnxt )  { ZTMT_ACTIVE_CNXT(aMemberPos) = aCnxt; }
++#define ZTMT_ADD_PASSIVE_CNXT( aMemberPos, aCnxt ) { ZTMT_PASSIVE_CNXT(aMemberPos) = aCnxt; }
++
++#define ZTMT_SET_ACTIVE_CONNECTED( aMemberPos )                 \
++    {                                                           \
++        ZTMT_ACTIVE_CNXT_ENV(aMemberPos).mConnected = STL_TRUE; \
++    }
++
++#define ZTMT_SET_PASSIVE_CONNECTED( aMemberPos )                    \
++    {                                                               \
++        ZTMT_PASSIVE_CNXT_ENV(aMemberPos).mConnected = STL_TRUE;    \
++    }
++
++#define ZTMT_INIT_CNXT( aCnxt )                         \
++    {                                                   \
++        aCnxt->mMemberPos = ELL_DICT_POSITION_NA;       \
++        aCnxt->mPos  = 0;                               \
++        STL_INVALIDATE_CONTEXT( aCnxt->mStlContext );   \
++    }
++
++#define ZTMT_INIT_ACTIVE_CNXT_ENV( aMemberPos )                     \
++    {                                                               \
++        ZTMT_ACTIVE_CNXT_ENV(aMemberPos).mConnected = STL_FALSE;    \
++        ZTMT_ACTIVE_CNXT_ENV(aMemberPos).mCnxt = NULL;              \
++    }
++
++#define ZTMT_INIT_PASSIVE_CNXT_ENV( aMemberPos )                    \
++    {                                                               \
++        ZTMT_PASSIVE_CNXT_ENV(aMemberPos).mConnected = STL_FALSE;   \
++        ZTMT_PASSIVE_CNXT_ENV(aMemberPos).mCnxt = NULL;             \
++    }
++
++#define ZTMT_INIT_ACTIVE_CNXT( aMemberPos )                                 \
++    {                                                                       \
++        STL_DASSERT( ZTMT_ACTIVE_CNXT( aMemberPos ) != NULL );              \
++        ZTMT_ACTIVE_CNXT(aMemberPos)->mMemberPos = ELL_DICT_POSITION_NA;    \
++        ZTMT_ACTIVE_CNXT(aMemberPos)->mPos  = 0;                            \
++        STL_INVALIDATE_CONTEXT( ZTMT_ACTIVE_CNXT(aMemberPos)->mStlContext); \
++    }
++
++#define ZTMT_INIT_PASSIVE_CNXT( aMemberPos )                                 \
++    {                                                                        \
++        STL_DASSERT( ZTMT_PASSIVE_CNXT( aMemberPos ) != NULL );              \
++        ZTMT_PASSIVE_CNXT(aMemberPos)->mMemberPos = ELL_DICT_POSITION_NA;    \
++        ZTMT_PASSIVE_CNXT(aMemberPos)->mMemberPos = 0;                       \
++        STL_INVALIDATE_CONTEXT( ZTMT_PASSIVE_CNXT(aMemberPos)->mStlContext); \
++    }
++
+ typedef struct ztmtCommandArgs
+ {
+     void * mArg1;
+Index: layer/GlieseTool/gmaster/dev/src/include/ztmt.h
+===================================================================
+--- layer/GlieseTool/gmaster/dev/src/include/ztmt.h	(리비전 19371)
++++ layer/GlieseTool/gmaster/dev/src/include/ztmt.h	(작업 사본)
+@@ -57,9 +57,35 @@
+ stlStatus ztmtStopClusterRecoverThread( ztmEnv * aEnv );
+ stlStatus ztmtInitializeClusterRecover( ztmEnv * aEnv );
+ 
++stlStatus ztmtAcceptPeer( ztmEnv * aEnv );
++void ztmtFinalizeContext( ztmtContext   * aContext,
++                          ztmEnv        * aEnv );
++stlStatus ztmtConnectToPeer( stlInt32     aMyMemberPos,
++                             stlInt32     aPeerMemberPos,
++                             stlChar    * aPeerAddress,
++                             stlInt32     aPeerPortNo,
++                             stlBool      aLeading,
++                             ztmEnv     * aEnv );
++stlInt64 ztmtGetPolicyTimeout( stlUInt64   aLastTime,
++                               ztmEnv    * aEnv );
++stlStatus ztmtProcessRemoteMessage( ztmtContext * aContext,
++                                    ztmEnv      * aEnv );
++stlStatus ztmtProcessLocalMessage( cllQueueItem  * sItem,
++                                   ztmEnv        * aEnv );
+ stlStatus ztmtClusterRecoverTest( ztmtCommandArgs * aCommandArgs,
+                                   ztmEnv          * aEnv );
+-
++stlStatus ztmtConnectGlobalRecoveryMember( ztmtCommandArgs * aCommandArgs,
++                                           ztmEnv          * aEnv );
++stlStatus ztmtCheckRecoveredNode( ztmtCommandArgs * aCommandArgs,
++                                  ztmEnv          * aEnv );
++stlStatus ztmtGetMaxScn( ztmtCommandArgs * aCommandArgs,
++                         ztmEnv          * aEnv );
++stlStatus ztmtRecoverInDoubtGlobalTx( ztmtCommandArgs * aCommandArgs,
++                                      ztmEnv          * aEnv );
++stlStatus ztmtQueryAdviceInDoubtGTx( ztmtCommandArgs * aCommandArgs,
++                                     ztmEnv          * aEnv );
++stlStatus ztmtInvalidateShardTarget( ztmtCommandArgs * aCommandArgs,
++                                     ztmEnv          * aEnv );
+ /*
+  * Cleanup
+  */
+Index: layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusteRecoverFunc.c
+===================================================================
+--- layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusteRecoverFunc.c	(리비전 19371)
++++ layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusteRecoverFunc.c	(작업 사본)
+@@ -1,114 +0,0 @@
+-/*******************************************************************************
+- * ztmtClusterRecover.c
+- *
+- * Copyright (c) 2011, SUNJESOFT Inc.
+- *
+- *
+- * IDENTIFICATION & REVISION
+- *        $Id: ztmtClusterRecover.c 4391 2012-04-23 09:12:02Z leekmo $
+- *
+- * NOTES
+- *    
+- *
+- ******************************************************************************/
+-
+-/**
+- * @file ztmtClusterRecover.c
+- * @brief Gliese Master Cluster Recover Routines
+- */
+-
+-#include <stl.h>
+-#include <knl.h>
+-#include <scl.h>
+-#include <sml.h>
+-#include <ell.h>
+-#include <qll.h>
+-#include <ssl.h>
+-#include <ztmDef.h>
+-#include <ztmt.h>
+-
+-ztmtClusterRecoverCommandFunc gZtmtClusterRecoverCommandFunc[CLL_COMMAND_MAX + 1] =
+-{
+-    NULL,        /* 0   CLL_COMMAND_NONE */
+-    NULL,        /* 1   CLL_COMMAND_SELECT */
+-    NULL,        /* 2   CLL_COMMAND_NON_SELECT */
+-    NULL,        /* 3   CLL_COMMAND_NON_SELECT */
+-    NULL,        /* 4   CLL_COMMAND_PREPARE */
+-    NULL,        /* 5   CLL_COMMAND_COMMIT */
+-    NULL,        /* 6   CLL_COMMAND_FREE_EXECUTOR */
+-    NULL,        /* 7   CLL_COMMAND_DISCONNECT */
+-    NULL,        /* 8   CLL_COMMAND_CLEANUP_SESSION */
+-    NULL,        /* 9   CLL_COMMAND_FETCH */
+-    NULL,        /* 10  CLL_COMMAND_CLOSE_CURSOR */
+-    NULL,        /* 11  CLL_COMMAND_CLUSTER_LOCK */
+-    NULL,        /* 12  CLL_COMMAND_CHECK_NEW_MEMBER */
+-    NULL,        /* 13  CLL_COMMAND_CHECK_READY_MEMBER */
+-    NULL,        /* 14  CLL_COMMAND_CHECK_DB_COMP */
+-    NULL,        /* 15  CLL_COMMAND_BUILD_SPACE_MAP */
+-    NULL,        /* 16  CLL_COMMAND_SYNC_SPACE_INFO */
+-    NULL,        /* 17  CLL_COMMAND_CHECK_SPACE_MAP */
+-    NULL,        /* 18  CLL_COMMAND_SYNC_CLEANUP */
+-    NULL,        /* 19  CLL_COMMAND_SYNC_META_ROW_CTRL */
+-    NULL,        /* 20  CLL_COMMAND_SYNC_META_ROW */
+-    NULL,        /* 21  CLL_COMMAND_SYNC_LOCAL_MEMBER */
+-    NULL,        /* 22  CLL_COMMAND_SYNC_TRUNCATE_LOCATION */
+-    NULL,        /* 23  CLL_COMMAND_SYNC_LOCATION_ROW */
+-    NULL,        /* 24  CLL_COMMAND_SYNC_END */
+-    NULL,        /* 25  CLL_COMMAND_ROLLBACK_STATEMENT */
+-    NULL,        /* 26  CLL_COMMAND_MARK_SAVEPOINT */
+-    NULL,        /* 27  CLL_COMMAND_RELEASE_SAVEPOINT */
+-    NULL,        /* 28  CLL_COMMAND_ROLLBACK_SAVEPOINT */
+-    NULL,        /* 29  CLL_COMMAND_ROLLBACK_SAVEPOINT */
+-    NULL,        /* 30  CLL_COMMAND_START_REBALANCE */
+-    NULL,        /* 31  CLL_COMMAND_PREPARE_SHARD */
+-    NULL,        /* 32  CLL_COMMAND_SYNC_SHARD */
+-    NULL,        /* 33  CLL_COMMAND_REPLAY_JOURNAL */
+-    NULL,        /* 34  CLL_COMMAND_SYNC_SHARD_RECORD_CTRL */
+-    NULL,        /* 35  CLL_COMMAND_SYNC_SHARD_RECORD */
+-    NULL,        /* 36  CLL_COMMAND_REPLAY_JOURNAL_RECORD_CTRL */
+-    NULL,        /* 37  CLL_COMMAND_REPLAY_JOURNAL_RECORD */
+-    NULL,        /* 38  CLL_COMMAND_PREPARE_REBALANCE_PHYATTR */
+-    NULL,        /* 39  CLL_COMMAND_FETCH_SHARD_CTRL */
+-    NULL,        /* 40  CLL_COMMAND_FETCH_SHARD */
+-    NULL,        /* 41  CLL_COMMAND_FETCH_JOURNAL_CTRL */
+-    NULL,        /* 42  CLL_COMMAND_FETCH_JOURNAL */
+-    NULL,        /* 43  CLL_COMMAND_END_REBALANCE */
+-    NULL,        /* 44  CLL_COMMAND_SYNC_SESSION_PROPERTY */
+-    NULL,        /* 45  CLL_COMMAND_COORDINATE_COMMIT */
+-    NULL,        /* 46  CLL_COMMAND_FETCH_COORDINATOR */
+-    NULL,        /* 47  CLL_COMMAND_SYNC_COORDINATOR */
+-    NULL,        /* 48  CLL_COMMAND_CANCEL_QUERY */
+-    NULL,        /* 49  CLL_COMMAND_CHECK_DB_COMP */
+-    NULL,        /* 50  CLL_COMMAND_GET_SYSTEM_INFO */
+-    NULL,        /* 51  CLL_COMMAND_STAT_TABLE */
+-    NULL,        /* 52  CLL_COMMAND_STAT_TABLE */
+-    NULL,        /* 53  CLL_COMMAND_STAT_COLUMN */
+-    NULL,        /* 54  CLL_COMMAND_STAT_INDEX */
+-    NULL,        /* 55  CLL_COMMAND_STAT_GROUP_TABLE */
+-    NULL,        /* 56  CLL_COMMAND_STAT_GROUP_COLUMN */
+-    NULL,        /* 57  CLL_COMMAND_STAT_GROUP_INDEX */
+-    NULL,        /* 58  CLL_COMMAND_STAT_REFINE_CACHE */
+-    NULL,        /* 59  CLL_COMMAND_COORDINATOR_FAILOVER */
+-    NULL,        /* 60  CLL_COMMAND_GET_FAILOVER_INFO */
+-    NULL,        /* 61  CLL_COMMAND_SEQ_GLOBAL_LOCK_N_QUERY */
+-    NULL,        /* 62  CLL_COMMAND_SEQ_SYNC_GLOBAL_CACHE */
+-    NULL,        /* 63  CLL_COMMAND_SEQ_GLOBAL_UNLOCK */
+-    NULL,        /* 64  CLL_COMMAND_SET_GLOBAL_WFG */
+-    NULL,        /* 65  CLL_COMMAND_PROBE_GLOBAL_EDGE */
+-    NULL,        /* 66  CLL_COMMAND_CONNECT_MEMBER */
+-    NULL,        /* 67  CLL_COMMAND_DISCONNECT_MEMBER */
+-    NULL,        /* 68  CLL_COMMAND_LOOPBACK_AGER */
+-    NULL,        /* 69  CLL_COMMAND_GET_FAILOVER_GLOBAL_SCN */
+-    NULL,        /* 70  CLL_COMMAND_FAILOVER_COMMIT */
+-    NULL,        /* 71  CLL_COMMAND_FAILOVER_LOCK */
+-    NULL,        /* 72  CLL_COMMAND_PING */
+-    ztmtClusterRecoverTest,      /* 73  CLL_COMMAND_CLUSTER_RECOVER_TEST */
+-    NULL         /* 74  CLL_COMMAND_MAX */
+-};
+-
+-
+-stlStatus ztmtClusterRecoverTest( ztmtCommandArgs * aCommandArgs,
+-                                  ztmEnv          * aEnv )
+-{
+-    return STL_SUCCESS;
+-}
+Index: layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusterRecover.c
+===================================================================
+--- layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusterRecover.c	(리비전 19371)
++++ layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusterRecover.c	(작업 사본)
+@@ -27,14 +27,24 @@
+ #include <ztmDef.h>
+ #include <ztmt.h>
+ 
+-ztmThread           gZtmClusterRecoverThread;
+-cllQueue          * gZtmtRequestQueue = NULL;
+-
+ extern ztmWarmupEntry                ** gZtmWarmupEntry;
+ extern ztmtClusterRecoverCommandFunc    gZtmtClusterRecoverCommandFunc[CLL_COMMAND_MAX + 1];
+ 
++ztmThread           gZtmClusterRecoverThread;
++cllQueue          * gZtmtRequestQueue = NULL; /**< Queue for Incoming Request Message */
++stlPollSet          gZtmtGRTPollSet;          /**< Global Recovery Thread Pollset */
++stlContext          gZtmtGRTListenCnxt;       /**< Listen Context */
++stlInt32            gZtmtMyPortNo = 0;        /**< My Listen Port */
++stlChar           * gZtmtMyMemberName;        /**< My Cluster Member Name */
++stlInt32            gZtmtMyMemberPos;         /**< My Cluster Member Position */
++stlInt64            gZtmtMaxMemberCount;      /**< Max Cluster Member Count */
++ztmtNetworkEnv      gZtmtNetworkEnv;          /**< Network Context Management Env */
++stlInt32            gZtmtConnectTimeout;
++stlBool             gZtmtUseRDMASocket = STL_FALSE;
++
+ void * STL_THREAD_FUNC ztmtClusterRecoverThread( stlThread * aThread, void * aArg )
+ {
++    stlInt32          i;
+     stlErrorStack   * sErrorStack = &((ztmThreadArgs *)aArg)->mErrorStack;
+     stlInt32          sState     = 0;
+     ztmEnv          * sEnv;
+@@ -41,6 +51,14 @@
+     ztmSessionEnv   * sSessionEnv;
+     stlProc           sProc;
+     stlChar           sProgram[STL_PATH_MAX];
++    stlInt32          sSigFdNum;
++    stlPollFdEx     * sPollFdEx = NULL;
++    stlBool           sIsTimedOut;
++    stlBool           sIsSuccess = STL_FALSE;
++    cllQueueItem      sItem;
++    stlInterval       sTimeout;
++    stlInt64          sLastRecvTime = 0;
++    stlBool           sRecvedRecently = STL_FALSE;
+ 
+     STL_INIT_ERROR_STACK( sErrorStack );
+ 
+@@ -106,33 +124,81 @@
+ 
+         KNL_CHECK_THREAD_CANCELLATION( KNL_ENV(sEnv) );
+ 
++        sRecvedRecently = STL_FALSE;
++
+         /**
+-         * @todo 주어진 시간 동안 socket에 명령어 대기
++         * Busy 할 경우는 Poll/Deque 에서 기다리지 않는다.
++         * (Local 이든 Remote 이든 자주 수신하면 Busy 하다고 판단)
+          */
++        sTimeout = ztmtGetPolicyTimeout( sLastRecvTime,
++                                         sEnv );
+ 
+-        /* if( 주어진 시간 동안 socket에 명령어 대기 ) */
+-        /* { */
+-        /*     if( Listen socket 이라면 ) */
+-        /*     { */
+-        /*         /\** */
+-        /*          * socket 연결 */
+-        /*          *\/ */
+-        /*     } */
+-        /*     else */
+-        /*     { */
+-        /*         STL_TRY( ztmtProcessRemoteRequest() == STL_SUCCESS ); */
+-        /*     } */
+-        /* } */
++        /**
++         * Remote Request 처리
++         */
++        STL_TRY( stlPollPollSet( & gZtmtGRTPollSet,
++                                 sTimeout,
++                                 & sSigFdNum,
++                                 & sPollFdEx,
++                                 & sIsTimedOut,
++                                 sErrorStack )
++                 == STL_SUCCESS );
+ 
++        if( sIsTimedOut == STL_FALSE )
++        {
++            for( i = 0; i < sSigFdNum; i++ )
++            {
++                if( sPollFdEx[i].mUserContext == &gZtmtGRTListenCnxt )
++                {
++                    if( ztmtAcceptPeer( sEnv ) != STL_SUCCESS )
++                    {
++                        while( stlPopError( sErrorStack ) != NULL )
++                        {
++                        }
++                    }
++                }
++                else
++                {
++                    sLastRecvTime = knlGetSystemTime();
++                    sRecvedRecently = STL_TRUE;
++
++                    STL_TRY( ztmtProcessRemoteMessage( (ztmtContext *)sPollFdEx[i].mUserContext,
++                                                       sEnv )
++                             == STL_SUCCESS );
++                }
++            }
++        }
++
+         /**
+-         * @todo 주어진 시간 동안 queue에 명령어 대기
++         * 직전 Busy 하지 않았을 때 결정된 Timeout이 Deque 까지
++         * 영향을 미치지 않도록 Poll 에서 수신하면 Timeout 을
++         * 다시 계산한다.
+          */
++        if( sRecvedRecently == STL_TRUE )
++        {
++            sTimeout = ztmtGetPolicyTimeout( sLastRecvTime,
++                                             sEnv );
++        }
+ 
+-        /* if( 주어진 시간 동안 queue에 대기 ) */
+-        /* { */
+-        /*     STL_TRY( ztmtProcessLocalRequest() == STL_SUCCESS ); */
+-        /* } */
++        /**
++         * Local Request 처리
++         */
++        STL_TRY( cllDequeue( gZtmtRequestQueue,
++                             & sItem,
++                             sTimeout,
++                             & sIsSuccess,
++                             CLL_ENV( sEnv ) )
++                 == STL_SUCCESS );
+ 
++        if( sIsSuccess == STL_TRUE )
++        {
++            sLastRecvTime = knlGetSystemTime();
++
++            STL_TRY( ztmtProcessLocalMessage( & sItem,
++                                              sEnv )
++                     == STL_SUCCESS );
++        }
++
+         stlSleep( STL_SET_SEC_TIME( 1 ) );
+     }
+ 
+@@ -226,8 +292,62 @@
+     return STL_FAILURE;
+ }
+ 
+-stlStatus ztmtInitializeClusterRecover( ztmEnv * aEnv )
++stlStatus ztmtSetupPollSet( ztmEnv * aEnv )
+ {
++    stlPollFdEx  sPollFdEx;
++
++    if( knlGetPropertyBigIntValueByID( KNL_PROPERTY_CLUSTER_CONNECTION,
++                                       KNL_ENV(aEnv) )
++        == CLL_CLUSTER_CONNECTION_RDMA )
++    {
++        gZtmtUseRDMASocket = STL_TRUE;
++    }
++
++    STL_TRY( stlCreatePollSet( gZtmtUseRDMASocket,
++                               & gZtmtGRTPollSet,
++                               1, /* listen socket */
++                               KNL_ERROR_STACK( aEnv ) ) == STL_SUCCESS );
++
++    STL_TRY( stlInitializeContext( & gZtmtGRTListenCnxt,
++                                   gZtmtUseRDMASocket,
++                                   STL_AF_INET,
++                                   STL_SOCK_STREAM,
++                                   0,
++                                   STL_TRUE,  /* Listen */
++                                   STL_DEFAULT_BACKLOG,
++                                   "0.0.0.0",
++                                   gZtmtMyPortNo,
++                                   KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    sPollFdEx.mPollFd = gZtmtGRTListenCnxt.mPollFd;
++    sPollFdEx.mUserContext = &gZtmtGRTListenCnxt;
++
++    STL_TRY( stlAddSockPollSet( & gZtmtGRTPollSet,
++                                & sPollFdEx,
++                                KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++
++/**
++ * @brief 각종 Initialize 작업
++ */
++stlStatus ztmtInitializeClusterRecover( ztmEnv  * aEnv )
++{
++    stlInt32           i;
++    cllLocationAttr    sLocationAttr;
++    stlBool            sExist = STL_FALSE;
++
++    /**
++     * Request queue
++     */
+     cllGetQueuesFromWarmupEntry( 0,
+                                  NULL,
+                                  NULL,
+@@ -236,6 +356,934 @@
+                                  NULL,
+                                  NULL,
+                                  & gZtmtRequestQueue );
++
++    /**
++     * Listen Socket 준비
++     */
++    gZtmtMyMemberName = smlGetLocalMemberName();
++    gZtmtMyMemberPos  = knlGetLocalMemberPosition();  /* @todo smlGetLocalMemberPosition() */
++
++    STL_TRY( cllFindLocation( gZtmtMyMemberName,
++                              & sLocationAttr,
++                              & sExist,
++                              CLL_ENV(aEnv) )
++             == STL_SUCCESS );
++
++    STL_TRY_THROW( sExist == STL_TRUE, RAMP_LOCATION_NOT_FOUND );
++
++    gZtmtMyPortNo = sLocationAttr.mPort + 100;  /**< @todo */
++
++
++    STL_TRY( ztmtSetupPollSet( aEnv )== STL_SUCCESS );
++
++
++    /**
++     * Socket Context 관리를 위한 메모리 할당 (pointer array)
++     */
++    gZtmtMaxMemberCount = cllGetMaxMemberCount();
++
++    STL_TRY( knlAllocDynamicMem( & aEnv->mOperationDynamicMem,
++                                 STL_SIZEOF( ztmtContextEnv ) * gZtmtMaxMemberCount,
++                                 (void **)& gZtmtNetworkEnv.mActiveCnxtEnv,  /* active cnxt env */
++                                 KNL_ENV( aEnv ) )
++             == STL_SUCCESS );
++
++    for( i = 0; i < gZtmtMaxMemberCount; i++ )
++    {
++        ZTMT_INIT_ACTIVE_CNXT_ENV( i );
++    }
++
++    STL_TRY( knlAllocDynamicMem( & aEnv->mOperationDynamicMem,
++                                 STL_SIZEOF( ztmtContextEnv ) * gZtmtMaxMemberCount,
++                                 (void **)& gZtmtNetworkEnv.mPassiveCnxtEnv, /* passive cnxt env */
++                                 KNL_ENV( aEnv ) )
++             == STL_SUCCESS );
++
++    for( i = 0; i < gZtmtMaxMemberCount; i++ )
++    {
++        ZTMT_INIT_PASSIVE_CNXT_ENV( i );
++    }
++
++    gZtmtConnectTimeout = STL_SET_SEC_TIME(
++        knlGetPropertyBigIntValueByID( KNL_PROPERTY_CLUSTER_CONNECTION_TIMEOUT_SEC, KNL_ENV(aEnv) ) );
+     
+     return STL_SUCCESS;
++
++    STL_CATCH( RAMP_LOCATION_NOT_FOUND )
++    {
++        stlPushError( STL_ERROR_LEVEL_ABORT,
++                      CLL_ERRCODE_NOT_EXIST_LOCATION_MEMBER,
++                      NULL,
++                      KNL_ERROR_STACK( aEnv ) );
++    }
++
++    STL_FINISH;
++
++    return STL_FAILURE;
+ }
++
++/**
++ * @brief Socket Option 을 설정한다.
++ */
++stlStatus ztmtSetSocketOption( stlContext     * aContext,
++                               ztmEnv         * aEnv )
++{
++    stlInt32        sClusterKeepAliveIdle = 0;
++    stlInt32        sClusterKeepAliveCount = 0;
++    stlInt32        sClusterKeepAliveInterval = 0;
++    stlInt32        sSockBufSize;
++
++    sSockBufSize = knlGetPropertyBigIntValueByID( KNL_PROPERTY_CDISPATCHER_SOCKET_BUFFER_SIZE,
++                                                  KNL_ENV(aEnv) );
++
++    STL_TRY( stlSetSocketOption( STL_SOCKET_IN_CONTEXT(*aContext),
++                                 aContext->mUseRDMASocket,
++                                 STL_SOPT_SO_NONBLOCK,
++                                 STL_YES,
++                                 KNL_ERROR_STACK(aEnv) )
++             == STL_SUCCESS );
++
++    STL_TRY( stlSetSocketOption( STL_SOCKET_IN_CONTEXT(*aContext),
++                                 aContext->mUseRDMASocket,
++                                 STL_SOPT_SO_SNDBUF,
++                                 sSockBufSize,
++                                 KNL_ERROR_STACK(aEnv) )
++             == STL_SUCCESS );
++
++    STL_TRY( stlSetSocketOption( STL_SOCKET_IN_CONTEXT(*aContext),
++                                 aContext->mUseRDMASocket,
++                                 STL_SOPT_SO_RCVBUF,
++                                 sSockBufSize,
++                                 KNL_ERROR_STACK(aEnv) )
++             == STL_SUCCESS );
++
++    STL_TRY( stlSetSocketOption( STL_SOCKET_IN_CONTEXT(*aContext),
++                                 aContext->mUseRDMASocket,
++                                 STL_SOPT_TCP_NODELAY,
++                                 STL_YES,
++                                 KNL_ERROR_STACK(aEnv) )
++             == STL_SUCCESS );
++
++    /**
++     * keepalive option 적용
++     */
++
++    sClusterKeepAliveIdle
++	    = knlGetPropertyBigIntValueAtShmByID( KNL_PROPERTY_CLUSTER_KEEPALIVE_IDLE_TIME );
++    sClusterKeepAliveCount
++        = knlGetPropertyBigIntValueAtShmByID( KNL_PROPERTY_CLUSTER_KEEPALIVE_COUNT );
++    sClusterKeepAliveInterval
++        = knlGetPropertyBigIntValueAtShmByID( KNL_PROPERTY_CLUSTER_KEEPALIVE_INTERVAL );
++
++    STL_TRY( stlSetKeepAliveSocketOptions( aContext,
++                                           sClusterKeepAliveIdle,
++                                           sClusterKeepAliveCount,
++                                           sClusterKeepAliveInterval,
++                                           KNL_ERROR_STACK( aEnv) )
++             == STL_SUCCESS );
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Remote 로부터의 Connect 요청을 Accept 한다.
++ */
++stlStatus ztmtAcceptPeer( ztmEnv * aEnv )
++{
++    stlPollFdEx       sPollFdEx;
++    stlContext        sAcceptContext;
++    stlChar           sTemp[ZTMT_CONNECT_MSG_LEN];
++    stlInt32          sPos;
++    stlInt32          sPeerMemberPos;
++    stlInt32          sMyMemberPos;
++    ztmtContext     * sNewPassiveContext = NULL;
++    stlInt32          sState = 0;
++    
++    /**
++     * Accept
++     */
++    STL_TRY( stlPollContext( & gZtmtGRTListenCnxt,
++                             & sAcceptContext,
++                             0,
++                             KNL_ERROR_STACK( aEnv ) )
++             == STL_FAILURE );
++
++    sState = 1;
++
++    STL_TRY( ztmtSetSocketOption( & sAcceptContext,
++                                  aEnv )
++             == STL_SUCCESS );
++
++    /**
++     * Recv connect information
++     */
++    STL_TRY( stlRecvBlocked( & sAcceptContext,
++                             sTemp,
++                             ZTMT_CONNECT_MSG_LEN,
++                             gZtmtConnectTimeout, /* default : 5 sec */
++                             KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    sPos = 0;
++
++    STL_READ_POS_INT32( sTemp, sPos, sPeerMemberPos );
++    STL_READ_POS_INT32( sTemp, sPos, sMyMemberPos );
++
++    STL_DASSERT( sPos == ZTMT_CONNECT_MSG_LEN );
++
++    /**
++     * @todo  smlGetLocalMemberPosition()
++     */
++    STL_TRY_THROW( sMyMemberPos == knlGetLocalMemberPosition(),
++                   RAMP_MISMATCH_MEMBER_POS );
++
++    STL_TRY_THROW( (sPeerMemberPos > 0) && (sPeerMemberPos < gZtmtMaxMemberCount),
++                   RAMP_MEMBER_POS_RANGE );
++
++    /**
++     * Add new context 
++     */
++    STL_TRY( knlCacheAlignedAllocDynamicMem( & aEnv->mOperationDynamicMem,
++                                             STL_SIZEOF( ztmtContext ),
++                                             (void **)&sNewPassiveContext,
++                                             KNL_ENV(aEnv) )
++             == STL_SUCCESS );
++    sState = 2;
++
++    ZTMT_INIT_CNXT( sNewPassiveContext );
++
++    sNewPassiveContext->mMemberPos = sPeerMemberPos;
++    sNewPassiveContext->mStlContext = sAcceptContext;
++
++    sPollFdEx.mPollFd = sAcceptContext.mPollFd;
++    sPollFdEx.mUserContext = sNewPassiveContext;
++
++    STL_TRY( stlAddSockPollSet( & gZtmtGRTPollSet,
++                                & sPollFdEx,
++                                KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    ZTMT_ADD_PASSIVE_CNXT( sPeerMemberPos, sNewPassiveContext );
++    ZTMT_SET_PASSIVE_CONNECTED( sPeerMemberPos );
++
++    return STL_SUCCESS;
++
++    STL_CATCH( RAMP_MISMATCH_MEMBER_POS )
++    {
++        stlPushError( STL_ERROR_LEVEL_ABORT,
++                      CLL_ERRCODE_RECOVERY_CONNECT_MISMATCH_MEMBER_POS,
++                      NULL,
++                      KNL_ERROR_STACK( aEnv ),
++                      "my member pos",
++                      sMyMemberPos,
++                      knlGetLocalMemberPosition() );  /**< @todo  smlGetLocalMemberPosition() */
++    }
++
++    STL_CATCH( RAMP_MEMBER_POS_RANGE )
++    {
++        stlPushError( STL_ERROR_LEVEL_ABORT,
++                      CLL_ERRCODE_RECOVERY_CONNECT_MEMBER_POS_RANGE_ERROR,
++                      NULL,
++                      KNL_ERROR_STACK( aEnv ),
++                      "peer member pos",
++                      sPeerMemberPos,
++                      gZtmtMaxMemberCount );
++    }
++
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 2:
++            if( sNewPassiveContext != NULL )
++            {
++                (void)knlCacheAlignedFreeDynamicMem( & aEnv->mOperationDynamicMem,
++                                                     sNewPassiveContext,
++                                                     KNL_ENV( aEnv ) );
++            }
++        case 1:
++            (void)stlFinalizeContext( &sAcceptContext,
++                                      KNL_ERROR_STACK( aEnv ) );
++        default: break;
++    }
++
++    knlLogMsg( NULL,
++               KNL_ENV(aEnv),
++               KNL_LOG_LEVEL_ABORT,
++               "[CLUSTER RECOVER] failed to accept a peer\n",
++               gZtmtMyMemberName );
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief ztmtContext 를 초기화한다.
++ */
++void ztmtFinalizeContext( ztmtContext   * aContext,
++                          ztmEnv        * aEnv )
++{
++    stlContext    * sStlContext = NULL;
++
++    sStlContext = &(aContext->mStlContext);
++
++    if( STL_IS_INVALID_CONTEXT( *sStlContext ) == STL_FALSE )
++    {
++        (void) stlFinalizeContext( sStlContext,
++                                   KNL_ERROR_STACK( aEnv ) );
++    }
++
++    ZTMT_INIT_CNXT( aContext );
++}
++
++/**
++ * @brief aPeerMemberPos 로 Connect 한다.
++ */
++stlStatus ztmtConnectToPeer( stlInt32     aMyMemberPos,
++                             stlInt32     aPeerMemberPos,
++                             stlChar    * aPeerAddress,
++                             stlInt32     aPeerPortNo,
++                             stlBool      aLeading,
++                             ztmEnv     * aEnv )
++{
++    stlChar           sBuf[8];
++    stlInt32          sPos = 0;
++    stlContext        sStlContext;
++    ztmtContext     * sNewActiveContext = NULL;
++    stlInt32          sState = 0;
++    stlPollFdEx       sPollFdEx;
++
++    /**
++     * Init context for connection
++     */
++    STL_TRY( stlInitializeContext( & sStlContext,
++                                   gZtmtUseRDMASocket,
++                                   STL_AF_INET,
++                                   STL_SOCK_STREAM,
++                                   0,
++                                   STL_FALSE,  /* Listen */
++                                   0,
++                                   aPeerAddress,
++                                   aPeerPortNo,
++                                   KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++    sState = 1;
++
++    STL_TRY( ztmtSetSocketOption( & sStlContext,
++                                  aEnv )
++             == STL_SUCCESS );
++
++    STL_TRY( stlConnectContext( & sStlContext,
++                                gZtmtConnectTimeout, /* default : 5 sec */
++                                KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    /**
++     * Send connection information
++     */
++    STL_WRITE_POS_INT32( sBuf, sPos, aMyMemberPos );
++    STL_WRITE_POS_INT32( sBuf, sPos, aPeerMemberPos );
++
++    STL_DASSERT( sPos == ZTMT_CONNECT_MSG_LEN );
++
++    STL_TRY( stlSendBlocked( & sStlContext,
++                             sBuf,
++                             sPos,
++                             KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    /**
++     * Add connected context
++     */
++    if( ZTMT_ACTIVE_CNXT( aPeerMemberPos ) == NULL )
++    {
++        STL_TRY( knlCacheAlignedAllocDynamicMem( & aEnv->mOperationDynamicMem,
++                                                 STL_ALIGN( STL_SIZEOF(ztmtContext), 64 ),
++                                                 (void **)&sNewActiveContext,
++                                                 KNL_ENV( aEnv ) )
++                 == STL_SUCCESS );
++        sState = 2;
++
++        ZTMT_INIT_CNXT( sNewActiveContext );
++    }
++    else
++    {
++        ztmtFinalizeContext( ZTMT_ACTIVE_CNXT( aPeerMemberPos ),
++                             aEnv );
++    }
++
++    sNewActiveContext->mMemberPos = aPeerMemberPos;
++    sNewActiveContext->mStlContext = sStlContext;
++
++    sPollFdEx.mPollFd = sStlContext.mPollFd;
++    sPollFdEx.mUserContext = sNewActiveContext;
++
++    STL_TRY( stlAddSockPollSet( & gZtmtGRTPollSet,
++                                & sPollFdEx,
++                                KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    ZTMT_ADD_ACTIVE_CNXT( aPeerMemberPos, sNewActiveContext );
++    ZTMT_SET_ACTIVE_CONNECTED( aPeerMemberPos );
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    switch( sState )
++    {
++        case 2:
++            if( sNewActiveContext != NULL )
++            {
++                (void)knlCacheAlignedFreeDynamicMem( & aEnv->mOperationDynamicMem,
++                                                     sNewActiveContext,
++                                                     KNL_ENV( aEnv ) );
++            }
++        case 1:
++            (void)stlFinalizeContext( & sStlContext,
++                                      KNL_ERROR_STACK( aEnv ) );
++
++        default: break;
++    }
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief dequeue, poll할 때 사용하는 타임아웃 정책 (micro 초 단위값을 리턴한다.)
++ * @param[in] aLastTime busy하다고 판단하기 위해 마지막 작업 시간을 받는다.
++ * @param[in] aEnv      프로퍼티를 읽을 수 있도록 env를 받는다.
++ */
++stlInt64 ztmtGetPolicyTimeout( stlUInt64   aLastTime,
++                               ztmEnv    * aEnv )
++{
++    static stlUInt64 sLastCalcTime = 0;
++    static stlInt64  sDequeueInterval = 0;
++    stlInt64         sPolicyTimeout = ZTMT_DEFAULT_DEQUEUE_TIMEOUT_USEC;
++    stlUInt64        sCurTime = knlGetSystemTime();
++
++    /**
++     * 100 msec마다 Property 계산
++     */
++    if( sCurTime - sLastCalcTime > 100000 )
++    {
++        if( knlGetPropertyValueByID( KNL_PROPERTY_CDISPATCHER_HOT_POLICY_INTERVAL,
++                                     &sDequeueInterval,
++                                     KNL_ENV( aEnv ) )
++            != STL_SUCCESS )
++        {
++            STL_THROW( RAMP_SUCCESS );
++        }
++
++        sLastCalcTime = sCurTime;
++    }
++
++    /**
++     * Message 를 계속 받는 busy 한 상황에서는
++     * dequeue 에서 바로 리턴하도록 한다.
++     */
++    if( sCurTime - aLastTime < sDequeueInterval )
++    {
++        sPolicyTimeout = 0;
++    }
++    else
++    {
++        sPolicyTimeout = ZTMT_DEFAULT_DEQUEUE_TIMEOUT_USEC;
++    }
++
++    STL_RAMP( RAMP_SUCCESS );
++
++    return sPolicyTimeout; /* micro second */
++}
++
++/**
++ * @brief Socket Message 를 Context Buffer 로 Recv 한다. 
++ */
++stlStatus ztmtRecvMessage( ztmtContext * aContext,
++                           stlInt32    * aPacketSize,
++                           ztmEnv      * aEnv )
++{
++    stlInt32  sPacketSize = 0;
++
++    /**
++     * Recv Packet Size (4 byte)
++     */
++    STL_TRY( stlRecvBlocked( & aContext->mStlContext,
++                             & aContext->mBuf,
++                             STL_SIZEOF( stlInt32 ),
++                             gZtmtConnectTimeout, /* default: 5 sec */
++                             KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    sPacketSize = *(stlInt32 *)(aContext->mBuf);
++
++    STL_DASSERT( sPacketSize > 0 );
++
++    /**
++     * Recv Packet (Header + Body)
++     */
++    STL_TRY( stlRecvBlocked( & aContext->mStlContext,
++                             & (aContext->mBuf + STL_SIZEOF( stlInt32 )),
++                             sPacketSize,
++                             gZtmtConnectTimeout, /* default: 5 sec */
++                             KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    *aPacketSize = sPacketSize;
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Remote Message 처리
++ */
++stlStatus ztmtProcessRemoteMessage( ztmtContext * aContext,
++                                    ztmEnv      * aEnv )
++{
++    stlInt32   sPacketSize = 0;
++    stlInt32   sHeaderSize = 0;
++
++    /**
++     * Queue Item 으로 변환
++     */
++    STL_TRY( ztmtRecvMessage( aContext,
++                              & sPacketSize,
++                              aEnv )
++             == STL_SUCCESS );
++
++    STL_TRY( ztmtReadHeader( aContext,
++                             & sHeaderSize,
++                             aEnv )
++             == STL_SUCCESS );
++
++    if( sPacketSize == sHeaderSize )
++    {
++        aContext->mItem.mData = NULL;
++        aContext->mItem.mDataSize = 0;
++    }
++    else
++    {
++        STL_TRY( ztmtReadBody( aContext,
++                               sPacketSize - sHeaderSize,
++                               aEnv )
++                 == STL_SUCCESS );
++    }
++
++    /**
++     * Item Type 에 따라 Processing
++     */
++    if( aContext->mItem.mItemType == CLL_ITEM_TYPE_REQUEST )
++    {
++    }
++    else if( aContext->mItem.mItemType == CLL_ITEM_TYPE_RESPONSE )
++    {
++    }
++    else
++    {
++        STL_TRY( 0 );
++    }
++        
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Request Queue 에서 수신한 요청을 원격으로 전송한다.
++ */
++stlStatus ztmtProcessLocalMessage( cllQueueItem  * aItem,
++                                   ztmEnv        * aEnv )
++{
++    stlInt32      i;
++    ztmtContext * sPeerContext = NULL;
++
++    STL_TRY( cllValidateQueueItem( & sItem,
++                                   CLL_ENV(aEnv) )
++             == STL_SUCCESS );
++
++    /**
++     * Request 는 항상 Active Context 로 전송
++     */
++    sPeerContext = ZTMT_ACTIVE_CNXT( aItem->mTargetMemberPos );
++
++    if( aItem->mTargetMemberPos != ELL_DICT_POSITION_NA )
++    {
++        STL_TRY( ztmtWriteItem( sPeerContext,
++                                aItem,
++                                aEnv )
++                 == STL_SUCCESS );
++    }
++    else
++    {
++        for( i = 0; i <= aItem->mLastMemberPos; i++ )
++        {
++            if( i == ztmtGetMyMemberPosition() )
++            {
++                continue;  /* skip local */
++            }
++
++            if( CLL_IS_MEMBER_ON( aItem->mMembers, i ) == STL_TRUE )
++            {
++                STL_TRY( ztmtWriteItem( sPeerContext,
++                                        aItem,
++                                        aEnv )
++                         == STL_SUCCESS );
++            }
++        }
++    }
++
++    if( aItem->mPeriod == STL_TRUE )
++    {
++        STL_TRY( cllDiscardQueueData( aItem->mAllocator,
++                                      aItem->mData,
++                                      CLL_ENV(aEnv) )
++                 == STL_SUCCESS );
++    }
++    
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    // @todo Send Response to requester
++
++    return STL_FAILURE;
++}
++
++stlInt32 ztmtGetMyMemberPosition()
++{
++    STL_DASSERT( gZtmtMyMemberPos != ZTMT_INVALID_MEMBER_POS );
++
++    return gZtmtMyMemberPos;
++}
++
++/**
++ * @brief QueueItem 을 변환하여 Peer 에게 전송
++ * @remarks
++ *      Packet Size (4 byte) + Header Size + Data Body
++ */
++stlStatus ztmtWriteItem( ztmtContext  * aPeerContext,
++                         cllQueueItem * aItem,
++                         ztmEnv       * aEnv )
++{
++    stlInt32          sWrittenDataSize;
++    stlInt32          sPacketSize;
++    stlInt32          sHeaderSize = 0;
++    stlChar           sHeaderBuf[ZTMT_MAX_HEADER_LEN];
++
++    switch( aItem->mItemType )
++    {
++        case CLL_ITEM_TYPE_REQUEST :
++            ztmtWriteHeader4Request( sHeaderBuf,
++                                     & sHeaderSize,
++                                     aItem );
++            break;
++        default :
++            STL_DASSERT( 0 );
++    }
++
++    /**
++     * Cluster Recovery 용 Message 는 32 KB Buffer 이내에서 사용.
++     */
++    STL_DASSERT( aItem->mDataSize < (ZTMT_BUF_LEN - sHeaderSize - STL_SIZEOF(stlInt32)) );
++    STL_DASSERT( aPeerContext->mPos == 0 );
++
++    /**
++     * Write Total Packet Size
++     * packet size = (header size + data size)
++     */
++    sPacketSize = sHeaderSize + aItem->mDataSize;
++
++    STL_WRITE_POS_INT32( aPeerContext->mBuf,
++                         aPeerContext->mPos,
++                         sPacketSize );
++
++    /**
++     * Write Header
++     */
++    stlMemcpy( aPeerContext->mBuf[aPeerContext->mPos],
++               sHeaderBuf,
++               sHeaderSize );
++    aPeerContext->mPos += sHeaderSize;
++
++    /**
++     * Write Body
++     */
++    if( aItem->mDataSize > 0 )
++    {
++        STL_TRY( ztmtWriteItemPacket( aPeerContext,
++                                      aItem->mData,
++                                      & sWrittenDataSize,
++                                      aEnv )
++                 == STL_SUCCESS );
++
++        STL_DASSERT( aItem->mDataSize == sWrittenDataSize );
++    }
++
++    /**
++     * Logic 을 단순화하기 위해 Blocked 로 한번에 보낸다.
++     */
++    STL_TRY( stlSendBlocked( & aPeerContext->sStlContext,
++                             aPeerContext->mBuf,
++                             aPeerContext->mPos,
++                             KNL_ERROR_STACK( aEnv ) )
++             == STL_SUCCESS );
++
++    aPeerContext->mPos = 0;
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Network 전송할 Request Header 작성
++ */
++void ztmtWriteHeader4Request( stlInt8        * aBuf,
++                              stlInt32       * aPos,
++                              cllQueueItem   * aItem )
++{
++    stlInt32 sPos = 0;
++    stlInt32 sMyMemberPos = ztmtGetMyMemberPosition();
++
++    STL_WRITE_POS_INT32( aBuf, sPos, aItem->mItemType  );
++    STL_WRITE_POS_INT32( aBuf, sPos, sMyMemberPos );
++    STL_WRITE_POS_INT32( aBuf, sPos, aItem->mSessionID );
++    STL_WRITE_POS_INT64( aBuf, sPos, aItem->mSessionSeq );
++    STL_WRITE_POS_INT64( aBuf, sPos, aItem->mDriverTransId );
++
++    STL_WRITE_POS_INT64( aBuf, sPos, aItem->mAsyncValidSeq );
++    STL_WRITE_POS_INT64( aBuf, sPos, aItem->mResQueueID );
++
++    STL_DASSERT( sPos <= ZTMT_MAX_HEADER_LEN );
++
++    *aPos = sPos;
++}
++
++/**
++ * @brief Message Header Reading -> Queue Item
++ */
++stlStatus ztmtReadHeader( ztmtContext   * aCnxt,
++                          stlInt32      * aHeaderSize,
++                          ztmEnv        * aEnv )
++{
++    aCnxt->mPos = 0;
++    aCnxt->mPos += STL_SIZEOF(stlInt32); /* Skip Packet Size */
++
++    STL_READ_POS_INT32( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mItemType );
++
++    if( aCnxt->mItem.mItemType == CLL_ITEM_TYPE_REQUEST )
++    {
++        STL_READ_POS_INT32( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mTargetMemberPos );
++        STL_READ_POS_INT32( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mSessionID );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mSessionSeq );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mDriverTransId );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mAsyncValidSeq );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mResQueueID );
++    }
++    else if( aCnxt->mItem.mItemType == CLL_ITEM_TYPE_RESPONSE )
++    {
++        aCnxt->mItem.mTargetMemberPos = aCnxt->mMemberPos;
++        STL_READ_POS_INT32( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mSessionID );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mSessionSeq );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mAsyncValidSeq );
++        STL_READ_POS_INT64( aCnxt->mBuf, aCnxt->mPos, aCnxt->mItem.mResQueueID );
++        aCnxt->mItem.mResQueueID = aCnxt->mItem.mSessionID;
++    }
++    else
++    {
++        knlLogMsg( NULL,
++                   KNL_ENV(aEnv),
++                   KNL_LOG_LEVEL_FATAL,
++                   "[CLUSTER RECOVER] invalid item type(%d) from peer(member pos=%d)\n",
++                   aCnxt->mItem.mItemType,
++                   aCnxt->mMemberPos );
++
++        STL_TRY( 0 );
++    }
++
++    *aHeaderSize = aCnxt->mPos - STL_SIZEOF(stlInt32);
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Network 으로 전송하기 위해 Item Packet Data 를
++ *        Peer Context 의 Buffer 로 복사한다.
++ */
++stlStatus ztmtWriteItemPacket( ztmtContext    * aContext,
++                               sclIpcPacket   * aData,
++                               stlInt32       * aWrittenDataSize,
++                               ztmEnv         * aEnv )
++{
++    stlInt32 sSize;
++
++    *aWrittenDataSize = 0;
++
++    while( aData != NULL )
++    {
++        if( aData->mNext == NULL )
++        {
++            sSize = ( CLL_IPC_PACKET_TRANS_PART + aData->mSize );
++        }
++        else
++        {
++            sSize = ( CLL_IPC_PACKET_TRANS_PART + CLL_CLUSTER_CM_UNIT_PAYLOAD_SIZE );
++        }
++
++        stlMemcpy( & aContext->mBuf[aContext->mPos],
++                   ((const stlChar *)aData) + CLL_IPC_PACKET_NO_TRANS_PART,
++                   sSize );
++
++        aContext->mPos += sSize;
++        *aWrittenDataSize += sSize;
++
++        aData = aData->mNext;
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief Message Body Reading -> Queue Item
++ */
++stlStatus ztmtReadBody( ztmtContext    * aCnxt,
++                        stlInt32         aBodySize,
++                        ztmEnv         * aEnv )
++{
++    stlInt32           sSize;
++    sclIpcPacket     * sCurData;
++    sclIpcPacket     * sPrevData = NULL;
++
++    aCnxt->mItem.mAllocator = cllGetPacketAllocator( 0, aCnxt->mItem.mSessionID );
++
++
++    while( aBodySize > 0 )
++    {
++        /**
++         * Item Ipc Packet Data 를 위한 Buffer 할당 및 초기화
++         */
++        sSize = STL_MIN( aBodySize,
++                         CLL_IPC_PACKET_TRANS_PART + CLL_CLUSTER_CM_UNIT_PAYLOAD_SIZE );
++
++        STL_TRY( sclTimedAllocElement( aCnxt->mItem.mAllocator,
++                                       (void**)&sCurData,
++                                       STL_INFINITE_TIME,
++                                       SCL_ENV( aEnv ) )
++                 == STL_SUCCESS );
++
++        sCurData->mNext = NULL;
++
++        if( sPrevData == NULL )
++        {
++            aCnxt->mItem.mData = sCurData;
++            aCnxt->mItem.mDataSize = aBodySize;
++        }
++        else
++        {
++            sPrevData->mNext = sCurData;
++        }
++
++        /**
++         * Read Buffer 의 Data 를 Item Ipc Packet Buffer 로 복사
++         */
++        STL_TRY( ztmtReadItemPacket( aCnxt,
++                                     (stlChar *)sCurData + CLL_IPC_PACKET_NO_TRANS_PART,
++                                     sSize,
++                                     aEnv )
++                 == STL_SUCCESS );
++
++        aBodySize -= sSize;
++
++        sPrevData = sCurData;
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief read buffer 에 저장된 packet data 를
++ *        Item Packet Data 영역에 복사한다.
++ */
++stlStatus ztmtReadItemPacket( ztmtContext   * aCnxt,
++                              stlChar       * aBuf,
++                              stlInt32        aSize,
++                              sllEnv        * aEnv )
++{
++    stlInt32         sRemains = aSize;
++    stlInt32         sSize;
++    zttRecvBufList * sTempBuf;
++
++    while( STL_TRUE )
++    {
++        if( aReadingEnv->mCurRead->mRecvPos == aReadingEnv->mCurRead->mReadPos )
++        {
++            if( aReadingEnv->mCurRead->mNext != NULL )
++            {
++                /**
++                 * Read 를 마친 Read Buffer 는 Free 한다.
++                 */
++                sTempBuf = aReadingEnv->mCurRead;
++                aReadingEnv->mCurRead = aReadingEnv->mCurRead->mNext;
++
++                STL_TRY( knlFreeDynamicMem( & SLL_OPERATION_DYNAMIC_MEM(aEnv),
++                                            (void*)sTempBuf,
++                                            KNL_ENV( aEnv ) )
++                         == STL_SUCCESS );
++
++                aReadingEnv->mAllocedCount--;
++                continue;
++            }
++
++            /* 마지막 read buffer는 free하지 않는다 */
++            STL_DASSERT( aReadingEnv->mCurRead == aReadingEnv->mCurRecv );
++
++            aReadingEnv->mCurRead->mRecvPos = 0;
++            aReadingEnv->mCurRead->mReadPos = 0;
++
++            /* 더 읽을 데이터가 없는데, 아직 읽어야 할 길이가 남아있으면 안된다. */
++            STL_DASSERT( sRemains == 0 );
++        }
++
++        if( sRemains == 0 )
++        {
++            break;
++        }
++
++        sSize = STL_MIN( aReadingEnv->mCurRead->mRecvPos - aReadingEnv->mCurRead->mReadPos, sRemains );
++
++        stlMemcpy( aBuf, &aReadingEnv->mCurRead->mBuf[aReadingEnv->mCurRead->mReadPos], sSize );
++
++        aBuf += sSize;
++        aReadingEnv->mCurRead->mReadPos += sSize;
++        sRemains -= sSize;
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
+Index: layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusterRecoverFunc.c
+===================================================================
+--- layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusterRecoverFunc.c	(리비전 0)
++++ layer/GlieseTool/gmaster/dev/src/ztmt/ztmtClusterRecoverFunc.c	(작업 사본)
+@@ -0,0 +1,158 @@
++/*******************************************************************************
++ * ztmtClusterRecoverFunc.c
++ *
++ * Copyright (c) 2011, SUNJESOFT Inc.
++ *
++ *
++ * IDENTIFICATION & REVISION
++ *        $Id: ztmtClusterRecover.c 4391 2012-04-23 09:12:02Z leekmo $
++ *
++ * NOTES
++ *    
++ *
++ ******************************************************************************/
++
++/**
++ * @file ztmtClusterRecoverFunc.c
++ * @brief Gliese Master Cluster Recover Function Routines
++ */
++
++#include <stl.h>
++#include <knl.h>
++#include <scl.h>
++#include <sml.h>
++#include <ell.h>
++#include <qll.h>
++#include <ssl.h>
++#include <ztmDef.h>
++#include <ztmt.h>
++
++
++ztmtClusterRecoverCommandFunc gZtmtClusterRecoverCommandFunc[CLL_COMMAND_MAX + 1] =
++{
++    NULL,        /* 0   CLL_COMMAND_NONE */
++    NULL,        /* 1   CLL_COMMAND_SELECT */
++    NULL,        /* 2   CLL_COMMAND_NON_SELECT */
++    NULL,        /* 3   CLL_COMMAND_NON_SELECT */
++    NULL,        /* 4   CLL_COMMAND_PREPARE */
++    NULL,        /* 5   CLL_COMMAND_COMMIT */
++    NULL,        /* 6   CLL_COMMAND_FREE_EXECUTOR */
++    NULL,        /* 7   CLL_COMMAND_DISCONNECT */
++    NULL,        /* 8   CLL_COMMAND_CLEANUP_SESSION */
++    NULL,        /* 9   CLL_COMMAND_FETCH */
++    NULL,        /* 10  CLL_COMMAND_CLOSE_CURSOR */
++    NULL,        /* 11  CLL_COMMAND_CLUSTER_LOCK */
++    NULL,        /* 12  CLL_COMMAND_CHECK_NEW_MEMBER */
++    NULL,        /* 13  CLL_COMMAND_CHECK_READY_MEMBER */
++    NULL,        /* 14  CLL_COMMAND_CHECK_DB_COMP */
++    NULL,        /* 15  CLL_COMMAND_BUILD_SPACE_MAP */
++    NULL,        /* 16  CLL_COMMAND_SYNC_SPACE_INFO */
++    NULL,        /* 17  CLL_COMMAND_CHECK_SPACE_MAP */
++    NULL,        /* 18  CLL_COMMAND_SYNC_CLEANUP */
++    NULL,        /* 19  CLL_COMMAND_SYNC_META_ROW_CTRL */
++    NULL,        /* 20  CLL_COMMAND_SYNC_META_ROW */
++    NULL,        /* 21  CLL_COMMAND_SYNC_LOCAL_MEMBER */
++    NULL,        /* 22  CLL_COMMAND_SYNC_TRUNCATE_LOCATION */
++    NULL,        /* 23  CLL_COMMAND_SYNC_LOCATION_ROW */
++    NULL,        /* 24  CLL_COMMAND_SYNC_END */
++    NULL,        /* 25  CLL_COMMAND_ROLLBACK_STATEMENT */
++    NULL,        /* 26  CLL_COMMAND_MARK_SAVEPOINT */
++    NULL,        /* 27  CLL_COMMAND_RELEASE_SAVEPOINT */
++    NULL,        /* 28  CLL_COMMAND_ROLLBACK_SAVEPOINT */
++    NULL,        /* 29  CLL_COMMAND_ROLLBACK_SAVEPOINT */
++    NULL,        /* 30  CLL_COMMAND_START_REBALANCE */
++    NULL,        /* 31  CLL_COMMAND_PREPARE_SHARD */
++    NULL,        /* 32  CLL_COMMAND_SYNC_SHARD */
++    NULL,        /* 33  CLL_COMMAND_REPLAY_JOURNAL */
++    NULL,        /* 34  CLL_COMMAND_SYNC_SHARD_RECORD_CTRL */
++    NULL,        /* 35  CLL_COMMAND_SYNC_SHARD_RECORD */
++    NULL,        /* 36  CLL_COMMAND_REPLAY_JOURNAL_RECORD_CTRL */
++    NULL,        /* 37  CLL_COMMAND_REPLAY_JOURNAL_RECORD */
++    NULL,        /* 38  CLL_COMMAND_PREPARE_REBALANCE_PHYATTR */
++    NULL,        /* 39  CLL_COMMAND_FETCH_SHARD_CTRL */
++    NULL,        /* 40  CLL_COMMAND_FETCH_SHARD */
++    NULL,        /* 41  CLL_COMMAND_FETCH_JOURNAL_CTRL */
++    NULL,        /* 42  CLL_COMMAND_FETCH_JOURNAL */
++    NULL,        /* 43  CLL_COMMAND_END_REBALANCE */
++    NULL,        /* 44  CLL_COMMAND_SYNC_SESSION_PROPERTY */
++    NULL,        /* 45  CLL_COMMAND_COORDINATE_COMMIT */
++    NULL,        /* 46  CLL_COMMAND_FETCH_COORDINATOR */
++    NULL,        /* 47  CLL_COMMAND_SYNC_COORDINATOR */
++    NULL,        /* 48  CLL_COMMAND_CANCEL_QUERY */
++    NULL,        /* 49  CLL_COMMAND_CHECK_DB_COMP */
++    NULL,        /* 50  CLL_COMMAND_GET_SYSTEM_INFO */
++    NULL,        /* 51  CLL_COMMAND_STAT_TABLE */
++    NULL,        /* 52  CLL_COMMAND_STAT_TABLE */
++    NULL,        /* 53  CLL_COMMAND_STAT_COLUMN */
++    NULL,        /* 54  CLL_COMMAND_STAT_INDEX */
++    NULL,        /* 55  CLL_COMMAND_STAT_GROUP_TABLE */
++    NULL,        /* 56  CLL_COMMAND_STAT_GROUP_COLUMN */
++    NULL,        /* 57  CLL_COMMAND_STAT_GROUP_INDEX */
++    NULL,        /* 58  CLL_COMMAND_STAT_REFINE_CACHE */
++    NULL,        /* 59  CLL_COMMAND_COORDINATOR_FAILOVER */
++    NULL,        /* 60  CLL_COMMAND_GET_FAILOVER_INFO */
++    NULL,        /* 61  CLL_COMMAND_SEQ_GLOBAL_LOCK_N_QUERY */
++    NULL,        /* 62  CLL_COMMAND_SEQ_SYNC_GLOBAL_CACHE */
++    NULL,        /* 63  CLL_COMMAND_SEQ_GLOBAL_UNLOCK */
++    NULL,        /* 64  CLL_COMMAND_SET_GLOBAL_WFG */
++    NULL,        /* 65  CLL_COMMAND_PROBE_GLOBAL_EDGE */
++    NULL,        /* 66  CLL_COMMAND_CONNECT_MEMBER */
++    NULL,        /* 67  CLL_COMMAND_DISCONNECT_MEMBER */
++    NULL,        /* 68  CLL_COMMAND_LOOPBACK_AGER */
++    NULL,        /* 69  CLL_COMMAND_GET_FAILOVER_GLOBAL_SCN */
++    NULL,        /* 70  CLL_COMMAND_FAILOVER_COMMIT */
++    NULL,        /* 71  CLL_COMMAND_FAILOVER_LOCK */
++    NULL,        /* 72  CLL_COMMAND_PING */
++    ztmtClusterRecoverTest,            /* 73  CLL_COMMAND_CLUSTER_RECOVER_TEST */
++    ztmtConnectGlobalRecoveryMember,   /* 74  CLL_COMMAND_CONNECT_GLOBAL_RECOVERY_MEMBER */
++    ztmtCheckRecoveredNode,            /* 75  CLL_COMMAND_CHECK_RECOVERED_NODE */
++    ztmtGetMaxScn,                     /* 76  CLL_COMMAND_GET_MAX_SCN */
++    ztmtRecoverInDoubtGlobalTx,        /* 77  CLL_COMMAND_RECOVER_INDOUBT_GLOBAL_TX */
++    ztmtQueryAdviceInDoubtGTx,         /* 78  CLL_COMMAND_QUERY_ADVICE_INDOUBT_GTX */
++    ztmtInvalidateShardTarget,         /* 79  CLL_COMMAND_INVALIDATE_SHARD_TARGET */
++    NULL         /* 79  CLL_COMMAND_MAX */
++};
++
++
++stlStatus ztmtClusterRecoverTest( ztmtCommandArgs * aCommandArgs,
++                                  ztmEnv          * aEnv )
++{
++    // service logic only
++    return STL_SUCCESS;
++}
++
++stlStatus ztmtConnectGlobalRecoveryMember( ztmtCommandArgs * aCommandArgs,
++                                           ztmEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
++
++stlStatus ztmtCheckRecoveredNode( ztmtCommandArgs * aCommandArgs,
++                                  ztmEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
++
++stlStatus ztmtGetMaxScn( ztmtCommandArgs * aCommandArgs,
++                         ztmEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
++
++stlStatus ztmtRecoverInDoubtGlobalTx( ztmtCommandArgs * aCommandArgs,
++                                      ztmEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
++
++stlStatus ztmtQueryAdviceInDoubtGTx( ztmtCommandArgs * aCommandArgs,
++                                     ztmEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
++
++stlStatus ztmtInvalidateShardTarget( ztmtCommandArgs * aCommandArgs,
++                                     ztmEnv          * aEnv )
++{
++    return STL_SUCCESS;
++}
+Index: layer/ServerLibrary/dev/src/slp/slpCluster.c
+===================================================================
+--- layer/ServerLibrary/dev/src/slp/slpCluster.c	(리비전 19371)
++++ layer/ServerLibrary/dev/src/slp/slpCluster.c	(작업 사본)
+@@ -980,6 +980,7 @@
+     stlInt32             sDriverMemberId;
+     cllCommandArgs       sCommandArgs;
+     smlTransId           sTransId;
++    smlGlobalTransId     sGlobalTransId;
+ 
+     CLL_INIT_COMMAND_ARGS( & sCommandArgs,
+                            & sDriverMemberId,
+@@ -1014,6 +1015,18 @@
+                              SML_TRANSACTION_CWM_WAIT,
+                              SML_ENV(aEnv) )
+                  == STL_SUCCESS );
++
++        /**
++         * Global Transaction Log 의 상태를 Prepare 로 변경한다.
++         */
++
++        smlGetGlobalTransId( sTransId,
++                             & sGlobalTransId );
++
++        STL_TRY( cllAllocGlobalTxLogSlot( sGlobalTransId,
++                                          (stlInt32) CLL_STATE_PREPARE,
++                                          CLL_ENV( aEnv ) )
++                 == STL_SUCCESS );
+     }
+     
+     STL_TRY( cllWriteResult( sOutCursor,
+Index: layer/SqlProcessor/dev/src/qll/qllSession.c
+===================================================================
+--- layer/SqlProcessor/dev/src/qll/qllSession.c	(리비전 19371)
++++ layer/SqlProcessor/dev/src/qll/qllSession.c	(작업 사본)
+@@ -647,6 +647,8 @@
+     stlInt64        sWriteMode = aWriteMode;
+     stlBool         sEventActivity;
+     qllSessionEnv * sSessionEnv;
++    smlGlobalTransId sGlobalTransId;
++    cllGlobalTxAttr  sGTxAttr;
+ 
+     stlUInt32  sSessionID = 0;
+ 
+@@ -799,6 +801,26 @@
+                 == STL_SUCCESS );
+ 
+     KNL_BREAKPOINT( KNL_BREAKPOINT_QLLCOMMIT_BEFORE_DICTIONARY_PENDING, KNL_ENV(aEnv) );
++
++    /**
++     * Global Transaction Log 의 State 를 Commit 상태로 변경한다.
++     */
++    if( knlIsClusterDatabase() == STL_TRUE )
++    {
++        if( cllNeedGlobalCommit( aTransID, CLL_ENV( aEnv ) ) )
++        {
++            smlGetGlobalTransId( aTransID,
++                                 & sGlobalTransId );
++
++            sGTxAttr.mValidFlags = CLL_GTX_STATE_YES;
++            sGTxAttr.mState = CLL_STATE_COMMIT;
++
++            STL_TRY( cllUpdateGlobalTrans( sGlobalTransId,
++                                           & sGTxAttr,
++                                           CLL_ENV( aEnv ) )
++                     == STL_SUCCESS );
++        }
++    }
+     
+     sState = 7;
+     STL_TRY( ellCommitTransDDL( aTransID, ELL_ENV( aEnv ) ) == STL_SUCCESS );
+@@ -899,6 +921,9 @@
+ 
+     qllSessionEnv * sSessionEnv;
+ 
++    smlGlobalTransId sGlobalTransId;
++    cllGlobalTxAttr  sGTxAttr;
++
+     sSessionEnv = QLL_SESS_ENV( aEnv );
+ 
+     sEventActivity = knlDisableSessionEvent( KNL_ENV(aEnv) );
+@@ -1033,6 +1058,26 @@
+ 
+     KNL_BREAKPOINT( KNL_BREAKPOINT_QLLROLLBACK_BEFORE_DICTIONARY_PENDING, KNL_ENV(aEnv) );
+ 
++    /**
++     * Global Transaction Log 의 State 를 Rollback 상태로 변경한다.
++     */
++    if( knlIsClusterDatabase() == STL_TRUE )
++    {
++        if( cllNeedGlobalCommit( aTransID, CLL_ENV( aEnv ) ) )
++        {
++            smlGetGlobalTransId( aTransID,
++                                 & sGlobalTransId );
++
++            sGTxAttr.mValidFlags = CLL_GTX_STATE_YES;
++            sGTxAttr.mState = CLL_STATE_ROLLBACK;
++
++            STL_TRY( cllUpdateGlobalTrans( sGlobalTransId,
++                                           & sGTxAttr,
++                                           CLL_ENV( aEnv ) )
++                     == STL_SUCCESS );
++        }
++    }
++
+     sState = 7;
+     STL_TRY( ellRollbackTransDDL( aTransID, ELL_ENV( aEnv ) ) == STL_SUCCESS );
+ 
+Index: layer/Standard/dev/include/stlDef.h
+===================================================================
+--- layer/Standard/dev/include/stlDef.h	(리비전 19371)
++++ layer/Standard/dev/include/stlDef.h	(작업 사본)
+@@ -1497,7 +1497,83 @@
+         aOffset += aBytes;                                      \
+     }
+ 
++/**
++ * @brief aSrc의 data 를 aDst 로 복사하고 Position 을 이동한다.
++ */
++#define STL_WRITE_POS_INT8( aDst, aPos, aSrc )  \
++    {                                           \
++        (aDst)[(aPos)] = (aSrc);                \
++        (aPos)++;                               \
++    }
+ 
++#define STL_WRITE_POS_INT16( aDst, aPos, aSrc )     \
++    {                                               \
++        (aDst)[(aPos)] = ((aSrc) & 0xFF00) >> 8;    \
++        (aDst)[(aPos+1)] = ((aSrc) & 0xFF);         \
++        (aPos) += 2;                                \
++    }
++
++#define STL_WRITE_POS_INT32( aDst, aPos, aSrc )         \
++    {                                                   \
++        (aDst)[(aPos)] = ((aSrc) & 0xFF000000) >> 24;   \
++        (aDst)[(aPos+1)] = ((aSrc) & 0xFF0000) >> 16;   \
++        (aDst)[(aPos+2)] = ((aSrc) & 0xFF00) >> 8;      \
++        (aDst)[(aPos+3)] = ((aSrc) & 0xFF);             \
++        (aPos) += 4;                                    \
++    }
++
++#define STL_WRITE_POS_INT64( aDst, aPos, aSrc )                 \
++    {                                                           \
++        (aDst)[(aPos)] = ((aSrc) & 0xFF00000000000000l) >> 56;  \
++        (aDst)[(aPos+1)] = ((aSrc) & 0xFF000000000000l) >> 48;  \
++        (aDst)[(aPos+2)] = ((aSrc) & 0xFF0000000000l) >> 40;    \
++        (aDst)[(aPos+3)] = ((aSrc) & 0xFF00000000l) >> 32;      \
++        (aDst)[(aPos+4)] = ((aSrc) & 0xFF000000) >> 24;         \
++        (aDst)[(aPos+5)] = ((aSrc) & 0xFF0000) >> 16;           \
++        (aDst)[(aPos+6)] = ((aSrc) & 0xFF00) >> 8;              \
++        (aDst)[(aPos+7)] = ((aSrc) & 0xFF);                     \
++        (aPos) += 8;                                            \
++    }
++
++/**
++ * @brief aBuf 의 aPos 위치 data 를 aVar 로 읽고 Position 을 이동한다.
++ */
++#define STL_READ_POS_INT8( aBuf, aPos, aVar )   \
++    {                                           \
++        (aVar) = (aBuf)[(aPos)] & 0xFF;         \
++        (aPos)++;                               \
++    }
++
++#define STL_READ_POS_INT16( aBuf, aPos, aVar )      \
++    {                                               \
++        (aVar) = (((aBuf)[(aPos)] & 0xFF) << 8 ) |  \
++            ((aBuf)[(aPos+1)] & 0xFF);              \
++        (aPos) += 2;                                \
++    }
++
++#define STL_READ_POS_INT32( aBuf, aPos, aVar )      \
++    {                                               \
++        (aVar) = (((aBuf)[(aPos)] & 0xFF) << 24 ) | \
++            (((aBuf)[(aPos+1)] & 0xFF) << 16 ) |    \
++            (((aBuf)[(aPos+2)] & 0xFF) << 8 ) |     \
++            ((aBuf)[(aPos+3)] & 0xFF);              \
++        (aPos) += 4;                                \
++    }
++
++#define STL_READ_POS_INT64( aBuf, aPos, aVar )                  \
++    {                                                           \
++        (aVar) = ((stlInt64)((aBuf)[(aPos)] & 0xFF) << 56 ) |   \
++            ((stlInt64)((aBuf)[(aPos+1)] & 0xFF) << 48 ) |      \
++            ((stlInt64)((aBuf)[(aPos+2)] & 0xFF) << 40 ) |      \
++            ((stlInt64)((aBuf)[(aPos+3)] & 0xFF) << 32 ) |      \
++            ((stlInt64)((aBuf)[(aPos+4)] & 0xFF) << 24 ) |      \
++            ((stlInt64)((aBuf)[(aPos+5)] & 0xFF) << 16 ) |      \
++            ((stlInt64)((aBuf)[(aPos+6)] & 0xFF) << 8 ) |       \
++            (stlInt64)((aBuf)[(aPos+7)] & 0xFF);                \
++        (aPos) += 8;                                            \
++    }
++
++
+ /** @} */
+ 
+ /**
+@@ -1619,6 +1695,8 @@
+ 
+ #define STL_DEFAULT_BACKLOG         (64)
+ 
++#define STL_SOCK_BLOCKED_IO_WAIT       ( STL_SET_MSEC_TIME(10) )
++
+ /**
+  * @defgroup stlSocketOption Socket Option Flags
+  * @ingroup stlNetworkIo
+@@ -1808,6 +1886,7 @@
+ 
+ #define STL_SOCKET_IN_CONTEXT(aContext)    ((aContext).mPollFd.mSocketHandle)
+ 
++
+ /** @} */
+ 
+ 
+Index: layer/Standard/dev/include/stlNetworkIo.h
+===================================================================
+--- layer/Standard/dev/include/stlNetworkIo.h	(리비전 19371)
++++ layer/Standard/dev/include/stlNetworkIo.h	(작업 사본)
+@@ -124,6 +124,17 @@
+                    stlBool       * aNeedAgain,
+                    stlErrorStack * aErrorStack );
+ 
++stlStatus stlSendBlocked( stlContext     * aContext,
++                          const stlChar  * aBuf,
++                          stlInt32         aSize,
++                          stlErrorStack  * aErrorStack );
++
++stlStatus stlSendNonBlocked( stlContext     * aContext,
++                             const stlChar  * aBuf,
++                             stlInt32         aSize,
++                             stlInt32       * aRemains,
++                             stlErrorStack  * aErrorStack );
++
+ stlStatus stlRecv( stlSocket       aSock,
+                    stlBool         aUseRDMASocket,
+                    stlChar       * aBuf,
+@@ -131,6 +142,12 @@
+                    stlBool       * aNeedAgain,
+                    stlErrorStack * aErrorStack);
+ 
++stlStatus stlRecvBlocked( stlContext    * aContext,
++                          stlChar       * aBuf,
++                          stlInt32        aSize,
++                          stlInt32        aTimeout,
++                          stlErrorStack * aErrorStack );
++
+ stlStatus stlSendTo( stlSocket       aSock,
+                      stlBool         aUseRDMASocket,
+                      stlSockAddr   * aWhere,
+Index: layer/Standard/dev/src/ste/steClusterError.c
+===================================================================
+--- layer/Standard/dev/src/ste/steClusterError.c	(리비전 19371)
++++ layer/Standard/dev/src/ste/steClusterError.c	(작업 사본)
+@@ -77,6 +77,14 @@
+         STL_EXT_ERRCODE_GENERAL_ERROR_NO_SUBCLASS,
+         "a shared session cannot modify NUMA property"
+     },
++    {   /* CLL_ERRCODE_RECOVERY_CONNECT_MISMATCH_MEMBER_POS */
++        STL_EXT_ERRCODE_GENERAL_ERROR_NO_SUBCLASS,
++        "cluster recovery connection information mismatch; %s ( recved: %d, local: %d )"
++    },
++    {   /* CLL_ERRCODE_RECOVERY_CONNECT_MEMBER_POS_RANGE_ERROR */
++        STL_EXT_ERRCODE_GENERAL_ERROR_NO_SUBCLASS,
++        "cluster recovery connection information is invalid; %s ( recved: %d, max: %d )"
++    },
+ 
+     {
+         0,
+Index: layer/Standard/dev/src/stl/stlNetworkIo.c
+===================================================================
+--- layer/Standard/dev/src/stl/stlNetworkIo.c	(리비전 19371)
++++ layer/Standard/dev/src/stl/stlNetworkIo.c	(작업 사본)
+@@ -16,6 +16,9 @@
+ #include <stn.h>
+ #include <stn.h>
+ #include <stlStrings.h>
++#include <stlTime.h>
++#include <stlError.h>
++#include <stlPoll.h>
+ 
+ /**
+  * @file stlNetworkIo.c
+@@ -255,6 +258,123 @@
+ }
+ 
+ /**
++ * @brief 주어진 Socket으로 message를 주어진 크기까지 모두 전송한다.
++ *        (Socket 이 끊어지거나 Fail 이 발생하기 전까지는 계속 전송한다.)
++ *        (Non-Block Socket Mode 에서 사용할 것)
++ * @param[in] aContext     소켓 context
++ * @param[in] aBuf         전송할 message가 담긴 버퍼
++ * @param[in] aSize        전송할 message의 길이
++ * @param[out] aErrorStack 에러 스택
++ * @par Error Codes:
++ */
++stlStatus stlSendBlocked( stlContext     * aContext,
++                          const stlChar  * aBuf,
++                          stlInt32         aSize,
++                          stlErrorStack  * aErrorStack )
++{
++    stlSize         sSize;
++    stlSize         sSentSize;
++    stlBool         sNeedAgain;
++
++    STL_TRY( STL_IS_INVALID_CONTEXT( *aContext ) == STL_FALSE );
++
++    sSentSize = 0;
++    while( sSentSize < aSize )
++    {
++        sNeedAgain = STL_FALSE;
++        
++        sSize = aSize - sSentSize;
++
++        STL_TRY( stlSend( STL_SOCKET_IN_CONTEXT( *aContext ),
++                          aContext->mUseRDMASocket,
++                          (const stlChar *)(aBuf + sSentSize),
++                          &sSize,
++                          &sNeedAgain,
++                          aErrorStack )
++                 == STL_SUCCESS );
++
++        if( sNeedAgain == STL_TRUE )
++        {
++            stlSleep( STL_SOCK_BLOCKED_IO_WAIT );
++            continue;
++        }
++
++        if( sSize == 0 )
++        {
++            stlSleep( STL_SOCK_BLOCKED_IO_WAIT );
++        }
++
++        sSentSize += sSize;
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
++ * @brief 주어진 Socket으로 message를 전송하다가 Block 상황이 되면 리턴한다.
++ *        (Non-Block Socket Mode 에서 사용할 것)
++ * @param[in] aContext     소켓 context
++ * @param[in] aBuf         전송할 message가 담긴 버퍼
++ * @param[in] aSize        전송할 message의 길이
++ * @param[out] aRemains    전송하지 못하고 남은 message 길이
++ * @param[in] aErrorStack  에러 스택
++ * @par Error Codes:
++ */
++stlStatus stlSendNonBlocked( stlContext     * aContext,
++                             const stlChar  * aBuf,
++                             stlInt32         aSize,
++                             stlInt32       * aRemains,
++                             stlErrorStack  * aErrorStack )
++{
++    stlSize         sSize;
++    stlSize         sSentSize;
++    stlBool         sNeedAgain;
++
++    STL_TRY( STL_IS_INVALID_CONTEXT( *aContext ) == STL_FALSE );
++
++    sSentSize = 0;
++    while( sSentSize < aSize )
++    {
++        sNeedAgain = STL_FALSE;
++        
++        sSize = aSize - sSentSize;
++
++        STL_TRY( stlSend( STL_SOCKET_IN_CONTEXT( *aContext ),
++                          aContext->mUseRDMASocket,
++                          (const stlChar *)(aBuf + sSentSize),
++                          &sSize,
++                          &sNeedAgain,
++                          aErrorStack )
++                 == STL_SUCCESS );
++
++        if( sNeedAgain == STL_TRUE )
++        {
++            (void)stlPopError( aErrorStack );
++            break;
++        }
++
++        if( sSize == 0 )
++        {
++            break;
++        }
++
++        sSentSize += sSize;
++    }
++
++    *aRemains = aSize - sSentSize;
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
+  * @brief 주어진 Socket으로부터 message를 받는다. 
+  * @param[in] aSock 소켓 descriptor
+  * @param[in] aUseRDMASocket RDMA socket 사용 여부
+@@ -288,6 +408,72 @@
+ }
+ 
+ /**
++ * @brief 주어진 Socket으로부터 주어진 크기의 message 를 수신할 때까지 수신을 계속한다.
++ *        (Non-Block Socket Mode 에서 사용할 것)
++ * @param[in]  aContext       Socket context
++ * @param[out] aBuf           전송받은 message가 담길 버퍼
++ * @param[in]  aSize          전송받을 message의 최대길이
++ * @param[in]  aTimeout       message 수신 polling Timeout
++ * @param[out] aErrorStack    에러 스택
++ */
++stlStatus stlRecvBlocked( stlContext    * aContext,
++                          stlChar       * aBuf,
++                          stlInt32        aSize,
++                          stlInt32        aTimeout,
++                          stlErrorStack * aErrorStack )
++{
++    stlInt32        sRecvedSize = 0;
++    stlSize         sSize = aSize;
++    stlInt32        sSigFdNum;
++
++    STL_TRY( STL_IS_INVALID_CONTEXT( *aContext ) == STL_FALSE );
++
++    while( sRecvedSize < aSize )
++    {
++        STL_TRY( stlPoll( & aContext->mPollFd,
++                          aContext->mUseRDMASocket,
++                          1,
++                          & sSigFdNum,
++                          aTimeout,
++                          NULL,
++                          aErrorStack )
++                 == STL_SUCCESS );
++
++        STL_DASSERT( sSigFdNum == 1 );
++
++        if( stlRecv( STL_SOCKET_IN_CONTEXT( *aContext ),
++                     aContext->mUseRDMASocket,
++                     aBuf + sRecvedSize,
++                     &sSize,
++                     NULL,  /* aNeedAgain */
++                     aErrorStack )
++            != STL_SUCCESS )
++        {
++            if( ( stlGetLastErrorCode( aErrorStack ) == STL_ERRCODE_AGAIN ) ||
++                ( stlGetLastErrorCode( aErrorStack ) == STL_ERRCODE_EOF ) )
++            {
++                (void)stlPopError( aErrorStack );
++
++                continue;
++            }
++            else
++            {
++                STL_TRY( 0 );
++            }
++        }
++
++        sRecvedSize += sSize;
++        sSize = aSize - sRecvedSize;
++    }
++
++    return STL_SUCCESS;
++
++    STL_FINISH;
++
++    return STL_FAILURE;
++}
++
++/**
+  * @brief 주어진 주소와 Socket으로 Datagram(비연결) message를 전송한다.
+  * @param[in] aSock 소켓 descriptor
+  * @param[in] aUseRDMASocket RDMA socket 사용 여부
+Index: layer/StorageManager/dev/include/smlDef.h
+===================================================================
+--- layer/StorageManager/dev/include/smlDef.h	(리비전 19371)
++++ layer/StorageManager/dev/include/smlDef.h	(작업 사본)
+@@ -54,7 +54,19 @@
+         ((aTransA)->mTransId == (aTransB)->mTransId) ) ?        \
+       STL_TRUE : STL_FALSE )
+ 
++#define SML_IS_EQUAL_GLOBAL_TRANSID_BY_ID( aTransA, aTransB )   \
++    ( ( ((aTransA)->mMemberId == (aTransB)->mMemberId) &&       \
++        ((aTransA)->mTransId == (aTransB)->mTransId) ) ?        \
++      STL_TRUE : STL_FALSE )
+ 
++#define SML_INIT_GLOBAL_TRANSID( aGlobalTransId )               \
++    {                                                           \
++        (aGlobalTransId)->mMemberPos = -1;                      \
++        (aGlobalTransId)->mMemberId = -1;                       \
++        (aGlobalTransId)->mTransId = SML_INVALID_TRANSID;       \
++    }
++
++
+ /**
+  * @brief 트랜잭션 독립성 레벨
+  */
+Index: layer/StorageManager/dev/include/smlTrans.h
+===================================================================
+--- layer/StorageManager/dev/include/smlTrans.h	(리비전 19371)
++++ layer/StorageManager/dev/include/smlTrans.h	(작업 사본)
+@@ -161,6 +161,12 @@
+ 
+ smlTransId smlGetDriverTransId( smlTransId aLocalTransId );
+ 
++void smlGetGlobalTransId( smlTransId         aLocalTransId,
++                          smlGlobalTransId * aGlobalTransId );
++
++void smlGetLocalTransId( smlGlobalTransId   aGlobalTransId,
++                         smlTransId       * aLocalTransId );
++
+ void smlSetFailoverTrans( smlTransId aLocalTransId );
+ 
+ stlBool smlIsFailoverTrans( smlTransId aLocalTransId );
+Index: layer/StorageManager/dev/src/include/smDef.h
+===================================================================
+--- layer/StorageManager/dev/src/include/smDef.h	(리비전 19371)
++++ layer/StorageManager/dev/src/include/smDef.h	(작업 사본)
+@@ -3098,13 +3098,6 @@
+ 
+ #define SMXL_GET_GLOBAL_TRANSID( aTransSlotId )    ( SMXL_TRANS_TABLE( (aTransSlotId) ).mGlobalTransId )
+ 
+-#define SMXL_INIT_GLOBAL_TRANSID( aGlobalTransId )              \
+-    {                                                           \
+-        (aGlobalTransId)->mMemberPos = -1;                      \
+-        (aGlobalTransId)->mMemberId = -1;                       \
+-        (aGlobalTransId)->mTransId = SML_INVALID_TRANSID;       \
+-    }
+-
+ #define SMXL_MAKE_GLOBAL_TRANSID( aGlobalTransId, aDriverMemberPos, aDriverMemberId, aDriverTransId ) \
+     {                                                                                               \
+         (aGlobalTransId)->mMemberPos = (aDriverMemberPos);                                          \
+Index: layer/StorageManager/dev/src/include/smxl.h
+===================================================================
+--- layer/StorageManager/dev/src/include/smxl.h	(리비전 19371)
++++ layer/StorageManager/dev/src/include/smxl.h	(작업 사본)
+@@ -138,6 +138,8 @@
+ inline smlIsolationLevel smxlGetIsolationLevel( smxlTransId aTransId );
+ void smxlGetGlobalTransId( smxlTransId        aLocalTransId,
+                            smlGlobalTransId * aGlobalTransId );
++inline void smxlGetLocalTransId( smlGlobalTransId   aGlobalTransId,
++                                 smxlTransId      * aLocalTransId );
+ inline smxlTransId smxlGetUnsafeTransId( smxlTransId aTransId );
+ void smxlGetSystemInfo( smxlSystemInfo * aSystemInfo );
+ void smxlAddTryLogCount( smxlTransId aTransId,
+Index: layer/StorageManager/dev/src/sml/smlTrans.c
+===================================================================
+--- layer/StorageManager/dev/src/sml/smlTrans.c	(리비전 19371)
++++ layer/StorageManager/dev/src/sml/smlTrans.c	(작업 사본)
+@@ -943,8 +943,52 @@
+     return sDriverTransId;
+ }
+ 
++/**
++ * @brief Local Transaction Id 를 이용하여 Global Transaction Id 얻는다.
++ * @param[in]  aLocalTransId  Local Transaction Identifier
++ * @param[out] aGlobalTransId Global Transaction Identifier
++ */
++void smlGetGlobalTransId( smlTransId         aLocalTransId,
++                          smlGlobalTransId * aGlobalTransId )
++{
++    smxlTransId    sLocalTransId;
+ 
++    sLocalTransId = SMXL_TRANS_SLOT_ID( aLocalTransId );
++
++    return smxlGetGlobalTransId( sLocalTransId,
++                                 aGlobalTransId );
++}
++
+ /**
++ * @brief Global Transaction Id 를 이용하여 Local Transaction Id 얻는다.
++ * @param[in]  aGlobalTransId Global Transaction Identifier
++ * @param[out] aLocalTransId  Local Transaction Identifier
++ */
++void smlGetLocalTransId( smlGlobalTransId   aGlobalTransId,
++                         smlTransId       * aLocalTransId )
++{
++    smxlTrans    * sTrans;
++    stlUInt64      sTransSeq;
++    smxlTransId    sLocalTransId;
++
++    (void) smxlGetLocalTransId( aGlobalTransId,
++                                & sLocalTransId );
++
++    if( sLocalTransId != SML_INVALID_TRANSID )
++    {
++        sTrans = &SMXL_TRANS_TABLE( sLocalTransId );
++        sTransSeq = sTrans->mTransSeq;
++
++        *aLocalTransId = SMXL_TO_SML_TRANS_ID( sLocalTransId, sTransSeq );
++    }
++    else
++    {
++        *aLocalTransId = SML_INVALID_TRANSID;
++    }
++}
++
++
++/**
+  * @brief Failover Transaction임을 설정한다.
+  * @param[in] aLocalTransId Local Transaction Identifier
+  */
+Index: layer/StorageManager/dev/src/smx/include/smxlDef.h
+===================================================================
+--- layer/StorageManager/dev/src/smx/include/smxlDef.h	(리비전 19371)
++++ layer/StorageManager/dev/src/smx/include/smxlDef.h	(작업 사본)
+@@ -66,7 +66,7 @@
+         (aTrans)->mNeedJournal = STL_FALSE;                                             \
+         (aTrans)->mWrittenCommitLog = STL_FALSE;                                        \
+         (aTrans)->mIsFailoverTrans = STL_FALSE;                                         \
+-        SMXL_INIT_GLOBAL_TRANSID( & (aTrans)->mGlobalTransId );                         \
++        SML_INIT_GLOBAL_TRANSID( & (aTrans)->mGlobalTransId );                          \
+         (aTrans)->mUsedUndoPageCount = 0;                                               \
+         STL_TRY( knlInitLatch( &((aTrans)->mLatch),                                     \
+                                (aIsShared),                                             \
+@@ -120,7 +120,7 @@
+         (aTrans)->mNeedJournal = STL_FALSE;                                     \
+         (aTrans)->mWrittenCommitLog = STL_FALSE;                                \
+         (aTrans)->mIsFailoverTrans = STL_FALSE;                                 \
+-        SMXL_INIT_GLOBAL_TRANSID( & (aTrans)->mGlobalTransId );                 \
++        SML_INIT_GLOBAL_TRANSID( & (aTrans)->mGlobalTransId );                  \
+         (aTrans)->mUsedUndoPageCount = 0;                                       \
+         if( KNL_REGION_MEMORY_IS_CREATED( &(aTrans)->mShmMem ) == STL_TRUE )    \
+         {                                                                       \
+Index: layer/StorageManager/dev/src/smx/smxl/smxlManager.c
+===================================================================
+--- layer/StorageManager/dev/src/smx/smxl/smxlManager.c	(리비전 19371)
++++ layer/StorageManager/dev/src/smx/smxl/smxlManager.c	(작업 사본)
+@@ -2661,6 +2661,30 @@
+     *aGlobalTransId = sGlobalTransId;
+ }
+ 
++inline void smxlGetLocalTransId( smlGlobalTransId   aGlobalTransId,
++                                 smxlTransId      * aLocalTransId )
++{
++    stlInt32       i;
++    smxlTrans    * sTrans;
++
++    for( i = 0; i < SMXL_TRANS_TABLE_SIZE; i++ )
++    {
++        sTrans = SMXL_TRANS_SLOT( i );
++
++        if( SML_IS_EQUAL_GLOBAL_TRANSID_BY_ID( &aGlobalTransId, &sTrans->mGlobalTransId ) )
++        {
++            break;
++        }
++    }
++
++    if( i >= SMXL_TRANS_TABLE_SIZE )
++    {
++        *aLocalTransId = SML_INVALID_TRANSID;
++    }
++    
++    *aLocalTransId = i;
++}
++
+ inline smxlTransId smxlGetTransId( smxlTransId aTransId )
+ {
+     smxlTrans   * sTrans;
