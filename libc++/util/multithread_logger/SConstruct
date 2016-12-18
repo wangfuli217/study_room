@@ -1,0 +1,6 @@
+Program( 'logtest',
+         ['main.cpp', 'Logger.cpp'],
+         CCFLAGS = '--std=c++11',
+         LIBS = [],
+         LIBPATH = ['.'],
+         CPPPATH = ['./'] )
