@@ -2,7 +2,7 @@ import smtplib
 smtpObj = smtplib.SMTP('smtp.gmail.com', 587)
 smtpObj.ehlo()
 smtpObj.starttls()
-smtpObj.login('linuzang@gmail.com', 'Rain0314@@$$')
+smtpObj.login('linuzang@gmail.com', 'password')
 
 smtpObj.sendmail('linuzang@gmail.com', 'cloudrain21@gmail.com', 'Subject : python email test\nIf you got this email, the email test is working well...\n')
 # -> if fail(error tells login via web browser), go to https://myaccount.google.com/security?pli=1#connectedapps, configure allowing login through unauth apps.
