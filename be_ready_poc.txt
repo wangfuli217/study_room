@@ -1,0 +1,81 @@
+1. 설치 시
+
+# vi /etc/sysctl.conf
+kernel.shmmax = 274877906944
+kernel.shmmni = 4096
+kernel.shmall = 67108865
+kernel.sem = 1024 32000 1024 5026
+
+net.core.somaxconn = 1024
+net.unix.max_dgram_qlen = 256
+
+# sysctl -p
+
+export GOLDILOCKS_HOME=$HOME/goldilocks_home
+export GOLDILOCKS_DATA=$HOME/goldilocks_data
+export PATH=$GOLDILOCKS_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$GOLDILOCKS_HOME/lib:$LD_LIBRARY_PATH
+export CLASSPATH=$GOLDILOCKS_HOME/lib/goldilocks6.jar:$CLASSPATH
+
+umask 0002
+ulimit -n 4096
+ulimit -u 4096
+
+$ ln -s /home/sunje/product/goldilocks-server-venus.3.1.1-linux-ppc64le/goldilocks_data goldilocks_data
+$ ln -s /home/sunje/product/goldilocks-server-venus.3.1.1-linux-ppc64le/goldilocks_home goldilocks_home
+$ vi goldilocks_data/conf/goldilocks.properties.conf
+    -> 사용자 기호에 맞춰 프로퍼티 수정
+$ vi goldilocks_data/conf/goldilocks.listener.conf
+    -> 사용자 기호에 맞춰 프로퍼티 수정
+$ cp goldilocks_data/conf/odbc.ini .odbc.ini
+$ gcreatedb --cluster
+$ gsql sys gliese --as sysdba
+  gSQL> startup
+  gSQL> ALTER SYSTEM OPEN GLOBAL DATABASE;
+  gSQL> CREATE CLUSTER GROUP G1 CLUSTER MEMBER G1N1 HOST '192.168.1.94' PORT 10101;
+  gSQL> ALTER CLUSTER GROUP G1 ADD CLUSTER MEMBER G1N2 HOST '192.168.1.95' PORT 10101;
+$ glsnr --start
+
+$ cd goldilocks_home/admin/cluster
+$ gsql sys gliese --as sysdba -i DictionarySchema.sql
+$ gsql sys gliese --as sysdba -i InformationSchema.sql
+$ gsql sys gliese --as sysdba -i PerformanceViewSchema.sql
+
+$ gsql sys gliese --as sysdba
+gSQL> CREATE TABLESPACE DY_SYSTEMS_DATA DATAFILE 'dy_systems_data_01.dbf' SIZE 5G;
+gSQL> CREATE TEMPORARY TABLESPACE DY_SYSTEMS_TEMP MEMORY 'dy_systems_temp_01' SIZE 3G;
+gSQL> CREATE USER DY identified by dy default tablespace DY_SYSTEMS_DATA temporary tablespace DY_SYSTEMS_TEMP;
+gSQL> GRANT ALL TO DY;
+
+
+내부 시험 시 튜닝한 프로퍼티
+
+LOCAL_CLUSTER_MEMBER = 'G1N1'
+LOCAL_CLUSTER_MEMBER_PORT = 10101
+LOCAL_CLUSTER_MEMBER_HOST = '192.168.1.94'
+
+CLUSTER_ASYNC_COMMIT = NO
+CLUSTER_DISPATCHER_IN_QUEUE_SIZE = 4096
+CLUSTER_DISPATCHER_OUT_QUEUE_SIZE = 4096
+CLUSTER_SERVER_RESPONSE_QUEUE_SIZE = 1024
+CDISPATCHER_THREADS = 3
+CDISPATCHER_SYNC_THREADS = 3
+CDISPATCHER_HOT_POLICY_INTERVAL = 1000
+
+CSERVERS = 30
+INDEX_ROOT_MIRRORING_DEPTH = 2
+
+CLUSTER_DATA_SYNC_SERVERS = 5
+CLUSTER_CM_BUFFER_COUNT = 128
+CDISPATCHER_SOCKET_BUFFER_SIZE = 10M
+
+COMMITTER_HOT_POLICY_INTERVAL = 8640000000
+CLUSTER_COMMIT_STREAM_ISOLATION = YES
+
+LOG_BUFFER_SIZE = 1G
+PENDING_LOG_BUFFER_COUNT = 8
+
+LOG_FILE_SIZE = 4G
+LOG_GROUP_COUNT = 8
+SHARED_MEMORY_STATIC_SIZE = 4G
+
