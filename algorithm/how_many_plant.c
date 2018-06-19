@@ -1,5 +1,5 @@
 /*
-두 수의 최대공약수를 구하는 문제.
+두 수의 최대공약수를 구하는 문제. - 무식하게 구하기
 밥 아저씨는 돈을 힘들게 모은 끝에 한 토지를 구입했다.
 밥 아저씨는 그 토지에 유명한 식물을 심을려고 하는데,
 그 식물은 주변 n*n 미터 안에 다른 식물이 있으면 자라지 못한다고 한다.
@@ -85,5 +85,6 @@ int main(int argc, char * argv[])
 
 end:
     printf("max common divisor : %d\n", max_common_divisor);
+    printf("plant number : %d\n", (x * y) / (max_common_divisor*max_common_divisor));
     return 0;
 }
