@@ -36,6 +36,7 @@ a.out
 !*.json
 !*.css
 !*.scss
+!*.sql
 !TODO
 !README*
 !/.gitignore
