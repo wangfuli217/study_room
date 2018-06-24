@@ -26,11 +26,11 @@ Find the sum of all the multiples of 3 or 5 below 1000.
 
 using namespace std;
 
-int get_sum_of_multiples( int num, int divisor )
+long long get_sum_of_multiples( long long num, long long divisor )
 {
-    int sum = 0;
-    int last_multiple = (num / divisor) * divisor;
-    int multiple_count = last_multiple / divisor;
+    long long sum = 0;
+    long long last_multiple = (num / divisor) * divisor;
+    long long multiple_count = last_multiple / divisor;
 
     if( multiple_count % 2 == 0 )
     {
@@ -45,13 +45,33 @@ int get_sum_of_multiples( int num, int divisor )
     return sum;
 }
 
+long long get_sum2( long long num )
+{
+    long long sum = 0;
+
+    for( int i=1; i<num; i++ )
+    {
+        if( i % 3 == 0 || i % 5 == 0 )
+        {
+            sum += i;
+        }
+    }
+
+    return sum;
+}
+
 int main()
 {
-    int x, y, z;
+    long long x, y, z;
+    long long result = 0;
 
-    x = get_sum_of_multiples( 999, 3 );
-    y = get_sum_of_multiples( 999, 5 );
-    z = get_sum_of_multiples( 999, 15 );
+    x = get_sum_of_multiples( 1000000000, 3 );
+    y = get_sum_of_multiples( 1000000000, 5 );
+    z = get_sum_of_multiples( 1000000000, 15 );
 
-    cout << "result : " << x + y - z << endl;
+    result = x + y - z; 
+
+    //result = get_sum2( 1000000000 );
+
+    cout << "result : " << result << endl;
 }
