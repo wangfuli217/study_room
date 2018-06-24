@@ -5,7 +5,7 @@
 가장 거리가 짧은 것이 다수일 때는 모두 출력하시오.
 '''
 
-import sys
+import sys, random
 
 def getMinDiff( num_list ):
     minDiff = -1
@@ -39,11 +39,8 @@ def printMinDiffPair( num_list, minDiff ):
         beforeNum = afterNum
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage : %s number_list\n" %sys.argv[0])
-        sys.exit(0)
-
-    num_list = []
+    num_list = list(set([random.randint(1,100) for i in range(10)]))
+    num_list.sort()
 
     for i in range(1,len(sys.argv)):
         num_list.append(int(sys.argv[i]))
