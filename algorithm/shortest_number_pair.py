@@ -41,9 +41,9 @@ def printMinDiffPair( num_list, minDiff ):
 if __name__ == "__main__":
     num_list = list(set([random.randint(1,100) for i in range(10)]))
     num_list.sort()
-
-    for i in range(1,len(sys.argv)):
-        num_list.append(int(sys.argv[i]))
+    for i in num_list:
+        print("%d " %(i), end='')
+    print("\n", end='');
 
     minDiff = getMinDiff(num_list)
     print("min diff : %d\n" %(minDiff), end='' )
