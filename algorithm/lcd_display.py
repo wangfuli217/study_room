@@ -50,16 +50,16 @@ LCD 디스플레이 형태로 출력한다. 각 숫자는 정확하게 s+2개의
 import sys
 import numpy as np
 
-display = [[1,1,1,0,1,1,1]   # 0
-          ,[0,0,1,0,0,1,0]   # 1
-          ,[1,0,1,1,1,0,1]   # 2
-          ,[1,0,1,1,0,1,1]   # 3
-          ,[0,1,1,1,0,1,0]   # 4
-          ,[1,1,0,1,0,1,1]   # 5
-          ,[1,1,0,1,1,1,1]   # 6
-          ,[1,0,1,0,0,1,0]   # 7
-          ,[1,1,1,1,1,1,1]   # 8
-          ,[1,1,1,1,0,1,1]]  # 9
+display_table = [[1,1,1,0,1,1,1]   # 0
+                ,[0,0,1,0,0,1,0]   # 1
+                ,[1,0,1,1,1,0,1]   # 2
+                ,[1,0,1,1,0,1,1]   # 3
+                ,[0,1,1,1,0,1,0]   # 4
+                ,[1,1,0,1,0,1,1]   # 5
+                ,[1,1,0,1,1,1,1]   # 6
+                ,[1,0,1,0,0,1,0]   # 7
+                ,[1,1,1,1,1,1,1]   # 8
+                ,[1,1,1,1,0,1,1]]  # 9
 
 def printMatrix( m ):
     for i in range(m.shape[0]):
@@ -74,7 +74,7 @@ def printMatrix( m ):
 
 def numberToMatrix(number, row, col):
     m = np.zeros((row,col))
-    l = display[number]
+    l = display_table[number]
     if l[0] == 1:
         for i in range(s):
             m[0,i+1] = 2
@@ -113,3 +113,44 @@ if __name__ == "__main__":
         sum_m = np.concatenate((sum_m,m),axis=1)
 
     printMatrix(sum_m)
+
+'''
+def lcd_disp(size, num_str):
+    #  -   0
+    # | | 1 2
+    #  _   3
+    # | | 4 5
+    #  _   6
+    _map = [
+        '1011010111',
+        '1000111111',
+        '1111100111',
+        '0011111011',
+        '1010001010',
+        '1101111111',
+        '1011011010'
+    ]
+    def _horizon(key):
+        prt = [' ', '-']
+        for x in num_str:
+            print (' {} '.format(prt[int(_map[key][int(x)])] * size), end=' ')
+        print('')
+    def _vertical(key1, key2):
+        prt = [' ', '|']        
+        for i in range(size):
+            for x in num_str: 
+                print ('{}{}{}'.format(prt[int(_map[key1][int(x)])]
+                                       ,' ' * size
+                                       ,prt[int(_map[key2][int(x)])]),
+                       end=' ')
+            print('')
+
+    _horizon(0)
+    _vertical(1, 2)
+    _horizon(3)
+    _vertical(4, 5)
+    _horizon(6)
+
+lcd_disp(2, '12345')
+lcd_disp(3, '67890')
+'''
