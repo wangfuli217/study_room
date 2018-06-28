@@ -115,6 +115,7 @@ if __name__ == "__main__":
     printMatrix(sum_m)
 
 '''
+더 나은 코드
 def lcd_disp(size, num_str):
     #  -   0
     # | | 1 2
