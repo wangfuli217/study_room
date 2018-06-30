@@ -52,7 +52,7 @@ import numpy as np
 succ = 1
 fail = 0
 
-def setGivenHint( m, h, idx ):
+def setGivenReport( m, h, idx ):
     # print("{} : {} {} {}".format(i, h[idx][0], h[idx][1], h[i][2]))
     if h[idx][2] == 'f':
         val = 1
@@ -62,15 +62,18 @@ def setGivenHint( m, h, idx ):
     row = h[idx][0]-1
     col = h[idx][1]-1
 
+    # 주어진 보고 값과 이미 셋팅된 값이 다를 경우 모순 보고
     if np.isnan(m[row,col]) != 1:
         if m[row,col] != val:
             return fail
+
     m[ row, col ] = val
     m[ col, row ] = val
 
     return succ
 
 
+# 기존 보고를 통해 다른 관계들을 채워넣음
 def updateRelation( m ):
     for row in range(len(m)):
         for col in range(len(m)):
@@ -98,17 +101,17 @@ def doit( sz, h ):
         m[i][i] = 1
 
     for i in range(len(h)):
-        ret = setGivenHint( m, h, i )
+        ret = setGivenReport( m, h, i )
         if ret == fail:
-            print("{} th hint is not valid".format(i+1))
+            print("{} th Report is not valid".format(i+1));
             break 
+
         updateRelation( m )
-        print(m)
-        print("")
+        #print("{}\n".format(m))
 
 
 p1 = 3  # number of people
-h1 = [ [1,2,'f'],  # hint
+h1 = [ [1,2,'f'],  # Report
        [2,3,'e'],
        [1,3,'f'] ]
 
