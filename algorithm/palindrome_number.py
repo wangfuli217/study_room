@@ -65,6 +65,10 @@ def getPalinSum( k ):
 if __name__ == "__main__":
     n = int(sys.argv[1]) # n > 0
 
+    if n <= 10:
+        print("result : {}".format(n-1))
+        sys.exit(0)
+
     k = 0
     sum_palin = 0
 
@@ -75,10 +79,6 @@ if __name__ == "__main__":
 
     print("==> {} 번째 palin 자릿수: {}".format(n,k), end='')
 
-    if k == 1:
-        print(", result : {}".format(n-1))
-        sys.exit(0)
-
     # k 자릿수의 수 중에서 n 번째 palindrome 수를 찾기 위해
     # 앞쪽의 수부터 결정하면서 범위를 좁혀나간다.
     base_sum = getPalinSum(k-1)
@@ -87,21 +87,21 @@ if __name__ == "__main__":
     val_str = ""
     val_str_r = ""
     s = 1  # 맨 앞자리는 0 이 올수 없다.
-    sum = 0
+    sump = 0
 
     while k > 0:
         interval = int(getPalinCount(k) / 9)
         for i in range(s, 10):
-            sum += interval
+            sump += interval
 
-            if sum >= remain_n:
+            if sump >= remain_n:
                 val_str += str(i)
                 if k != 1:
                     val_str_r += str(i)
+                remain_n = remain_n - (sump - interval)
                 k = k - 2
                 s = 0
-                sum = 0
-                remain_n -= (sum - interval)
+                sump = 0
                 break
 
     print(", result : {}".format(val_str + val_str_r[::-1]))
