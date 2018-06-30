@@ -103,20 +103,20 @@ def doit( sz, h ):
     for i in range(len(h)):
         ret = setGivenReport( m, h, i )
         if ret == fail:
-            print("{} th Report is not valid".format(i+1));
+            print("*** {} th Report is not valid".format(i+1));
             break 
 
         updateRelation( m )
-        #print("{}\n".format(m))
+        print("{}\n".format(m))
 
 
 p1 = 3  # number of people
-h1 = [ [1,2,'f'],  # Report
+r1 = [ [1,2,'f'],  # Report
        [2,3,'e'],
        [1,3,'f'] ]
 
 p2 = 5
-h2 = [ [1,2,'f'],
+r2 = [ [1,2,'f'],
        [3,4,'e'],
        [4,5,'f'],
        [2,4,'e'],
@@ -124,8 +124,22 @@ h2 = [ [1,2,'f'],
        [1,4,'e'],
        [5,3,'e'] ]
 
-doit(p1,h1)
-doit(p2,h2)
+p3 = 10
+r3 = [ [1,2,'f'],
+       [3,4,'e'],
+       [4,5,'f'],
+       [2,4,'e'],
+       [4,1,'e'],
+       [1,4,'e'],
+       [5,3,'e'],
+       [7,3,'e'],
+       [7,5,'f'],
+       [4,5,'f'],
+       [7,2,'f'] ]
+
+doit(p1,r1)
+doit(p2,r2)
+doit(p3,r3)
 
 '''
 친구사이가 1 이고 적인 사이가 0 일 때, 0과 1 또는 1과 0이 만나면 1이 되고,
