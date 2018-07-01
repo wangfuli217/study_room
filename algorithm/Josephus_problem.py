@@ -64,13 +64,15 @@ print(l)
 '''
 아래 방법이 몇배 빠름.
 
+# m : 처음 삭제하는 item index
+# b : 마지막 삭제되는 item 뒤에 남는 item 갯수
 def Josephus(n,k):
     a = [x for x in range(1,n+1)]
     m = k - 1
     b = 0
     while len(a) > 1:
         b = ((len(a)+b)%k)
-        del a[m::k]
+        del a[m::k]    # m 을 시작으로 k 간격의 모든 item 삭제
         m = k - b - 1
     return a
 
