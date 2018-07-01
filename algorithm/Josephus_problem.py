@@ -62,5 +62,17 @@ l.pop(0)
 print(l)
 
 '''
-더 빠르게 할 수 있는 방법이 있을 것 같은데...
+아래 방법이 몇배 빠름.
+
+def Josephus(n,k):
+    a = [x for x in range(1,n+1)]
+    m = k - 1
+    b = 0
+    while len(a) > 1:
+        b = ((len(a)+b)%k)
+        del a[m::k]
+        m = k - b - 1
+    return a
+
+print(Josephus(10000000,3))
 '''
