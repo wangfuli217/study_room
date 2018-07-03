@@ -88,12 +88,14 @@ def get_input():
 def modify_number_around( array, r, c ):
     for row in range(-1,2):
         for col in range(-1,2):
-            if row != col:
+            if row != 0 or col != 0:
                 rr = r + row
                 cc = c + col
-                if rr >= 0 or rr <= array.shape[0]:
-                    if cc >= 0 or cc <= array.shape[1]:
-                        array[row,col] += 1
+                if rr >= 0 and rr < array.shape[0]:
+                    if cc >= 0 and cc < array.shape[1]:
+                        before = array[rr,cc]
+                        array[rr,cc] += 1
+                        after = array[rr,cc]
 
 ((input_row,input_col), row_l) = get_input()
 array = np.zeros((input_row, input_col))
@@ -104,4 +106,10 @@ for i in range(len(row_l)):
             array[i,j] = -9
             modify_number_around(array,i,j)
 
-print("{}".format(array))
+for i in range(array.shape[0]):
+    for j in range(array.shape[1]):
+        if array[i,j] < 0:
+            print("*", end='')
+        else:
+            print(str(int(array[i,j])), end='')
+    print("")
