@@ -26,18 +26,36 @@ cur_pos = np.array([0,0])
 direction = 0
 number = 0
 
-while 1:
-    while m[cur_pos[0],cur_pos[1]] == -1:
-        m[cur_pos[0],cur_pos[1]] = number
-        number += 1
-        n = cur_pos + move[direction]
-        if n[0] in [-1,r] or n[1] in [-1,c] or m[n[0],n[1]] != -1:
-            break
-        cur_pos = n
-
-    if number >= int(r) * int(c): 
-        break
-    direction = (direction+1) % len(move)
-    cur_pos = cur_pos + move[direction]
+while m[cur_pos[0],cur_pos[1]] == -1:
+    m[cur_pos[0],cur_pos[1]] = number
+    number += 1
+    n = cur_pos + move[direction]
+    if n[0] in [-1,r] or n[1] in [-1,c] or m[n[0],n[1]] != -1:
+        direction = (direction+1) % len(move)
+        cur_pos = cur_pos + move[direction]
+        continue
+    cur_pos = n
 
 print("{}".format(m))
+
+'''
+아래가 가장 간단한 코드가 될 것 같다.
+
+X,Y = map(int,raw_input().split(' '))
+lis = [[-1 for i in xrange(Y)] for j in xrange(X)]
+x,y = 0,0
+dx,dy = 0,1
+count = 0
+while lis[x][y] == -1:
+    lis[x][y] = count
+    count+=1
+    x,y = x+dx,y+dy
+    if x in [-1,X] or y in [-1,Y] or lis[x][y] != -1:
+        x,y = x-dx,y-dy
+        dx,dy = dy,-dx
+        x,y = x+dx,y+dy
+for L in lis:
+    for val in L:
+        print '%3d'%val,
+    print
+'''
