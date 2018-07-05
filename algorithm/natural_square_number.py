@@ -22,69 +22,38 @@ http://codingdojang.com/scode/542?answer_mode=hide
 출력 : 38, 8, 8
 '''
 
-import sys
+import sys, math
 
-# n 이하의 max square numbr
-def get_max_square_num( n ):
-    t = 1
-    val = 1
-
-    while val <= n:
-        t += 1
-        val = t * t
-    return (t-1)
-
-# n 이하의 square numbr list [1,4,9,16,...]
+# 제곱한 값이 n 이하의 square numbr list [1,4,9,16,...]
 def get_square_list( n ):
     l = []
     t = 1
-    val = 1
-
-    while val <= n:
-        l.append(t)
+    while (t ** 2) <= n:
+        l.append(t**2)
         t += 1
-        val = t * t
         #print(" -> {}".format(l))
     return l
 
 n = int(sys.argv[1])
-result = []
 
-l = get_square_list(n)
+def func(n):
+    if n == 0: return []
 
-if n == (l[-1] * l[-1]):
-    minv = 1
-    result.append(l[-1])
-else:
-    minv = n  # 1 로만 이루어지면 최대 갯수
-    for x in reversed(l):
-        #print("use square number ===> {}".format(x))
-        tmp = []
-        count = 0
-        remain = n
-        max_square = x
+    min_l = []
+    min_len = n
 
-        while remain > 0:
-            m = max_square * max_square
-            quotient = int(remain / m)
-            count += quotient
-            tmp += [max_square] * quotient
+    for x in list(reversed(get_square_list(n))):
+        quo = int(n / x)
+        remain = n % x
 
-            if remain % m == 0:
-                remain = 0
-            else:
-                remain = remain % m
-                max_square = get_max_square_num(remain)
+        l = [x] * quo + func(remain)
+        if len(l) <= min_len:
+            min_l = l
+            min_len = len(l)
 
-        #if len(tmp) <= 10:
-        #    print("  => {} : {}".format(count, tmp))
+    return min_l
 
-        if count <= minv:
-            minv = count
-            result = tmp
+l = func(n)
+l = list(map(lambda x: int(math.sqrt(x)), l))
 
-print("\nresult : count({}) : {}".format(minv,result))
-
-
-'''
-'''
+print("{}".format(l))
