@@ -46,5 +46,17 @@ for l in S:
     else:
         split_S[idx].append(l)
 
-print(len(split_S))
 print(split_S)
+
+odd_item_count = 0
+
+for l in split_S:
+    if len(split_S) % 2 == 1:
+        odd_item_count += 1
+
+if odd_item_count > k:
+    # 홀수인 문자가 k 보다 크면 안됨.
+    print("No")
+else:
+    # 두개 이상이면 i 와 (len(s) - i)가 쌍이 되어야 함.
+    print("Do something")
