@@ -1,3 +1,7 @@
+'''
+test
+'''
+
 import sys
 
 def is_prime_no( n ):
