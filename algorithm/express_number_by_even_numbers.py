@@ -17,6 +17,16 @@ n = int(input())
 
 cd = [ x for x in range(1, n//2+1) if n % x == 0 ] + [n]
 
+'''
 for i in cd:
     print("({},{})".format( i, n//i ), end='' )
+'''
+
+# upgrade
+for i in range(len(cd)):
+    for j in range(i+1,len(cd)):
+        for k in range(j+1,len(cd)):
+            if cd[i] * cd[j] * cd[k] == n:
+                print("({},{},{})".format(cd[i],cd[j],cd[k]), end='')
+
 print('')
