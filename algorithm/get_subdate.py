@@ -40,3 +40,30 @@ else:
     ret += calc_date(y_list[-1],'0100',end_date[4:])
 
 print(ret)
+
+'''
+가독성이 훨씬 좋은 코드
+
+def days_month(month):
+    return  [0,31,28,31,30,31,30,31,31,30,31,30,31][month]
+def days_year(year):
+    if year%400==0:return 366
+    if year%100==0:return 365
+    if year%4==0:return 366
+    return 365
+def convert(yyyymmdd):
+    res = 0
+    ymd = str(yyyymmdd)
+    y = int(ymd[:-4])
+    m = int(ymd[-4:-2])
+    d = int(ymd[-2:])
+    for i in range(1900,y):res += days_year(i)
+    for i in range(1,m):res += days_month(i)
+    res += d
+    return res
+def subdate(a,b):
+    return abs(convert(a)-convert(b))
+
+print subdate(20070515,20070501)
+print subdate(20070301,20070515)
+'''
