@@ -29,26 +29,28 @@
 
 import random as rd
 import numpy as np
+import itertools
 
 h,v = map(int,input().split())
 
 m = np.zeros((h,v),dtype=int)
+
+DIRECTION = list(itertools.product((-1, 0, 1), repeat=2))
+DIRECTION.remove((0, 0))
+
 x = rd.randint(1,h)
 y = rd.randint(1,v)
 
 print("start -> x:{} y:{}".format(x,y))
 
-work_count = 0
+walk_count = 0
 done_count = 0
 
 while 1:
-    if x == 0: movex = rd.randint(0,1)
-    elif x == (h-1): movex = rd.randint(-1,0)
-    else: movex = rd.randint(-1,1)
-
-    if y == 0: movey = rd.randint(0,1)
-    elif y == (v-1): movey = rd.randint(-1,0)
-    else: movey = rd.randint(-1,1)
+    while 1:
+        movex,movey = rd.choice(DIRECTION)
+        if (0 <= (x + movex) < h) and (0 <= (y + movey) < v):
+            break
 
     if (movex,movey) == (0,0):
         continue
@@ -59,12 +61,47 @@ while 1:
     #print("-> ({},{})".format(x,y))
 
     m[x,y] += 1
-    work_count += 1
+    walk_count += 1
 
     if m[x,y] == 1:
         done_count += 1
     if done_count == (h*v):
         break
 
-print(work_count)
-print(m)
+print(walk_count)
+#print(m)
+
+'''
+두번 randint 를 수행하지 않고, 아래와 같은 방식을 사용하면
+좀더 속도가 나올 듯...
+import random
+import itertools
+import time
+
+DIRECTION = list(itertools.product((-1, 0, 1), repeat=2))
+DIRECTION.remove((0, 0))
+
+
+def roach(xsize, ysize, xpos, ypos):
+    matrix = {}
+    pos = (xpos, ypos)
+    count = 0
+    while len(matrix) < xsize * ysize:
+        matrix[pos] = matrix.get(pos, 0) + 1
+        count += 1
+        while True:
+            tempdir = random.choice(DIRECTION)
+            temppos = (pos[0] + tempdir[0], pos[1] + tempdir[1])
+            if -1 < temppos[0] < xsize and -1 < temppos[1] < ysize: break
+        pos = temppos
+    return count, matrix
+
+if __name__ == '__main__':
+    t=time.time()
+    xsize, ysize, xpos, ypos = 100, 100, 0, 0
+    r= roach(xsize,ysize,xpos,ypos)
+    print(r[0])
+    print(time.time()-t)
+    for i in range(ysize):
+        print(' '.join(['{0:3}'.format(str(r[1][(j,i)])) for j in range(xsize)]))
+'''
