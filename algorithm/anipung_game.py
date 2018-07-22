@@ -42,16 +42,6 @@ m = np.zeros((5,5),dtype=int)
 for i in range(5):
     m[4-i] = list(map(int,input().split()))
 
-def get_pung_info( l ):
-    pos = 0
-    size = 0
-    for s in l:
-        if len(s) >= 3:
-            size = len(s)
-            break
-        pos += len(s)
-    return (pos,size)
-
 def to_zero( l ):
     for i in range(len(l)):
         if len(l[i]) >= 3 and l[i][0] != '0':
