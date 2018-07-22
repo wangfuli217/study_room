@@ -114,6 +114,8 @@ print("result : {}".format(v))
 
 
 '''
+깔끔한 Recursive.
+
 def exp(E):
     if E[0] != '(': return E
     if E == '(+)':  return '0'
