@@ -27,15 +27,18 @@
 출력: 똘기 떵이 호치 새초미
 '''
 
-t = list(map(int, input().split()))
-dir = t[0]
+t = input().split()
+dir = int(t[0])
 l = t[1:]
 
-if dir >= 0:
+if dir == 0:
+    ll = l
+elif dir >= 0:
     p = dir % len(l)
     ll = l[-p:] + l[:len(l)-p]
 else:
-    p = len(l) - ( (dir % len(abs(l))) - 1 )
-    ll = l[p:] + l[:p]
+    p = abs(dir) % len(l)
+    p = len(l) - p
+    ll = l[-p:] + l[:len(l)-p]
 
 print(ll)
