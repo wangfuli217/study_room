@@ -28,17 +28,10 @@
 '''
 
 t = input().split()
-dir = int(t[0])
-l = t[1:]
+(dir,l) = (int(t[0]) , t[1:])
 
-if dir == 0:
-    ll = l
-elif dir >= 0:
+if dir != 0:
     p = dir % len(l)
-    ll = l[-p:] + l[:len(l)-p]
-else:
-    p = abs(dir) % len(l)
-    p = len(l) - p
-    ll = l[-p:] + l[:len(l)-p]
+    l = l[-p:] + l[:len(l)-p]
 
-print(ll)
+print(l)
