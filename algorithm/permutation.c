@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-
 void print_result( char * result, int depth )
 {
     int  i;
@@ -20,7 +19,7 @@ void permute( char * arr, int n, int r, int depth, char * result )
     {
         for( i=0; i<n; i++ )
         {
-            if( *(char *)(arr + i) != (char)-1 )
+            if( arr[i] != (char)-1 )
             {
                 result[depth] = arr[i];
                 print_result( result, depth );
@@ -32,7 +31,7 @@ void permute( char * arr, int n, int r, int depth, char * result )
 
     for( i=0; i<n; i++ )
     {
-        if( *(char *)(arr + i) != (char)-1 )
+        if( arr[i] != (char)-1 )
         {
             result[depth] = arr[i];
             arr[i] = (char)-1;
@@ -58,4 +57,6 @@ int main()
     }
 
     permute( arr, n, r, 0, result );
+
+    return 0;
 }
