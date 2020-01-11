@@ -7,22 +7,21 @@ import java.util.HashSet;
 public class FindUnduplicatedMaxString180611 {
 
     public static void solve(String s) {
-        HashSet<Integer> set = new HashSet<>();
+        HashSet<String> set = new HashSet<>();
         int mlen = 0;
         int clen = 0;
 
         for(int i=0; i<s.length(); i++) {
-            if(set.contains((int)s.charAt(i))) {
+            if(set.contains(s.substring(i,i+1))) {
                 set.clear();
-                set.add((int)s.charAt(i));
+                set.add(s.substring(i,i+1));
                 clen = 1;
             } else {
-                set.add((int)s.charAt(i));
+                set.add(s.substring(i,i+1));
                 clen++;
             }
             if(clen > mlen) mlen = clen;
         }
-
         System.out.println(mlen);
     }
 
@@ -42,6 +41,13 @@ public class FindUnduplicatedMaxString180611 {
         solve(s);
 
         s = "abcde";
+        solve(s);
+
+        StringBuffer sb = new StringBuffer();
+        for(int i=0; i<10000000; i++) {
+            sb.append(String.valueOf((char)(i%26 + 'a')));
+        }
+        s = sb.toString();
         solve(s);
     }
 }
