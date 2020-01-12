@@ -22,11 +22,13 @@ public class ParanthesisPair {
         solve(r, n, k+1, dup);
 
         if(k > dup) {
+            // ()()()()... 형태일 때는 위쪽에서 좌측에 추가한 것과 동일하므로 제외
             r = s + "()";
             solve(r, n, k+1, dup);
         }
     }
 
+    // Dn = Dn-1 * 3 - 1
     public static int count(int n) {
         if(n == 1) {
             return 1;
