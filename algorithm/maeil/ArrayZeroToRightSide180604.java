@@ -5,10 +5,11 @@
  * Input: [0, 5, 0, 3, -1]
  * Output: [5, 3, -1, 0, 0]
  */
+import java.util.*;
 
 public class ArrayZeroToRightSide180604 {
 
-    public static void solve(int[] arr) {
+    public static void solve(Integer[] arr) {
         int cidx = 0;
 
         for(int i=0; i<arr.length; i++) {
@@ -21,27 +22,27 @@ public class ArrayZeroToRightSide180604 {
             arr[i] = 0;
         }
 
-        for(int v : arr) {
-            System.out.print(v + " ");
-        }
+        List<Integer> l = Arrays.asList(arr);
+
+        l.forEach(v -> { System.out.print(v + " "); });
         System.out.println();
     }
 
     public static void main(String[] args) {
-        int[] arr = {0,5,0,3,-1};
+        Integer[] arr = {0,5,0,3,-1};
 
         solve(arr);
 
-        int[] arr1 = {3,0,3};
+        Integer[] arr1 = {3,0,3};
         solve(arr1);
 
-        int[] arr2 = {3};
+        Integer[] arr2 = {3};
         solve(arr2);
 
-        int[] arr3 = {0};
+        Integer[] arr3 = {0};
         solve(arr3);
 
-        int[] arr4 = {0,1,2,0,9,0,0,0,-1};
+        Integer[] arr4 = {0,1,2,0,9,0,0,0,-1};
         solve(arr4);
     }
 }
