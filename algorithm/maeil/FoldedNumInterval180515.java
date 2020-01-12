@@ -40,7 +40,8 @@ public class FoldedNumInterval180515 {
             }
         });
 
-        st.forEach(v -> { System.out.print( "{" + v.start + "," + v.end + "} "); });
+        //st.forEach(v -> { System.out.print( "{" + v.start + "," + v.end + "} "); });
+        st.stream().map(v -> "{" + v.start + "," + v.end + "} ").forEach(System.out::print);
         System.out.println();
     }
 

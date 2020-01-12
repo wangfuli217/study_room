@@ -24,7 +24,7 @@ public class ArrayZeroToRightSide180604 {
 
         List<Integer> l = Arrays.asList(arr);
 
-        l.forEach(v -> { System.out.print(v + " "); });
+        l.stream().map(v -> v + " ").forEach(System.out::print);
         System.out.println();
     }
 
